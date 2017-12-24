@@ -1,18 +1,10 @@
-% options:
-% thesis=B bachelor's thesis
-% thesis=M master's thesis
-% czech thesis in Czech language
-% english thesis in English language
 % hidelinks remove colour boxes around hyperlinks
-
-\documentclass[thesis=B,czech]{FITthesis}[2012/10/20]
+\documentclass[thesis=M,czech]{FITthesis}[2012/10/20]
 
 \usepackage[utf8]{inputenc} % LaTeX source encoded as UTF-8
-
 \usepackage{graphicx} %graphics files inclusion
-% \usepackage{amsmath} %advanced maths
-% \usepackage{amssymb} %additional math symbols
-
+\usepackage{amsmath} %advanced maths
+\usepackage{amssymb} %additional math symbols
 \usepackage{dirtree}
 
 % % list of acronyms
@@ -20,34 +12,24 @@
 % \iflanguage{czech}{\renewcommand*{\acronymname}{Seznam pou{\v z}it{\' y}ch zkratek}}{}
 % \makeglossaries
 
-\newcommand{\tg}{\mathop{\mathrm{tg}}} %cesky tangens
-\newcommand{\cotg}{\mathop{\mathrm{cotg}}} %cesky cotangens
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
-% ODTUD DAL VSE ZMENTE
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
-
-\department{Katedra teoretické informatiky}
-\title{Příklad vyplněné šablony}
-\authorGN{Jan} %(křestní) jméno (jména) autora
-\authorFN{Nový} %příjmení autora
-\authorWithDegrees{Jan Nový} %jméno autora včetně akademických titulů
-\author{Jan Nový} %jméno autora bez akademických titulů
-\supervisor{doc. Ing. Marek Navrátil}
-\acknowledgements{Děkuji všem a za vše. Nevíte-li, co sem napsat, příkaz odstraňte.}
-\abstractCS{V~několika větách shrňte obsah a přínos této práce v~češtině. Po přečtení abstraktu by měl mít čtenář dost informací pro rozhodnutí, zda chce Vaši práci číst.}
-\abstractEN{Sem doplňte ekvivalent abstraktu Vaší práce v~angličtině.}
+\department{Katedra počítačových systémů}
+\title{Komunikace skrze Captive portal}
+\authorGN{Martin} %(křestní) jméno (jména) autora
+\authorFN{Černáč} %příjmení autora
+\authorWithDegrees{Bc. Martin Černáč} %jméno autora včetně akademických titulů
+\author{Martin Černáč} %jméno autora bez akademických titulů
+\supervisor{Ing. Aleš Padrta, Ph. D.}
+\acknowledgements{TODO Děkuji všem a za vše. Nevíte-li, co sem napsat, příkaz odstraňte.}
+\abstractCS{TODO V~několika větách shrňte obsah a přínos této práce v~češtině. Po přečtení abstraktu by měl mít čtenář dost informací pro rozhodnutí, zda chce Vaši práci číst.}
+\abstractEN{TODO Sem doplňte ekvivalent abstraktu Vaší práce v~angličtině.}
 \placeForDeclarationOfAuthenticity{V~Praze}
 \declarationOfAuthenticityOption{4} %volba Prohlášení
 \keywordsCS{Závěrečná práce, \LaTeX{}.}
 \keywordsEN{Thesis, \LaTeX{}.}
-\website{http://site.example/thesis} %volitelná URL práce, objeví se v tiráži
+\website{https://github.com/octaroot/CTU-FIT-MasterThesis} %volitelná URL práce, objeví se v tiráži
 
 
 \begin{document}
-
-% \newacronym{CVUT}{{\v C}VUT}{{\v C}esk{\' e} vysok{\' e} u{\v c}en{\' i} technick{\' e} v Praze}
-% \newacronym{FIT}{FIT}{Fakulta informa{\v c}n{\' i}ch technologi{\' i}}
 
 \begin{introduction}
 	Doplňte úvod Vaší práce.
@@ -70,7 +52,7 @@ Doplňte vhodný text.
 \end{conclusion}
 
 \bibliographystyle{csn690}
-\bibliography{mybibliographyfile}
+\bibliography{literatura}
 
 \appendix
 
