@@ -30,21 +30,58 @@
 \website{https://github.com/octaroot/CTU-FIT-MasterThesis} %volitelná URL práce, objeví se v tiráži
 
 
+%dobre zdroje
+%https://www.secplicity.org/2016/08/26/lessons-defcon-2016-bypassing-captive-portals/
+%https://en.wikipedia.org/wiki/Captive_portal
+%https://www.ietf.org/mail-archive/web/captive-portals/current/threads.html#00090
+
+%seznam sw reseni
+%https://mohammadthalif.wordpress.com/2010/12/14/list-of-open-source-captive-portal-software-and-network-access-control-nac/
+
+%jak captive skodi a jak to delat nejlepe
+%https://www.eff.org/deeplinks/2017/08/how-captive-portals-interfere-wireless-security-and-privacy
+
+%ukazkova byznys stranka, ktera vychvaluje svuj captive sw ... lol
+%prvni argument je uplne mimo, na podvrzene HTML strance neni nic legitniho, uplna blbost
+%treti argument zminuje tracking uzivatele diky vynuceni loginu skrze socialni site, nebo email (chapu to tak, ze tam proste dam adresu a pusti me dal)
+%https://www.securedgenetworks.com/blog/why-is-a-captive-portal-important-for-wireless-guest-access
+
 \begin{document}
 
 \begin{introduction}
 	Doplňte úvod Vaší práce.
 \end{introduction}
 
-\chapter{Nějaká kapitola}
+\chapter{Analýza současné situace}
 
-Doplňte kapitoly Vaší práce.
+co to je captive portal. jak je mozne ho realizovat (DNS/L3 ICMP/preklad *:80 na muj server -- casto zarizeni po pripojeni zkusi nacist nejakou well-known URL ktera by mela vratit HTTP 204)
 
-\section{Nějaká sekce}
+proc to mame. legislativa provozu hotspotu. lidi odslouhlasi podminky sluzby, kryju se tim ja jako provozovatel -- nabizim jim sluzbu, ktera neni sofrovana.
+captive portal na dedikovane guest wifina: oddeleni guest trafficu, snazsi omezeni sirky pasma, data collection -- jaci lide se pripojuji na muj hotspot ... muzu napriklad nabidnou prihlaseni pres FB/jinou soc. sit.
+
+technicke problemy. je potreba prohlizec, ten ale spousta zarizeni proste nema (herni konzole Nintendo DS napr) -- resi se to \texttt{WISPr}. User je casto identifikovan pouze MAC/IP kombem -> sniff -> spoof.
+
+netechnicke problemy. podvrzene ssl certy uci uzivatele klikat na ``ano, ano, verim vsemu, hlavne at jede FB''.
+
+proc je to na nic. casto podvrhavane certifikaty, aby bylo mozne dostat uzivatle na loginpage. V podstate MITM! Nutnost zadat email, pravdepodobne za ucelem SPAMovani. Nekdy je nutne i shlednout videoreklamu ala youtube/iprima.
+
+jak se to da obejit. DNS/ICMP tunely, VoIP SIP porty obcas otevrene, web caching proxy 3128. mozna dokonce SSH 22?
+
+jak se to da delat jinak - 802.1x kdyz uz mame ucty .. wifi treba v kavarne kdyz si neco dam, to si umim predstavit.
+
+kdyz to nejde jinak, tak jak alespon lepe -- viz EFF article v sources/ -- napr neblokovat detekci captive portalu (HTTP 204 responses obvykle (No Content) -- protoze pak OS vetsinou nabidne nejaky osekany browser, ve kterem se otevre login form, coz snizuje pst. nejakeho leaku dat.
+
+\chapter{Návrh řešení}
 
 Doplňte vhodný text.
 
-\chapter{Další kapitola}
+\chapter{Implementace}
+
+Doplňte vhodný text.
+
+\chapter{Testování}
+
+Doplňte vhodný text.
 
 
 \begin{conclusion}
