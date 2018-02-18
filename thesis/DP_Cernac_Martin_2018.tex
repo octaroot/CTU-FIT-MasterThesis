@@ -49,10 +49,31 @@
 \begin{document}
 
 \begin{introduction}
-	Doplňte úvod Vaší práce.
+Bezdrátové sítě se staly zcela běžným prostředkem mezilidské komunikace. Účastníci bezdrátové sítě mají možnost vyměňovat si navzájem informace a nebýt přitom omezeni kabelovým spojením. Pozitivním důsledkem je tedy zvýšená mobilita účastníků. Ta vedla k vlně popularity mobilních telefonů, využívajících bezdrátovou síť \textit{GSM}.
+
+S rostoucími nároky uživatelů prošly běžně dostupné bezdrátové sítě rozsáhlým vývojem (vyšší prostupnost, nižší latence a další aspekty). Mezi dlouhodobě populární a rozšířené typy bezdrátových sítí se řadí technologie \textit{Wi-Fi}. Jedná se o technologii podporovanou širokým spektrem spotřební elektroniky (například televizory, tiskárny, mobilní telefony nebo počítače). Provozování \textit{Wi-Fi} sítě je díky bezlicenčnímu pásmu \textit{ISM} snadné a na trhu je dostupná celá řada produktů, zajišťující provoz takové sítě.
+
+Z těchto důvodů došlo k velkému rozmachu takzvaných \textit{hotspotů}, tedy veřejně přístupných míst s pokrytím \textit{Wi-Fi} sítě. Taková Wi-Fi síť je zpravidla snadno přístupná a účastníkům nabízí přístup do sítě Internet. Ačkoliv je velice snadné začít s provozem \textit{hotspotu}, je nutné dbát na další aspekty provozu takové služby -- zejména právní aspekty.
+
+Účastníci \textit{hotspotu} by měli být srozuměni s pravidly používání konkrétní sítě, limitovanou odpovědností provozovatele a před začátkem užívání sítě doložit svůj souhlas s pravidly. Provozovatel navíc může mít zájem o některé informace o uživatelích \textit{hotspotu}, případně po jisté době používání službu zpoplatnit.
+
+Technologie \textit{Wi-Fi} však sama o sobě neumožňuje nic z výše uvedeného. Takovou situaci lze vyřešit například zapojením recepce v prostředí hotelu (uživatel písemně vyjádří souhlas s pravidly používání sítě, recepční vydá přístupové údaje do sítě). Častěji se však setkáváme s automatizovaným přístupem, realizovaným pomocí \textit{captive portálu} (z angličtiny \textit{Captive portal}).
+
+Řešení s pomocí \textit{captive portálu} spočívá v detekci nově připojeného účastníka, informování o pravidlech provoz sítě a výzvu k jejich odsouhlasení účastníkem. Všechny následné interakce účastníka se sítí \textit{captive portál} ignoruje a nezasahuje do nich.
+
+Z principu věci musí být \textit{captive portál} schopen \textbf{nejprve zasahovat do veškerého síťového provozu} (účastník doposud nedoložil souhlas s pravidly, neměl by mít možnost síť využívat) a \textbf{následně do provozu konkrétního účastníka nezasahovat vůbec}. Existuje celá řada technologických postupů pro docílení popsaného efektu. Mnohé z nich jsou však neefektivní a spoléhají na součinnost účastníka.
+
+Právě proto jsem se rozhodl vypracovat diplomovou práci na téma obcházení \textit{captive portálu}, zdůrazňující jejich technologickou nedokonalost a poukázat na lepší řešení řízení síťového přístupu (\textit{Network Access Control}).
+
+V této práci se proto budu zabývat popisem problematiky \textit{captive portálů} a obecnými způsoby jejich obcházení. Jako demonstraci technologické nedokonalosti užití \textit{captive portálu} pro zajištění řízení síťového přístupu rovněž navrhnu a implementuji protokol s důrazem na maximální prostupnost. Implementovaný protokol otestuji a provedu srovnání s dostupnými nástroji pro obcházení \textit{captive portálů}.
 \end{introduction}
 
 \chapter{Analýza současné situace}
+
+Tato kapitola se věnuje problematice \textit{captive portálů}, motivací jejich nasazení v síti a častými problémy s používáním \textit{captive portálu} jako nástroje pro zajištění řízení síťového přístupu.
+
+
+\section{test}
 
 co to je captive portal. jak je mozne ho realizovat (DNS/L3 ICMP/preklad *:80 na muj server -- casto zarizeni po pripojeni zkusi nacist nejakou well-known URL ktera by mela vratit HTTP 204)
 
@@ -96,10 +117,17 @@ Doplňte vhodný text.
 
 \chapter{Seznam použitých zkratek}
 % \printglossaries
+
+
+
+%TODO sort a-z
 \begin{description}
 	\item[DNS] Domain Name System
 	\item[ICMP] Internet Control Message Protocol
 	\item[XML] Extensible markup language
+	\item[ISM] Industrial, Scientific and Medical radio bands -- kmitočty pro použití v průmyslu, vědě a medicíně
+	\item[NAC] Network Access Control -- řízení síťového přístupu
+	\item[GSM] Global System for Mobile Communications -- Globální Systém pro Mobilní komunikaci
 \end{description}
 
 
