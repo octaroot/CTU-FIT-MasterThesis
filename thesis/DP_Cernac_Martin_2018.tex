@@ -78,6 +78,9 @@ Tato kapitola se věnuje problematice \textit{captive portálů}, motivací jeji
 
 \subsection{Motivace nasazení}
 
+% proc to mame. legislativa provozu hotspotu. lidi odslouhlasi podminky sluzby, kryju se tim ja jako provozovatel -- nabizim jim sluzbu, ktera neni sofrovana.
+% captive portal na dedikovane guest wifina: oddeleni guest trafficu, snazsi omezeni sirky pasma, data collection -- jaci lide se pripojuji na muj hotspot ... muzu napriklad nabidnou prihlaseni pres FB/jinou soc. sit.
+
 \textit{Captive portál} je do provozu sítě často nasazován jako nástroj pro zajištění řízení síťového přístupu. Přístup do sítě je umožněn pouze klientům, kteří splní podmínky přístupu do sítě. Takovou podmínkou může být pouhé vyjádření souhlasu s používáním konkrétní sítě, nebo se může jednat o podmínku složitější, například:
 
 \begin{itemize}
@@ -100,28 +103,63 @@ Alternativně uživatel může doložit své oprávnění pro přístup do sít�
 
 
 
+\subsection{Realizační technologie}
 
+% jak captive portal funguje.
+% jak je mozne ho realizovat (DNS/L3 ICMP/preklad *:80 na muj server -- casto zarizeni po pripojeni zkusi nacist nejakou well-known URL ktera by mela vratit HTTP 204)
 
+\subsection{Technické problémy}
 
+% https
+% transaprency logs ??
+% technicke problemy. je potreba prohlizec
+%    ten ale spousta zarizeni proste nema (herni konzole Nintendo DS napr) -- resi se to \texttt{WISPr}-
+% User je casto identifikovan pouze MAC/IP kombem -> sniff -> spoof.
+% casto podvrhavane certifikaty, aby bylo mozne dostat uzivatle na loginpage.
+% MITM! jak takove siti mohu verit ??
 
+% obcas captive portal blokuje moc a OS nechape, ze je za captivem
+% tzn neotevre se normalni OS-native popup (nejaky prohlizec bez session)
+% ale clovek to musi udelat v normalnim prohlizeci .. possible data leaks
 
-% 
-% co to je captive portal. jak je mozne ho realizovat (DNS/L3 ICMP/preklad *:80 na muj server -- casto zarizeni po pripojeni zkusi nacist nejakou well-known URL ktera by mela vratit HTTP 204)
-% 
-% proc to mame. legislativa provozu hotspotu. lidi odslouhlasi podminky sluzby, kryju se tim ja jako provozovatel -- nabizim jim sluzbu, ktera neni sofrovana.
-% captive portal na dedikovane guest wifina: oddeleni guest trafficu, snazsi omezeni sirky pasma, data collection -- jaci lide se pripojuji na muj hotspot ... muzu napriklad nabidnou prihlaseni pres FB/jinou soc. sit.
-% 
-% technicke problemy. je potreba prohlizec, ten ale spousta zarizeni proste nema (herni konzole Nintendo DS napr) -- resi se to \texttt{WISPr}. User je casto identifikovan pouze MAC/IP kombem -> sniff -> spoof.
-% 
-% netechnicke problemy. podvrzene ssl certy uci uzivatele klikat na ``ano, ano, verim vsemu, hlavne at jede FB''.
-% 
-% proc je to na nic. casto podvrhavane certifikaty, aby bylo mozne dostat uzivatle na loginpage. V podstate MITM! Nutnost zadat email, pravdepodobne za ucelem SPAMovani. Nekdy je nutne i shlednout videoreklamu ala youtube/iprima.
-% 
-% jak se to da obejit. DNS/ICMP tunely, VoIP SIP porty obcas otevrene, web caching proxy 3128. mozna dokonce SSH 22?
-% 
+% jak captive detekuje chrome-os/chromium
+% https://www.chromium.org/chromium-os/chromiumos-design-docs/network-portal-detection
+
+\subsection{Netechnické problémy}
+
+% podvrzene ssl certy uci uzivatele klikat na ``ano, ano, verim vsemu, hlavne at jede FB''.
+%
+% Nutnost splneni podminek pro pristup - napr. zadat email, pravdepodobne za ucelem SPAMovani.
+% Nekdy je nutne i shlednout videoreklamu ala youtube/iprima.
+% nekdy i vice invazivni a otravne veci
+% o tom uz jsem psal, tak jen strucne
+
+\subsection{Alternativy captive portálů}
+
 % jak se to da delat jinak - 802.1x kdyz uz mame ucty .. wifi treba v kavarne kdyz si neco dam, to si umim predstavit.
-% 
-% kdyz to nejde jinak, tak jak alespon lepe -- viz EFF article v sources/ -- napr neblokovat detekci captive portalu (HTTP 204 responses obvykle (No Content) -- protoze pak OS vetsinou nabidne nejaky osekany browser, ve kterem se otevre login form, coz snizuje pst. nejakeho leaku dat.
+% eduroam !! funguje naprosto v pohode! stejne vetsina captive protalu ma nekde v pozadi RADIUS
+% negativa - ne kazdy klient to podporuje .. ale je 2018, takovych uz neni mnoho
+
+% kdyz to nejde jinak, tak jak alespon lepe -- viz EFF article v sources/
+%   -- napr neblokovat detekci captive portalu (HTTP 204 responses obvykle (No Content) -- protoze pak OS vetsinou nabidne nejaky osekany browser, ve kterem se otevre login form, coz snizuje pst. nejakeho leaku dat.
+
+
+\section{Metody pro obcházení captive portálů}
+
+% alfa-omega - pro pristup ke captive portalu musim byt validnim ucatnikem site
+% tj musi fungovat DHCP (musim mit IP, musim zant GW), musi ``fungovat`` DNS
+% to je problem zejo, kdyz uz na siti jsem je mnohem tezsi snazit se me nejak omezit
+%
+% jak se to da obejit.
+% DNS tunely    DNSX, iodine (Ip Over DNS - atomic(I)=53 .. haha asociace)
+% ICMP tunely   ICMPX
+% VoIP SIP porty obcas otevrene
+% web caching proxy 3128.
+% mozna dokonce SSH 22?
+
+% cilem prace je vyuzit co nejvic technik a delat MUX trafficu
+
+
 
 % SSH spojeni, MUX (parsuje TCP stream a prenasi jen data po TCP(via SSH tunel)
 % pro muj ucel nepouzitelne, ale zajiamve
@@ -130,8 +168,6 @@ Alternativně uživatel může doložit své oprávnění pro přístup do sít�
 
 % pokud budu diskutovat kmitocty ISM pasma, ČTÚ ma na webu hezky popsany smernice odkud co a proc je bezlicencni atd.
 
-% jak captive detekuje chormium
-% https://www.chromium.org/chromium-os/chromiumos-design-docs/network-portal-detection
 
 \chapter{Návrh řešení}
 
