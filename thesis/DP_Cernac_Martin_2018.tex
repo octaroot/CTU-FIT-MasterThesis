@@ -139,6 +139,9 @@ Alternativně k periodickému promazávání seznamu autorizovaných klientů m�
 
 Ve chvíli, kdy je \textit{captive portál} schopen rozeznat autorizované a neautorizované uživatele, musí rovněž mít možnost neautorizované uživatele nasměrovat na webovou aplikaci \textit{captive portálu}. Pro splnění takového úkolu musí \textit{captive portál} efektivně provádět \texttt{MITM} útok na nově připojené uživatele. Při přístupu neautorizovaného uživatele na libovolnou webovou stránku protokolem \texttt{HTTP} je jeho provoz odkloněn a vrácena odpověď od \textit{captive portálu}, která prohlížeč uživatele nasměruje na webovou aplikaci \textit{captive portálu}. K tomu lze využít několik technik.
 
+
+%TODO - nasledujici tri sekce by mozna nebylo spatne vice rozvest. Na to se musim zeptat Alese, neni to uplne pointa tehle diplomky, vytvaret captive portal
+
 \subsubsection{\texttt{HTTP} přesměrování}
 Při pokusu o přístup na webovou stránku \texttt{www.example.com} je požadavek klienta odkloněn a odpověď na požadavek zaslána přímo z \textit{captive portálu}. V odpovědi je zpravidla využita \texttt{HTTP} hlavička \texttt{302 Found}, která prohlížeč klienta nasměruje na webovou aplikace \textit{captive portálu}, viz Ukázka \ref{verb:http-302}.
 
@@ -157,6 +160,8 @@ Při pokusu o přístup na webovou stránku \texttt{www.example.com} je požadav
 
 Protokol \texttt{ICMP} specifikuje zprávy, které může směrovač poslat koncové stanici, pokud taková stanice v rámce své komunikace používá suboptimální trasu. Je zcela v režii cílové stanice, zda-li si nechá o svém směrování radit od zařízení v síti. Tato metoda spoléhá na situaci, kdy koncová stanice upraví svou směrovací tabulku a zanese do ní informace z \texttt{ICMP} \textit{host redirect} zprávy. Takovou zprávu odešle \textit{captive portál}, když detekuje pokus o spojení uživatele se serverem v Internetu. \texttt{ICMP} zpráva se pokusí cílovou stanici uživatele přesvědčit, že ideální cesta vede skrze server provozující \textit{captive portál}. Koncová stanice upraví své směrování a začne komunikovat se svým protějškem skrze \textit{captive portál}, který může dále komunikaci manipulovat za účelem nasměrování uživatele na webovou aplikaci \textit{captive portálu}.
 
+
+%TODO - mozna dodat tabulku OS a defaultnich voleb pro prijem redirectu? zminit secure_redirect? dat nejakou citaci treba na ubuntu hardening (vypadla na me z googlu ubuntu secure_redirect)
 
 \subsubsection{Podvržení \texttt{DNS}}
 
