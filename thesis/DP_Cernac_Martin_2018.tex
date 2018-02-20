@@ -72,11 +72,31 @@ V této práci se proto budu zabývat popisem problematiky \textit{captive port�
 
 Tato kapitola se věnuje problematice \textit{captive portálů}, motivací jejich nasazení v síti a častými problémy s používáním \textit{captive portálu} jako nástroje pro zajištění řízení síťového přístupu.
 
+\section{Captive portál}
 
-\section{test}
+\textit{Captive portál} představuje webovou aplikaci, často nasazovanou na veřejně přístupných sítích. Aplikace má za úkol informovat nově připojené klienty o podmínkách užití sítě a požadovat uživatelův souhlas s jejich dodržováním. Až do momentu souhlasu s podmínkami užití sítě je uživateli odepřen přístup do zbytku sítě. Z toho plyne první část názvu \textit{\textbf{Captive} portál} -- uživatel je \uv{zajatý}, \uv{uvězněný} (v angličtině \textit{captive}).
+
+\subsection{Motivace nasazení}
+
+\textit{Captive portál} je do provozu sítě často nasazován jako nástroj pro zajištění řízení síťového přístupu. Přístup do sítě je umožněn pouze klientům, kteří splní podmínky přístupu do sítě. Takovou podmínkou může být pouhé vyjádření souhlasu s používáním konkrétní sítě, nebo se může jednat o podmínku složitější, například:
+
+\begin{itemize}
+ \item shlédnutí reklamního spotu dle výběru provozovatele
+ \item uhrazení poplatku pro přístup do sítě
+ \item poskytnutí některých osobních údajů a souhlasu s jejich zpracováním
+ \item doložení oprávnění pro přístup do sítě (kód z účtenky, číslo hotelového pokoje, \ldots)
+ \item zviditelnění provozovatele pomocí sociálních médií (například Facebook \textit{check-in})
+\end{itemize}
+
+Jak plyne z výše uvedeného výčtu, vyjma právních aspektů může být \textit{captive portál} použit i pro shromažďování údajů o uživatelích sítě. Vhodným nástrojem pro takovou aktivitu je preferování \uv{přihlášení se} do \textit{captive portálu} pomocí uživatelova účtu na některé ze sociálních sítí. Webová aplikace (\textit{captive portál}) si od sociální sítě vyžádá informace jako například jméno, fotografii, pohlaví nebo datum narození uživatele. Provozovatel tedy může uživatele identifikovat, detekovat opakované návštěvy \textit{hotspotu} a (umožní-li mu to uživatel) nakládat se zaznamenanou aktivitou uživatele v síti. Na oplátku je uživateli \uv{zdarma} poskytnut přístup do sítě Internet.
 
 
+%TODO pridat citaci a mozna obrazek
+Společnost Facebook provozuje službu \textit{Facebook Wi-Fi}, cílenou na majitele obchodů. Jedná se o řešení na bázi \textit{captive portálu}, které vyžaduje aby uživatel sítě měl konto na sociální síti Facebook. Po připojení uživatele do sítě je uživatel vyzván ke sdílení informace o návštěvě obchodu, jehož \textit{hotspot} právě používá.
 
+Poněkud méně invazivní motivací pro zavedení \textit{captive portálu} je prodej reklamního místa -- uživatel po připojení do sítě musí shlédnou reklamní spot, nebo vyplnit krátkou anketu. Provozovatel \textit{hotspotu} získá z takové aktivity finanční odměnu a protislužbou uživateli je přístup do sítě Internet.
+
+Alternativně uživatel může doložit své oprávnění pro přístup do sítě. Například jednorázový kód z účtenky, čímž dokládá útratu v podniku, který \textit{hotspot} provozuje. Nebo číslo hotelového pokoje, čímž dokládá svůj pobyt v hotelu, který zahrnuje (jinak zpoplatněný) přístup do sítě Internet.
 
 
 
