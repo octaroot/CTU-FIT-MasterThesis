@@ -7,6 +7,14 @@
 \usepackage{amssymb} %additional math symbols
 \usepackage{dirtree}
 \usepackage{pdfpages}
+\usepackage{listings}
+\lstset{
+basicstyle=\small\ttfamily,
+columns=flexible,
+breaklines=true,
+captionpos=b
+}
+\renewcommand{\lstlistingname}{Ukázka kódu}
 
 % % list of acronyms
 % \usepackage[acronym,nonumberlist,toc,numberedsection=autolabel]{glossaries}
@@ -49,15 +57,15 @@
 \begin{document}
 
 \begin{introduction}
-Bezdrátové sítě se staly zcela běžným prostředkem mezilidské komunikace. Účastníci bezdrátové sítě mají možnost vyměňovat si navzájem informace a nebýt přitom omezeni kabelovým spojením. Pozitivním důsledkem je tedy zvýšená mobilita účastníků. Ta vedla k vlně popularity mobilních telefonů, využívajících bezdrátovou síť \textit{GSM}.
+Bezdrátové sítě se staly zcela běžným prostředkem mezilidské komunikace. Účastníci bezdrátové sítě mají možnost vyměňovat si navzájem informace a nebýt přitom omezeni kabelovým spojením. Pozitivním důsledkem je tedy zvýšená mobilita účastníků. Ta vedla k vlně popularity mobilních telefonů, využívajících bezdrátovou síť \texttt{GSM}.
 
-S rostoucími nároky uživatelů prošly běžně dostupné bezdrátové sítě rozsáhlým vývojem (vyšší prostupnost, nižší latence a další aspekty). Mezi dlouhodobě populární a rozšířené typy bezdrátových sítí se řadí technologie \textit{Wi-Fi}. Jedná se o technologii podporovanou širokým spektrem spotřební elektroniky (například televizory, tiskárny, mobilní telefony nebo počítače). Provozování \textit{Wi-Fi} sítě je díky bezlicenčnímu pásmu \textit{ISM} snadné a na trhu je dostupná celá řada produktů, zajišťující provoz takové sítě.
+S rostoucími nároky uživatelů prošly běžně dostupné bezdrátové sítě rozsáhlým vývojem (vyšší prostupnost, nižší latence a další aspekty). Mezi dlouhodobě populární a rozšířené typy bezdrátových sítí se řadí technologie \texttt{Wi-Fi}. Jedná se o technologii podporovanou širokým spektrem spotřební elektroniky (například televizory, tiskárny, mobilní telefony nebo počítače). Provozování \texttt{Wi-Fi} sítě je díky bezlicenčnímu pásmu \texttt{ISM} snadné a na trhu je dostupná celá řada produktů, zajišťující provoz takové sítě.
 
-Z těchto důvodů došlo k velkému rozmachu takzvaných \textit{hotspotů}, tedy veřejně přístupných míst s pokrytím \textit{Wi-Fi} sítě. Taková Wi-Fi síť je zpravidla snadno přístupná a účastníkům nabízí přístup do sítě Internet. Ačkoliv je velice snadné začít s provozem \textit{hotspotu}, je nutné dbát na další aspekty provozu takové služby -- zejména právní aspekty.
+Z těchto důvodů došlo k velkému rozmachu takzvaných \textit{hotspotů}, tedy veřejně přístupných míst s pokrytím \texttt{Wi-Fi} sítě. Taková \texttt{Wi-Fi} síť je zpravidla snadno přístupná a účastníkům nabízí přístup do sítě Internet. Ačkoliv je velice snadné začít s provozem \textit{hotspotu}, je nutné dbát na další aspekty provozu takové služby -- zejména právní aspekty.
 
 Účastníci \textit{hotspotu} by měli být srozuměni s pravidly používání konkrétní sítě, limitovanou odpovědností provozovatele a před začátkem užívání sítě doložit svůj souhlas s pravidly. Provozovatel navíc může mít zájem o některé informace o uživatelích \textit{hotspotu}, případně po jisté době používání službu zpoplatnit.
 
-Technologie \textit{Wi-Fi} však sama o sobě neumožňuje nic z výše uvedeného. Takovou situaci lze vyřešit například zapojením recepce v prostředí hotelu (uživatel písemně vyjádří souhlas s pravidly používání sítě, recepční vydá přístupové údaje do sítě). Častěji se však setkáváme s automatizovaným přístupem, realizovaným pomocí \textit{captive portálu} (z angličtiny \textit{Captive portal}).
+Technologie \texttt{Wi-Fi} však sama o sobě neumožňuje nic z výše uvedeného. Takovou situaci lze vyřešit například zapojením recepce v prostředí hotelu (uživatel písemně vyjádří souhlas s pravidly používání sítě, recepční vydá přístupové údaje do sítě). Častěji se však setkáváme s automatizovaným přístupem, realizovaným pomocí \textit{captive portálu} (z angličtiny \textit{Captive portal}).
 
 Řešení s pomocí \textit{captive portálu} spočívá v detekci nově připojeného účastníka, informování o pravidlech provoz sítě a výzvu k jejich odsouhlasení účastníkem. Všechny následné interakce účastníka se sítí \textit{captive portál} ignoruje a nezasahuje do nich.
 
@@ -94,13 +102,12 @@ Tato kapitola se věnuje problematice \textit{captive portálů}, motivací jeji
 Jak plyne z výše uvedeného výčtu, vyjma právních aspektů může být \textit{captive portál} použit i pro shromažďování údajů o uživatelích sítě. Vhodným nástrojem pro takovou aktivitu je preferování \uv{přihlášení se} do \textit{captive portálu} pomocí uživatelova účtu na některé ze sociálních sítí. Webová aplikace (\textit{captive portál}) si od sociální sítě vyžádá informace jako například jméno, fotografii, pohlaví nebo datum narození uživatele. Provozovatel tedy může uživatele identifikovat, detekovat opakované návštěvy \textit{hotspotu} a (umožní-li mu to uživatel) nakládat se zaznamenanou aktivitou uživatele v síti. Na oplátku je uživateli \uv{zdarma} poskytnut přístup do sítě Internet.
 
 
-%TODO pridat citaci a mozna obrazek
-Společnost Facebook provozuje službu \textit{Facebook Wi-Fi}, cílenou na majitele obchodů. Jedná se o řešení na bázi \textit{captive portálu}, které vyžaduje aby uživatel sítě měl konto na sociální síti Facebook. Po připojení uživatele do sítě je uživatel vyzván ke sdílení informace o návštěvě obchodu, jehož \textit{hotspot} právě používá.
+%TODO pridat citaci primo od FB a mozna obrazek
+Společnost Facebook provozuje\cite{facebook_wifi} službu \textit{Facebook Wi-Fi}, cílenou na majitele obchodů. Jedná se o řešení na bázi \textit{captive portálu}, které vyžaduje aby uživatel sítě měl konto na sociální síti Facebook. Po připojení uživatele do sítě je uživatel vyzván ke sdílení informace o návštěvě obchodu, jehož \textit{hotspot} právě používá.
 
 Poněkud méně invazivní motivací pro zavedení \textit{captive portálu} je prodej reklamního místa -- uživatel po připojení do sítě musí shlédnou reklamní spot, nebo vyplnit krátkou anketu. Provozovatel \textit{hotspotu} získá z takové aktivity finanční odměnu a protislužbou uživateli je přístup do sítě Internet.
 
 Alternativně uživatel může doložit své oprávnění pro přístup do sítě. Například jednorázový kód z účtenky, čímž dokládá útratu v podniku, který \textit{hotspot} provozuje. Nebo číslo hotelového pokoje, čímž dokládá svůj pobyt v hotelu, který zahrnuje (jinak zpoplatněný) přístup do sítě Internet.
-
 
 
 \subsection{Realizační technologie}
@@ -108,12 +115,68 @@ Alternativně uživatel může doložit své oprávnění pro přístup do sít�
 % jak captive portal funguje.
 % jak je mozne ho realizovat (DNS/L3 ICMP/preklad *:80 na muj server -- casto zarizeni po pripojeni zkusi nacist nejakou well-known URL ktera by mela vratit HTTP 204)
 
+Úkolem \textit{captive portálu} je detekovat nově připojené uživatele sítě, omezit jim přístup do sítě a nasměrovat je na webovou aplikaci captive portálu. Po splnění podmínek pro plnohodnotný přístup uživatele do zbytku sítě nesmí \textit{captive portál} do komunikace dále zasahovat (tj. musí \textit{detekovat}, že síťový provoz patří oprávněnému uživateli).
+
+% TODO tohle je hodne smele tvrzeni, chybi omacka okolo
+Takový cíl je možné realizovat celou řadou postupů a technologií.
+
+% TODO tohle moc nenavazuje na predchazejici tvrzeni (1 hola veta)
+\textit{Captive portál} může vycházet pouze z informací, které putují po síti. Detekce nově připojených uživatelů a identifikace oprávněných uživatelů je tedy zpravidla založena dvojici identifikátorů:
+
+\begin{itemize}
+ \item globálně unikátní \texttt{MAC} adrese konkrétního zařízení
+ \item přidělené \texttt{IP} adrese
+\end{itemize}
+
+\textit{Captive portál} lokálně ukládá informace o autorizovaných účastnících sítě (zaznamenává jejich \texttt{MAC} a \texttt{IP} adresy). Síťový provoz takových uživatelů není narušován. Pokud však uživatel využívá zařízení, které \textit{captive portál} na svém seznamu nenalezne, síťový provoz je nutné buď zahodit, nebo zmanipulovat takovým způsobem, aby uživatel navštívil webovou aplikaci \textit{captive portálu} a mohl se identifikovat. Záznamy na seznamu autorizovaných uživatelů sítě zpravidla podléhají periodickému mazání neaktivních účastníků -- uživatel je tedy nucen se po delší době nečinnosti opakovaně identifikovat \textit{captive portálu}.
+
+Alternativně k periodickému promazávání seznamu autorizovaných klientů může \textit{captive portál} vyžadovat, aby uživatel po celou dobu používání sítě měl v prohlížeči otevřené speciální okno, jehož přítomnost instruuje \textit{captive portál} k přidělení plnohodnotného síťového přístupu.
+
+Ve chvíli, kdy je \textit{captive portál} schopen rozeznat autorizované a neautorizované uživatele, musí rovněž mít možnost neautorizované uživatele nasměrovat na webovou aplikaci \textit{captive portálu}. Pro splnění takového úkolu musí \textit{captive portál} efektivně provádět \texttt{MITM} útok na nově připojené uživatele. Při přístupu neautorizovaného uživatele na libovolnou webovou stránku protokolem \texttt{HTTP} je jeho provoz odkloněn a vrácena odpověď od \textit{captive portálu}, která prohlížeč uživatele nasměruje na webovou aplikaci \textit{captive portálu}. K tomu lze využít několik technik.
+
+\subsubsection{\texttt{HTTP} přesměrování}
+Při pokusu o přístup na webovou stránku \texttt{www.example.com} je požadavek klienta odkloněn a odpověď na požadavek zaslána přímo z \textit{captive portálu}. V odpovědi je zpravidla využita \texttt{HTTP} hlavička \texttt{302 Found}, která prohlížeč klienta nasměruje na webovou aplikace \textit{captive portálu}, viz Ukázka \ref{verb:http-302}.
+
+\begin{figure}[h]
+  \renewcommand{\lstlistingname}{Ukázka}
+  \begin{lstlisting}[label=verb:http-302, caption={Ukázka přesměrování HTTP požadavku (zkráceno)},frame=single]
+  > GET / HTTP/1.1
+  > Host: www.example.com
+  >
+  < HTTP/1.1 302 Found
+  < Location: http://192.168.1.1/captive/
+  \end{lstlisting}
+\end{figure}
+
+\subsubsection{\texttt{ICMP} host redirect}
+
+Protokol \texttt{ICMP} specifikuje zprávy, které může směrovač poslat koncové stanici, pokud taková stanice v rámce své komunikace používá suboptimální trasu. Je zcela v režii cílové stanice, zda-li si nechá o svém směrování radit od zařízení v síti. Tato metoda spoléhá na situaci, kdy koncová stanice upraví svou směrovací tabulku a zanese do ní informace z \texttt{ICMP} \textit{host redirect} zprávy. Takovou zprávu odešle \textit{captive portál}, když detekuje pokus o spojení uživatele se serverem v Internetu. \texttt{ICMP} zpráva se pokusí cílovou stanici uživatele přesvědčit, že ideální cesta vede skrze server provozující \textit{captive portál}. Koncová stanice upraví své směrování a začne komunikovat se svým protějškem skrze \textit{captive portál}, který může dále komunikaci manipulovat za účelem nasměrování uživatele na webovou aplikaci \textit{captive portálu}.
+
+
+\subsubsection{Podvržení \texttt{DNS}}
+
+\textit{Captive portál} detekuje \texttt{DNS} požadavky klientů. Pokud požadavek patří neautorizovanému klientovi, je mu nazpět zaslána odpověď s \texttt{IP} adresou webové aplikace \textit{captive portálu}. Jedná se o značně nebezpečnou techniku, protože může snadno dojít k otrávení \texttt{DNS} cache klienta. Pro minimalizaci takového vedlejšího efektu je v rámci DNS odpovědi zaslána hodnota \texttt{TTL} rovna 0, která by měla zajistit, že podvržená odpověď nebude do lokální \texttt{DNS} cache uložena. Ukázka evidentního podvržení \texttt{IP} adresy serveru \texttt{google.com} je zachycena v ukázce \ref{verb:dns-mitm}.
+
+\begin{figure}[h]
+  \renewcommand{\lstlistingname}{Ukázka}
+  \begin{lstlisting}[label=verb:dns-mitm, caption={Ukázka podvržení DNS odpovědi},frame=single]
+$ nslookup google.com
+Server:		192.168.1.1
+Address:	192.168.1.1#53
+
+Non-authoritative answer:
+Name:	google.com
+Address: 192.168.1.1
+  \end{lstlisting}
+\end{figure}
+
+
 \subsection{Technické problémy}
 
-% https
-% transaprency logs ??
 % technicke problemy. je potreba prohlizec
 %    ten ale spousta zarizeni proste nema (herni konzole Nintendo DS napr) -- resi se to \texttt{WISPr}-
+% https
+% transaprency logs ??
 % User je casto identifikovan pouze MAC/IP kombem -> sniff -> spoof.
 % casto podvrhavane certifikaty, aby bylo mozne dostat uzivatle na loginpage.
 % MITM! jak takove siti mohu verit ??
@@ -202,9 +265,15 @@ Doplňte vhodný text.
 	\item[DNS] Domain Name System
 	\item[ICMP] Internet Control Message Protocol
 	\item[XML] Extensible markup language
-	\item[ISM] Industrial, Scientific and Medical radio bands -- kmitočty pro použití v průmyslu, vědě a medicíně
+	\item[ISM] Industrial, Scientific and Medical radio bands
 	\item[NAC] Network Access Control -- řízení síťového přístupu
-	\item[GSM] Global System for Mobile Communications -- Globální Systém pro Mobilní komunikaci
+	\item[GSM] Global System for Mobile Communications
+	\item[MAC] Media Access Control
+	\item[IP] Internet Protocol
+	\item[MITM] Man-in-the-middle
+	\item[HTTP] Hypertext Transfer Protocol
+	\item[HTTPS] HTTP Secure
+	\item[TTL] Time to live
 \end{description}
 
 
