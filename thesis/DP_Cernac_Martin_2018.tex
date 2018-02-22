@@ -157,9 +157,9 @@ Při pokusu o přístup na webovou stránku \texttt{www.example.com} je požadav
 
 %TODO - mozna dodat tabulku OS a defaultnich voleb pro prijem redirectu? zminit secure_redirect? dat nejakou citaci treba na ubuntu hardening (vypadla na me z googlu ubuntu secure_redirect)
 
-\subsubsection{Podvržení \texttt{DNS}}
+\subsubsection{Podvržení \texttt{DNS} odpovědi}
 
-\textit{Captive portál} detekuje \texttt{DNS} požadavky klientů. Pokud požadavek patří neautorizovanému klientovi, je mu nazpět zaslána odpověď s \texttt{IP} adresou webové aplikace \textit{captive portálu}. Jedná se o značně nebezpečnou techniku, protože může snadno dojít k otrávení \texttt{DNS} cache klienta. Pro minimalizaci takového vedlejšího efektu je v rámci DNS odpovědi zaslána hodnota \texttt{TTL} rovna 0, která by měla zajistit, že podvržená odpověď nebude do lokální \texttt{DNS} cache uložena. Ukázka evidentního podvržení \texttt{IP} adresy serveru \texttt{google.com} je zachycena v ukázce \ref{verb:dns-mitm}.
+\textit{Captive portál} monitoruje \texttt{DNS} dotazy klientů. Pokud \texttt{DNS} požadavek patří neautorizovanému klientovi, \textit{captive portál} mu nazpět zašle odpověď s \texttt{IP} adresou webové aplikace \textit{captive portálu} bez ohledu na dotazované doménové jméno. Jedná se o značně nebezpečnou techniku, protože může snadno dojít k otrávení \texttt{DNS} cache klienta. Pro minimalizaci takového vedlejšího efektu bývá v podvržené DNS odpovědi nastavena nulová životnost (hodnota \texttt{TTL = 0}). Takové nastavení by mělo zajistit, že podvržená odpověď nebude zanesena do lokální \texttt{DNS} cache. Ukázka \ref{verb:dns-mitm} zachycuje evidentní podvržení \texttt{IP} adresy serveru \texttt{google.com}.
 
 \begin{figure}[h]
   \renewcommand{\lstlistingname}{Ukázka}
