@@ -103,13 +103,14 @@ Jak plyne z výše uvedeného výčtu, vyjma právních aspektů může být \te
 
 
 %TODO pridat citaci primo od FB a mozna obrazek
-Pro usnadnění nasazení takového řešení nabízí společnost Facebook službu \textit{Facebook Wi-Fi}\cite{facebook_wifi}, cílenou na majitele obchodů. Jedná se o řešení na bázi \textit{captive portálu}, které vyžaduje aby nově připojený uživatel měl konto na sociální síti Facebook. Po připojení na \textit{hotspot} je uživatel vyzván ke sdílení informace o jeho návštěvě obchodu, jehož \textit{hotspot} právě používá (jako protislužbu za poskytnutý přístup do Internetu).
+Pro usnadnění nasazení takového řešení nabízí společnost Facebook službu \textit{Facebook Wi-Fi}\cite{facebook-wifi}, cílenou na majitele obchodů. Jedná se o řešení na bázi \textit{captive portálu}, které vyžaduje aby nově připojený uživatel měl konto na sociální síti Facebook. Po připojení na \textit{hotspot} je uživatel vyzván ke sdílení informace o jeho návštěvě obchodu, jehož \textit{hotspot} právě používá (jako protislužbu za poskytnutý přístup do Internetu).
 
 Poněkud méně invazivní motivací pro zavedení \textit{captive portálu} je monetizace \textit{hotspotu}. Například prodejem reklamního místa -- uživatel po připojení do sítě musí shlédnou reklamní spot, nebo vyplnit krátkou anketu. Provozovatel \textit{hotspotu} získá z takové aktivity finanční odměnu a uživateli je odměněn přístupem do sítě Internet.
 
 Některé \textit{captive portály} alternativně umožňují uživateli doložit nárok na přístup do sítě. Například jednorázový kód z účtenky, čímž dokládá útratu v podniku, který \textit{hotspot} provozuje. Nebo číslo hotelového pokoje, čímž dokládá svůj pobyt v hotelu, který zahrnuje (jinak zpoplatněný) přístup do sítě Internet.
 
 \subsection{Realizační technologie}
+\label{subsec:realizacni-technologie}
 
 % jak captive portal funguje.
 % jak je mozne ho realizovat (DNS/L3 ICMP/preklad *:80 na muj server -- casto zarizeni po pripojeni zkusi nacist nejakou well-known URL ktera by mela vratit HTTP 204)
@@ -177,12 +178,34 @@ Address: 192.168.1.1
 
 \subsection{Technické problémy}
 
+Největším problémem \textit{captive portálů} je závislost na technologii \texttt{WWW}. Ta pramení z velmi různorodých \textit{definic} Internetu napříč jeho uživateli. Pro mnohé uživatele je totiž tvrzení \uv{Nefunguje Internet} synonymem pro \uv{Nepodařilo se mi načíst mou domovskou stránku}. Díky tomu lze valnou většinu uživatelů Internetu přesvědčit k provedení úkonů, které \textit{captive portál} vyžaduje. Uživatel úkony provede, protože mu \uv{nefunguje Internet} a \textit{captive portál} slibuje nápravu situace.
+
+Z předcházejících tvrzení však plyne fakt, že \textit{captive portál} je \textbf{závislý} na \texttt{WWW} a tím pádem \textbf{závislý na webovém prohlížeči}. V historii se ukázalo, že to představuje velký problém pro zařízení s podporou \texttt{Wi-Fi}, ale bez webového prohlížeče (nebo s velmi omezeným webovým prohlížečem). Demonstrovat takovou situaci lze na populárním (prodáno přes 150 milionů kusů)\cite{nintendo-sales} mobilním herním zařízení \textit{Nintendo DS}. Tento problém v současnosti řeší protokol \textit{WISPr}\cite{wispr-specs}, který usnadňuje (v některých případech zcela eliminuje) nutnou interakci uživatele s webovou aplikací \textit{captive portálu}.
+
+S rostoucím rozmachem \texttt{HTTPS} na úkor nešifrovaného \texttt{HTTP} mají \textit{captive portály} obtížnější práci s nasměrováním uživatele na webovou aplikaci \textit{captive portálu}. \textit{Captive portály} využívající podvržené certifikáty se budou muset od dubna 2018 vyrovnat s ještě větším stupněm nedůvěryhodnosti, díky zavedení nutnosti \textit{Certificate Transparency} v prohlížeči Google Chrome\cite{google-mandatory-cert-transp}. \textit{Captive portál} by se neměl snažit manipulovat s šifrovaným spojením, namísto snahy o modifikaci a \textit{rozbití šifrování} by takový provoz měl být zahazován. Takový postup však nesdílejí všechny implementace \textit{captive portálu}, jak je dále popsáno v podkapitole Netechnické problémy \ref{subsec:netechnicke-problemy}.
+
+Návrhovým problémem mnoha \textit{captive portálů} je snaha manipulovat s komunikací uživatelů sítě. V mnohých případech je manipulace dosaženo pomocí \texttt{MITM} útoku. Síť, která zcela úmyslně provádí útoky na své uživatele (ať už s jakýmkoliv účelem) pochopitelně nemůže získat jakoukoliv důvěru uživatelů. \textbf{Síť s nulovou důvěrou by uživatelé neměli vůbec využívat}.
+
+%TODO tento odstavec - rozsirit, rict jak to dela treba chrome .. nebo windows (ale to musim zjistit, predpokladam ze podobne jako chrome). U FF zjistit co se stane, kdyz detekuje captive -> screen? lepsi by byl z OS. Zminit dalsi OS? jako android/ios atp.
+
+Mnohé softwarové produkty dokáží detekovat omezený síťový provoz -- například operační systém Microsoft Windows, nebo webové prohlížeče Firefox a Chrome. Nadměrná manipulace se síťovým provozem neautorizovaných uživatelů však může tuto funkcionalitu potlačit, což je pro uživatele nežádoucí.
+
+
+
+%TODO opravdu by to chtelo nejake screenshoty
+
+Jak bylo uvedeno v podkapitole Realizační technologie \ref{subsec:realizacni-technologie}, \textit{captive portál} při své práci vychází z dat, která putují po síti. Do veřejné sítě \textit{hotspotu} je však jednoduché získat přístup. Útočník na zmíněné síti může naslouchat a například pomocí naklonování \texttt{MAC} a \texttt{IP} adres se následně vydávat za jiné účastníky sítě, čímž se neautorizovaný útočník jeví \textit{captive portálu} jako autorizovaný uživatel.
+
 % technicke problemy. je potreba prohlizec
 %    ten ale spousta zarizeni proste nema (herni konzole Nintendo DS napr) -- resi se to \texttt{WISPr}-
+
 % https
-% transaprency logs ??
-% User je casto identifikovan pouze MAC/IP kombem -> sniff -> spoof.
 % casto podvrhavane certifikaty, aby bylo mozne dostat uzivatle na loginpage.
+% transaprency logs ??
+% 
+
+% User je casto identifikovan pouze MAC/IP kombem -> sniff -> spoof.
+
 % MITM! jak takove siti mohu verit ??
 
 % obcas captive portal blokuje moc a OS nechape, ze je za captivem
@@ -193,8 +216,9 @@ Address: 192.168.1.1
 % https://www.chromium.org/chromium-os/chromiumos-design-docs/network-portal-detection
 
 \subsection{Netechnické problémy}
+\label{subsec:netechnicke-problemy}
 
-V některých případech se \textit{captive portály} chovají velmi invazivně. Na začátku roku 2015 společnost Gogo (poskytovatel připojení na palubách letadel) ve své síti začala využívat falešné certifikáty pro produkty firmy Google. Na situaci upozornila na svém Twitteru\cite{gogo_fakecerts} Adrienne Porter Felt, zaměstnankyně firmy Google. Certifikáty byly vystaveny pro doménová jména \texttt{*.google.com}, tedy všechny domény třetího řádu domény \texttt{google.com}.
+V některých případech se \textit{captive portály} chovají velmi invazivně. Na začátku roku 2015 společnost Gogo (poskytovatel připojení na palubách letadel) ve své síti začala využívat falešné certifikáty pro produkty firmy Google. Na situaci upozornila na svém Twitteru\cite{gogo-fakecerts} Adrienne Porter Felt, zaměstnankyně firmy Google. Certifikáty byly vystaveny pro doménová jména \texttt{*.google.com}, tedy všechny domény třetího řádu domény \texttt{google.com}.
 
 Mnoho uživatelů Internetu má ve svých prohlížečích nastavenou domovskou stránku na \texttt{www.google.com}. Po připojení se na palubní \texttt{Wi-Fi} síť v letadle a zapnutí prohlížeče byl uživatel okamžitě varován před nedůvěryhodným certifikátem. Vzhledem k tomu, že uživatel sám žádnou stránku nenavštívil (prohlížeč pouze načetl domovskou stránku), je pro uživatele snadné propadnout dojmu, že chyba není způsobena jeho počínáním a proto bude varování ignorovat.
 
@@ -289,6 +313,8 @@ Doplňte vhodný text.
 	\item[HTTPS] HTTP Secure
 	\item[TTL] Time to live
 	\item[VLAN] Virtual local area network
+	\item[WWW] World wide web
+	\item[WISPr] Wireless Internet Service Provider roaming
 \end{description}
 
 
