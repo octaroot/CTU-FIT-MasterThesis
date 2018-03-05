@@ -178,13 +178,13 @@ Address: 192.168.1.1
 
 \subsection{Technické problémy}
 
-Největším problémem \textit{captive portálů} je závislost na technologii \texttt{WWW}. Ta pramení z velmi různorodých \textit{definic} Internetu napříč jeho uživateli. Pro mnohé uživatele je totiž tvrzení \uv{Nefunguje Internet} synonymem pro \uv{Nepodařilo se mi načíst mou domovskou stránku}. Díky tomu lze valnou většinu uživatelů Internetu přesvědčit k provedení úkonů, které \textit{captive portál} vyžaduje. Uživatel úkony provede, protože mu \uv{nefunguje Internet} a \textit{captive portál} slibuje nápravu situace.
+Největším problémem \textit{captive portálů} je závislost na technologii \texttt{WWW}. Cílení na tuto technologii pramení ze značně rozmanitého pojetí Internetu napříč jeho uživateli. Pro mnohé uživatele je totiž tvrzení \uv{Nefunguje Internet} synonymem pro \uv{V prohlížeči se nepodařilo načíst mou domovskou stránku}. Díky tomu lze mnohé uživatele přesvědčit k provedení úkonů, které \textit{captive portál} vyžaduje. Uživatel úkony provede, protože mu \uv{nefunguje Internet} a \textit{captive portál} slibuje nápravu situace.
 
-Z předcházejících tvrzení však plyne fakt, že \textit{captive portál} je \textbf{závislý} na \texttt{WWW} a tím pádem \textbf{závislý na webovém prohlížeči}. V historii se ukázalo, že to představuje velký problém pro zařízení s podporou \texttt{Wi-Fi}, ale bez webového prohlížeče (nebo s velmi omezeným webovým prohlížečem). Demonstrovat takovou situaci lze na populárním (prodáno přes 150 milionů kusů)\cite{nintendo-sales} mobilním herním zařízení \textit{Nintendo DS}. Tento problém v současnosti řeší protokol \textit{WISPr}\cite{wispr-specs}, který usnadňuje (v některých případech zcela eliminuje) nutnou interakci uživatele s webovou aplikací \textit{captive portálu}.
+Z předcházejících tvrzení však plyne fakt, že \textit{captive portál} je \textbf{závislý} na \texttt{WWW} a tím pádem \textbf{závislý na webovém prohlížeči}. V historii se ukázalo, že to představuje velký problém pro zařízení s podporou \texttt{Wi-Fi}, ale bez webového prohlížeče (nebo s velmi omezeným webovým prohlížečem). Demonstrovat takovou situaci lze na populárním\footnote{prodáno přes 150 milionů kusů\cite{nintendo-sales}} mobilním herním zařízení \textit{Nintendo~DS}. Tento problém v současnosti řeší protokol \textit{WISPr}\cite{wispr-specs}, který usnadňuje (v některých případech zcela eliminuje) nutnou interakci uživatele s webovou aplikací \textit{captive portálu}.
 
 S rostoucím rozmachem \texttt{HTTPS} na úkor nešifrovaného \texttt{HTTP} mají \textit{captive portály} obtížnější práci s nasměrováním uživatele na webovou aplikaci \textit{captive portálu}. \textit{Captive portály} využívající podvržené certifikáty se budou muset od dubna 2018 vyrovnat s ještě větším stupněm nedůvěryhodnosti, díky zavedení nutnosti \textit{Certificate Transparency} v prohlížeči Google Chrome\cite{google-mandatory-cert-transp}. \textit{Captive portál} by se neměl snažit manipulovat s šifrovaným spojením, namísto snahy o modifikaci a \textit{rozbití šifrování} by takový provoz měl být zahazován. Takový postup však nesdílejí všechny implementace \textit{captive portálu}, jak je dále popsáno v podkapitole Netechnické problémy \ref{subsec:netechnicke-problemy}.
 
-Návrhovým problémem mnoha \textit{captive portálů} je snaha manipulovat s komunikací uživatelů sítě. V mnohých případech je manipulace dosaženo pomocí \texttt{MITM} útoku. Síť, která zcela úmyslně provádí útoky na své uživatele (ať už s jakýmkoliv účelem) pochopitelně nemůže získat jakoukoliv důvěru uživatelů. \textbf{Síť s nulovou důvěrou by uživatelé neměli vůbec využívat}.
+Návrhovým problémem mnoha \textit{captive portálů} je snaha manipulovat s obsahem komunikace uživatelů sítě. V mnohých případech je manipulace dosaženo pomocí \texttt{MITM} útoku. Síť, která zcela úmyslně provádí útoky na své uživatele (ať už s jakýmkoliv účelem) pochopitelně nemůže získat jakoukoliv důvěru uživatelů. \textbf{Síť s nulovou důvěrou by uživatelé neměli vůbec využívat}.
 
 %TODO tento odstavec - rozsirit, rict jak to dela treba chrome .. nebo windows (ale to musim zjistit, predpokladam ze podobne jako chrome). U FF zjistit co se stane, kdyz detekuje captive -> screen? lepsi by byl z OS. Zminit dalsi OS? jako android/ios atp.
 
@@ -234,6 +234,8 @@ V případě \textit{captive portálu}, který vyžaduje poskytnutí osobních i
 % o tom uz jsem psal, tak jen strucne
 
 \subsection{Alternativy captive portálů}
+
+Motivací \textit{captive portálu} je řízení síťového přístupu. Takovou funkci však mnohem lépe\cite{bakalarka-srovnani-captive-fwall-nac} plní dedikované protokoly a softwarová řešení. Pro řízení přístupu na \texttt{Wi-Fi} hotspot lze například použít populární bezpečnostní protokol \texttt{WPA2}. Nikoliv však v módu \textit{WPA-Personal}\footnote{Často označován jako \textit{WPA-PSK}}, nýbrž v režimu \textit{WPA-Enterprise}. Tento režim vyžaduje, aby se uživatel identifikoval ještě \textbf{před} faktickým připojením do sítě -- typicky pomocí uživatelského jména a hesla\footnote{Protokol \textit{IEEE 802.1X} podporuje i ověření pomocí certifikátu nebo tokenu}. K ověření údajů tedy není zapotřebí webový prohlížeč, ale klientské zařízení musí podporovat \textit{WPA-Enterprise} režim -- nutná podpora pro \textit{IEEE 802.1X} protokol. Příkladem takové sítě je celosvětová síťová infrastruktura \textit{eduroam}, která pro autentizaci využívá protokol \textit{IEEE 802.1X} a hierarchickou strukturu RADIUS serverů. Nasazení \textit{WPA-Enterprise} je však z důvodu nutnosti provozu RADIS serveru náročnější, než \textit{WPA-Personal}. I přesto se však jedná o vhodnější alternativu \textit{captive portálu}, pokud je možné provozovat \textit{hotspot} v režimu \textit{WPA-Enterprise}.
 
 % jak se to da delat jinak - 802.1x kdyz uz mame ucty .. wifi treba v kavarne kdyz si neco dam, to si umim predstavit.
 % eduroam !! funguje naprosto v pohode! stejne vetsina captive protalu ma nekde v pozadi RADIUS
@@ -312,8 +314,10 @@ Doplňte vhodný text.
 	\item[HTTP] Hypertext Transfer Protocol
 	\item[HTTPS] HTTP Secure
 	\item[TTL] Time to live
+	\item[RADIUS] Remote Authentication Dial-In User Service
 	\item[VLAN] Virtual local area network
 	\item[WWW] World wide web
+	\item[WPA] Wi-Fi Protected Access
 	\item[WISPr] Wireless Internet Service Provider roaming
 \end{description}
 
