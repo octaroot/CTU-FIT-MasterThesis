@@ -235,7 +235,7 @@ V případě \textit{captive portálu}, který vyžaduje poskytnutí osobních i
 
 \subsection{Alternativy captive portálů}
 
-Motivací \textit{captive portálu} je řízení síťového přístupu. Takovou funkci však mnohem lépe\cite{bakalarka-srovnani-captive-fwall-nac} plní dedikované protokoly a softwarová řešení. Pro řízení přístupu na \texttt{Wi-Fi} hotspot lze například použít populární bezpečnostní protokol \texttt{WPA2}. Nikoliv však v módu \textit{WPA-Personal}\footnote{Často označován jako \textit{WPA-PSK}}, nýbrž v režimu \textit{WPA-Enterprise}. Tento režim vyžaduje, aby se uživatel identifikoval ještě \textbf{před} faktickým připojením do sítě -- typicky pomocí uživatelského jména a hesla\footnote{Protokol \textit{IEEE 802.1X} podporuje i ověření pomocí certifikátu nebo tokenu}. K ověření údajů tedy není zapotřebí webový prohlížeč, ale klientské zařízení musí podporovat \textit{WPA-Enterprise} režim -- nutná podpora pro \textit{IEEE 802.1X} protokol. Příkladem takové sítě je celosvětová síťová infrastruktura \textit{eduroam}, která pro autentizaci využívá protokol \textit{IEEE 802.1X} a hierarchickou strukturu RADIUS serverů. Nasazení \textit{WPA-Enterprise} je však z důvodu nutnosti provozu RADIS serveru náročnější, než \textit{WPA-Personal}. I přesto se však jedná o vhodnější alternativu \textit{captive portálu}, pokud je možné provozovat \textit{hotspot} v režimu \textit{WPA-Enterprise}.
+Motivací \textit{captive portálu} je řízení síťového přístupu. Takovou funkci však mnohem lépe\cite{bakalarka-srovnani-captive-fwall-nac} plní dedikované protokoly a softwarová řešení. Pro řízení přístupu na \texttt{Wi-Fi} hotspot lze například použít populární bezpečnostní protokol \texttt{WPA2}. Nikoliv však v módu \textit{WPA-Personal}\footnote{Často označován jako \textit{WPA-PSK}}, nýbrž v režimu \textit{WPA-Enterprise}. Tento režim vyžaduje, aby se uživatel identifikoval ještě \textbf{před} faktickým připojením do sítě -- typicky pomocí uživatelského jména a hesla\footnote{Protokol \textit{IEEE 802.1X} podporuje i ověření pomocí certifikátu nebo tokenu}. K ověření údajů tedy není zapotřebí webový prohlížeč, ale klientské zařízení musí podporovat \textit{WPA-Enterprise} režim -- nutná podpora pro \textit{IEEE 802.1X} protokol. Příkladem takové sítě je celosvětová síťová infrastruktura \textit{eduroam}, která pro autentizaci využívá protokol \textit{IEEE 802.1X} a hierarchickou strukturu RADIUS serverů. Nasazení \textit{WPA-Enterprise} je však z důvodu nutnosti provozu RADIS serveru náročnější, než \textit{WPA-Personal}. I přesto se však jedná o technicky vhodnější alternativu \textit{captive portálu}, pokud je možné provozovat \textit{hotspot} v režimu \textit{WPA-Enterprise}.
 
 % jak se to da delat jinak - 802.1x kdyz uz mame ucty .. wifi treba v kavarne kdyz si neco dam, to si umim predstavit.
 % eduroam !! funguje naprosto v pohode! stejne vetsina captive protalu ma nekde v pozadi RADIUS
@@ -248,6 +248,20 @@ Motivací \textit{captive portálu} je řízení síťového přístupu. Takovou
 % https://dspace.cvut.cz/bitstream/handle/10467/69572/F8-BP-2017-Lauer-Ondrej-thesis.pdf?sequence=1
 
 \section{Metody pro obcházení captive portálů}
+
+\textit{Captive portál} s uživateli komunikuje pomocí \texttt{WWW}. Aby bylo možné uživatele nasměrovat na webovou aplikaci \textit{captive portálu}, musí být uživatel úspěšně připojen do sítě. Díky takovému \uv{odložení} autentizace bylo popsáno několik způsobů pro obcházení \textit{captive portálů}. Všechny dále popisované způsoby jsou založeny na neúplné nebo dokonce špatné konfiguraci \textit{captive portálu}. 
+
+% TODO - jako rikame na forenznim treninku - ten firewall treba musi byt deravy, jinak nejdou SIP VoIP telefony ... takze proto jsou ty porty otevrene
+
+
+\subsection{DNS tunelování}
+
+Častou nedokonalostí \textit{captive portálů} je směrování \texttt{DNS} požadavků do Internetu. Pokud k takovému chování dochází i u neautentizovaných uživatelů, lze protokol \texttt{DNS} využít ke komunikaci se serverem v Internetu a tím pádem k obejití \textit{captive portálu}.
+
+
+\subsection{ICMP tunelování}
+
+
 
 % alfa-omega - pro pristup ke captive portalu musim byt validnim ucatnikem site
 % tj musi fungovat DHCP (musim mit IP, musim zant GW), musi ``fungovat`` DNS
@@ -267,9 +281,6 @@ Motivací \textit{captive portálu} je řízení síťového přístupu. Takovou
 % SSH spojeni, MUX (parsuje TCP stream a prenasi jen data po TCP(via SSH tunel)
 % pro muj ucel nepouzitelne, ale zajiamve
 % https://github.com/apenwarr/sshuttle
-
-
-% pokud budu diskutovat kmitocty ISM pasma, ČTÚ ma na webu hezky popsany smernice odkud co a proc je bezlicencni atd.
 
 
 \chapter{Návrh řešení}
