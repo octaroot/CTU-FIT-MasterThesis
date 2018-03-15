@@ -248,20 +248,47 @@ Motivací \textit{captive portálu} je řízení síťového přístupu. Takovou
 % https://dspace.cvut.cz/bitstream/handle/10467/69572/F8-BP-2017-Lauer-Ondrej-thesis.pdf?sequence=1
 
 \section{Metody pro obcházení captive portálů}
+\label{sec:metody-obchazeni-captive-portalu}
 
-\textit{Captive portál} s uživateli komunikuje pomocí \texttt{WWW}. Aby bylo možné uživatele nasměrovat na webovou aplikaci \textit{captive portálu}, musí být uživatel úspěšně připojen do sítě. Díky takovému \uv{odložení} autentizace bylo popsáno několik způsobů pro obcházení \textit{captive portálů}. Všechny dále popisované způsoby jsou založeny na neúplné nebo dokonce špatné konfiguraci \textit{captive portálu}. 
+\textit{Captive portál} s uživateli komunikuje pomocí \texttt{WWW}. Aby bylo možné uživatele nasměrovat na webovou aplikaci \textit{captive portálu}, musí být uživatel úspěšně připojen do sítě. Díky takovému \uv{odložení} autentizace bylo popsáno několik způsobů pro obcházení \textit{captive portálů}. Všechny dále popisované způsoby jsou založeny na neúplné nebo dokonce záměrně \uv{špatné} konfiguraci \textit{captive portálu}.
 
-% TODO - jako rikame na forenznim treninku - ten firewall treba musi byt deravy, jinak nejdou SIP VoIP telefony ... takze proto jsou ty porty otevrene
+Konfigurace firewallu, která úmyslně nefiltruje některý síťový provoz nemusí být dílem nezkušeného administrátora (proto tento stav označuji jako \textbf{\uv{špatnou}} konfiguraci). Může se zkrátka jednat o jediný způsob, jak splnit požadavky pro provoz sítě -- například kvůli proprietárnímu software, který vyžaduje nerušenou komunikaci na některých portech. Z hlediska síťové architektury by bylo lepší provozovat veřejnou síť s \textit{captive portálem} bez takových klientů, tj.~\textbf{pouze} jako síť pro hosty, nicméně hardware podporující pokročilé techniky jako provoz více oddělených \texttt{Wi-Fi} sítí nebo podporu \texttt{VLAN} je zpravidla dražší a pro nezkušené správce obtížnější na správu.
 
 
 \subsection{DNS tunelování}
+\label{subsec:dns-tunel-intro}
 
-Častou nedokonalostí \textit{captive portálů} je směrování \texttt{DNS} požadavků do Internetu. Pokud k takovému chování dochází i u neautentizovaných uživatelů, lze protokol \texttt{DNS} využít ke komunikaci se serverem v Internetu a tím pádem k obejití \textit{captive portálu}.
+Protokol \texttt{DNS} je jedním z nejstarších protokolů dnešního Internetu. Slouží primárně k překladu mezi doménovými jmény (například \texttt{fit.cvut.cz}) a IP adresami uzlů v síti (například \texttt{147.32.232.248}). Častou nedokonalostí \textit{captive portálů} je směrování \texttt{DNS} požadavků do Internetu. Pokud k takovému chování dochází i u neautentizovaných uživatelů, lze protokol \texttt{DNS} využít ke komunikaci se serverem v Internetu a tím pádem k obejití \textit{captive portálu}.
 
 % u DNS tunnelingu mozna pouzit teorii kodovani, vysvetlitt tmi base58 atd
 
 
 \subsection{ICMP tunelování}
+
+Protokol \texttt{ICMP} je rovněž velmi důležitým síťovým protokolem. Je využíván zpravidla k přenosu služebních informací jako například nedostupnost služby nebo nedosažitelnost uzlu v síti. I přesto, že není v praxi využíván aplikacemi pro přenos informací, lze ho k tomuto účelu využít. Vhodným využitím zpráv \texttt{Echo Request} a \texttt{Echo Reply} lze mezi dvěma síťovými uzly přenášet libovolná data. Protokol \textit{ICMP} spadá do stejné \textit{rodiny} protokolů jako \texttt{TCP} a \texttt{UDP}, ale nevyužívá ani jeden z nich. Právě proto bývá v konfiguraci firewallu často opomíjen. Pokud taková situace nastane, lze protokol \texttt{ICMP} využít ke komunikaci se serverem v Internetu a tím pádem k obejití \textit{captive portálu}.
+
+\subsection{Využití nefiltrovaných portů}
+
+Jak bylo uvedeno na začátku podkapitoly \ref{sec:metody-obchazeni-captive-portalu} \textit{Metody pro obcházení captive portálů}, v konfiguraci firewallu se mohou z různých důvodů vyskytovat výjimky, které lze zneužít k tunelování provozu bez nutnosti maskovat komunikaci jako \texttt{DNS} nebo \texttt{ICMP} provoz. Zpravidla\cite{defcon-captive-article} se jedná o porty 
+
+\begin{itemize}
+ \item TCP/22 -- pro vzdálenou správu zařízení
+ \item TCP/3128 -- HTTP proxy servery (například za účelem cache obsahu)
+ \item UDP/53 -- \texttt{DNS}, diskutováno v podkapitole \ref{subsec:dns-tunel-intro} DNS tunelování
+\end{itemize}
+
+Důvodem k udělení výjimky pro port TCP/22 bývá nutnost vzdálené správy některých zařízení pomocí protokolu \texttt{SSH}. Samotný protokol \texttt{SSH} lze využít pro tunelování, \textit{port forwarding} nebo přímo jako \texttt{SOCKS} proxy. Klient \texttt{OpenSSH} tyto operace umožňuje provést velmi snadno, například lokální \texttt{SOCKS} proxy na portu 8080 lze spustit příkazem \texttt{ssh -D 8080 uzivatel@domaci-server}.
+
+TCP port 3128 bývá na firemních sítích využíván jako cache proxy pro často navštěvované webové stránky, aby se šetřilo síťovým provozem. Neautentizovaný klient se může pokusit takového proxy serveru využít pro obejití omezení \textit{captive portálu} a úspěšně komunikovat se serverem v Internetu.
+
+Tyto praktiky jsou však méně časté než dříve zmíněné \texttt{ICMP} a zejména \texttt{DNS} tunelování, zkrátka proto že \texttt{SSH} ani kešující proxy server nejsou na rozdíl od služby \texttt{DNS} pro provoz Internetu klíčové.
+
+%FIXME \texttt overflow
+
+
+
+
+
 
 % alfa-omega - pro pristup ke captive portalu musim byt validnim ucatnikem site
 % tj musi fungovat DHCP (musim mit IP, musim zant GW), musi ``fungovat`` DNS
@@ -270,7 +297,6 @@ Motivací \textit{captive portálu} je řízení síťového přístupu. Takovou
 % jak se to da obejit.
 % DNS tunely    DNSX, iodine (Ip Over DNS - atomic(I)=53 .. haha asociace)
 % ICMP tunely   ICMPX
-% VoIP SIP porty obcas otevrene
 % web caching proxy 3128.
 % mozna dokonce SSH 22?
 
