@@ -267,6 +267,8 @@ Protokol \texttt{DNS} je jedním z nejstarších protokolů dnešního Internetu
 
 Protokol \texttt{ICMP} je rovněž velmi důležitým síťovým protokolem. Je využíván zpravidla k přenosu služebních informací jako například nedostupnost služby nebo nedosažitelnost uzlu v síti. I přesto, že není v praxi využíván aplikacemi pro přenos informací, lze ho k tomuto účelu využít. Vhodným využitím zpráv \texttt{Echo Request} a \texttt{Echo Reply} lze mezi dvěma síťovými uzly přenášet libovolná data. Protokol \textit{ICMP} spadá do stejné \textit{rodiny} protokolů jako \texttt{TCP} a \texttt{UDP}, ale nevyužívá ani jeden z nich. Právě proto bývá v konfiguraci firewallu často opomíjen. Pokud taková situace nastane, lze protokol \texttt{ICMP} využít ke komunikaci se serverem v Internetu a tím pádem k obejití \textit{captive portálu}.
 
+Tunelování pomocí \texttt{ICMP} je technicky možné díky RFC 792\cite{rfc792}, kde je u typů zpráv \texttt{0} a \texttt{8} (\textit{echo reply}, resp. \textit{echo message}) specifikována proměnlivá délka zpráv.
+
 \subsection{Využití nefiltrovaných portů}
 
 Jak bylo uvedeno na začátku podkapitoly \ref{sec:metody-obchazeni-captive-portalu} \textit{Metody pro obcházení captive portálů}, v konfiguraci firewallu se mohou z různých důvodů vyskytovat výjimky, které lze zneužít k tunelování provozu bez nutnosti maskovat komunikaci jako \texttt{DNS} nebo \texttt{ICMP} provoz. Zpravidla\cite{defcon-captive-article} se jedná o porty 
@@ -303,6 +305,11 @@ Tyto praktiky jsou však méně časté než dříve zmíněné \texttt{ICMP} a 
 
 
 \section{Existující software pro obcházení captive portálů}
+
+Idea tunelování síťového provozu pomocí protokolu \texttt{DNS} není nová. Už na přelomu tisíciletí\footnote{soudě dle data první veřejné verzovacího systému nástroje \textit{NSTX}} se objevil nástroj \textit{NSTX} s podtitulkem \textit{tunneling network-packets over DNS}. Od té doby byla zveřejněná řada nástrojů založených na stejných principech a se stejným cílem. Mezi populární\cite{sans-dns-tunels} nástroje se řadí například \textit{iodine}, \textit{OzymanDNS} a \textit{DNSCat}. Různé nástroje nabízejí různé funkce, podporují rozdílné platformy a liší se v konkrétních detailech \texttt{DNS} komunikace (autentizace, šifrování, užité typy \texttt{DNS} zpráv, \ldots). Mnohé aplikace jsou v současnosti funkční, ale dále nevyvíjené ve prospěch jiných nástrojů (například domovská stránka \textit{NSTX} odkazuje zájemce na stránky \textit{iodine}). Podobná je i situace s nástroji pro tunelování pomocí \texttt{ICMP}.
+
+Tunelování síťového provozu pomocí \texttt{DNS} je populární\cite{sans-dns-tunels} i mezi tvůrci škodlivého software (\textit{malware}), kteří se tak snaží vyhnout detekčním nástrojům. Paradoxně tunelování pomocí \texttt{DNS} lze zpravidla úspěšně detekovat\cite{bakalarka-detekce-tunelu}.
+
 
 % iodine, DNSX??, ICMPX a dalsi
 % nektery jsou mrtvy, jiny nejsou sifrovany, nebo se bavi s kymkoliv atp
