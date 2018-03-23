@@ -65,7 +65,7 @@ Z těchto důvodů došlo k velkému rozmachu takzvaných \textit{hotspotů}, te
 
 Uživatelé \textit{hotspotu} by měli být srozuměni s pravidly používání konkrétní sítě, limitovanou odpovědností provozovatele a před začátkem užívání sítě doložit svůj souhlas s pravidly. Provozovatel navíc může mít zájem o některé identifikující informace o uživatelích \textit{hotspotu}.
 
-Technologie \texttt{Wi-Fi} však sama o sobě neumožňuje nic z výše uvedeného. Takovou situaci lze vyřešit například zapojením recepce v prostředí hotelu (uživatel písemně vyjádří souhlas s pravidly používání sítě, recepční vydá přístupové údaje do sítě). Častěji se však setkáváme s automatizovaným přístupem, realizovaným pomocí \textit{captive portálu} (z angličtiny \textit{Captive portal}).
+Technologie \texttt{Wi-Fi} však sama o sobě neumožňuje nic z výše uvedeného. Takovou situaci lze vyřešit například zapojením recepce v prostředí hotelu (uživatel písemně vyjádří souhlas s pravidly používání sítě, recepční vydá přístupové údaje do sítě). Častěji se však setkáváme s automatizovaným přístupem, realizovaným pomocí \textit{captive portálu} (z angličtiny \textit{Captive portal}) -- a to jak na návštěvnických sítích drátových, tak i bezdrátových.
 
 Řešení s pomocí \textit{captive portálu} spočívá v detekci nově připojených uživatelů, které je nutné informovat o pravidlech provozu sítě. Po udělení souhlasu s pravidly je uživateli poskytnut přístup do Internetu a všechny následné interakce uživatele se sítí \textit{captive portál} ignoruje (nezasahuje do nich).
 
@@ -82,7 +82,9 @@ Tato kapitola se věnuje problematice \textit{captive portálů}, motivací jeji
 
 \section{Captive portál}
 
-\textit{Captive portál} představuje webovou aplikaci, často nasazovanou na veřejně přístupných sítích. Aplikace má za úkol informovat nově připojené klienty o podmínkách užití sítě a požadovat uživatelův souhlas s jejich dodržováním. Až do momentu souhlasu s podmínkami užití sítě je uživateli odepřen přístup do zbytku sítě. Z toho plyne první část názvu \textit{\textbf{Captive} portál} -- uživatel je \uv{zajatý}, \uv{uvězněný} (v angličtině \textit{captive}).
+\textit{Captive portál}\cite{rfc7710} představuje webovou aplikaci, často nasazovanou na veřejně přístupných sítích. Aplikace má za úkol informovat nově připojené klienty o podmínkách užití sítě a požadovat uživatelův souhlas s jejich dodržováním. Až do momentu souhlasu s podmínkami užití sítě je uživateli odepřen přístup do zbytku sítě. Z toho plyne první část názvu \textit{\textbf{Captive} portál} -- uživatel je \uv{zajatý}, \uv{uvězněný} (v angličtině \textit{captive}).
+
+Pojem \textit{captive portál} nemá v češtině ustálený překlad, v jiných akademických publikacích \cite{bakalarka-srovnani-captive-fwall-nac} \cite{bakalarka-plzen-nac-kolejni-sit} autoři používají počeštěný termín \textit{captive portál} a proto je tento termín použit i v této práci.
 
 \subsection{Motivace nasazení}
 
@@ -109,17 +111,17 @@ Poněkud méně invazivní motivací pro zavedení \textit{captive portálu} je 
 
 Některé \textit{captive portály} alternativně umožňují uživateli doložit nárok na přístup do sítě. Například jednorázový kód z účtenky, čímž dokládá útratu v podniku, který \textit{hotspot} provozuje. Nebo číslo hotelového pokoje, čímž dokládá svůj pobyt v hotelu, který zahrnuje (jinak zpoplatněný) přístup do sítě Internet.
 
-\subsection{Realizační technologie}
-\label{subsec:realizacni-technologie}
+\subsection{Technologické pozadí}
+\label{subsec:technologicke-pozadi}
 
 % jak captive portal funguje.
 % jak je mozne ho realizovat (DNS/L3 ICMP/preklad *:80 na muj server -- casto zarizeni po pripojeni zkusi nacist nejakou well-known URL ktera by mela vratit HTTP 204)
 
 Úkolem \textit{captive portálu} je detekovat nově připojené uživatele sítě, omezit jim přístup do sítě a nasměrovat je na webovou aplikaci captive portálu. Po splnění podmínek pro plnohodnotný přístup uživatele do zbytku sítě nesmí \textit{captive portál} do komunikace dále zasahovat (tj. musí \textit{detekovat}, že síťový provoz patří oprávněnému uživateli).
 
-Ačkoliv se jedná o přímočarý cíl, je možné ho dosáhnout celou řadou postupů a technologií. Proto se v praxi setkáváme s velkým počtem různorodých implementací \textit{captive portálu}. Některé z nich jsou dostupné pod svobodnou licencí, jiné jsou součástí placeného produktu a v neposlední řadě existují řešení \textit{na míru} -- a to nejen \textit{na míru} provozovateli, ale rovněž \textit{na míru} konkrétnímu zařízení/hardware.
+Ačkoliv se jedná o přímočarý cíl, je možné ho dosáhnout s pomocí celé řady technologií a postupů. Proto se v praxi setkáváme s velmi velkým počtem různorodých implementací \textit{captive portálu}. Některé z nich jsou dostupné pod svobodnou licencí, jiné jsou součástí placeného produktu a v neposlední řadě existují řešení \textit{na míru} -- a to nejen \textit{na míru} provozovateli, ale rovněž \textit{na míru} konkrétnímu zařízení/hardware. V této práci jsou blíže zkoumány zejména softwarová řešení, která jsou snadno dostupná (zveřejněná pod svobodnou licencí).
 
-Z této skutečnosti plyne fakt, že by bylo velice náročné popisovat a srovnávat \textit{všechny} existující implementace \textit{captive portálu}. V této části práce se proto zmiňuji jen o několika vybraných realizačních technologiích, které dostačují pro pochopení práce \textit{captive portálu}.
+%TODO posledni vetu predchazejiciho odstavce dodatecne upravit podle toho, co realne budu testovat
 
 Přestože efektu \textit{captive portálu} lze s velkou úspěšností docílit pouhým odkloněním HTTP provozu, existují mnohem sofistikovanější varianty, využívající například oddělené VLAN sítě. Obecně však platí, že \textit{captive portál} při své práci může vycházet pouze z informací, které putují po síti. Detekce nově připojených uživatelů a identifikace oprávněných uživatelů je tedy zpravidla založena dvojici identifikátorů:
 
@@ -141,7 +143,11 @@ Ve chvíli, kdy je \textit{captive portál} schopen rozeznat autorizované a nea
 
 Protokol \texttt{ICMP} specifikuje zprávy, které může směrovač poslat koncové stanici, pokud detekuje, že stanice v rámce své komunikace používá neoptimální síťovou cestu. Je zcela v režii cílové stanice, zda-li si nechá o svém směrování radit od ostatních zařízení v síti. Tato metoda spoléhá na situaci, kdy koncová stanice skutečně upraví svou směrovací tabulku a zanese do ní informace z \texttt{ICMP} \textit{host redirect} zprávy. Právě s tímto úmyslem odesílá \textit{captive portál} \texttt{ICMP} \textit{host redirect} zprávu, když detekuje pokus o spojení uživatele se serverem v Internetu. \texttt{ICMP} zpráva se pokusí cílovou stanici uživatele přesvědčit, že ideální cesta vede skrze server provozující \textit{captive portál}. Koncová stanice upraví své směrování a začne komunikovat se svým protějškem skrze \textit{captive portál}, který díky tomu může komunikaci manipulovat za účelem nasměrování uživatele na webovou aplikaci \textit{captive portálu}.
 
-\subsubsection{\texttt{HTTP} přesměrování}
+
+%TODO - mozna dodat tabulku OS a defaultnich voleb pro prijem redirectu? zminit secure_redirect? dat nejakou citaci treba na ubuntu hardening (vypadla na me z googlu ubuntu secure_redirect)
+
+
+\subsubsection{\texttt{HTTP} \texttt{3xx} redirect}
 Při pokusu o přístup na webovou stránku \texttt{www.example.com} je požadavek klienta odkloněn a odpověď na požadavek zaslána přímo z \textit{captive portálu}. V odpovědi je zpravidla využita \texttt{HTTP} hlavička \texttt{302 Found}, která prohlížeč klienta nasměruje na webovou aplikace \textit{captive portálu}, viz Ukázka \ref{verb:http-302}.
 
 \begin{figure}[h]
@@ -155,8 +161,6 @@ Při pokusu o přístup na webovou stránku \texttt{www.example.com} je požadav
   \end{lstlisting}
 \end{figure}
 
-
-%TODO - mozna dodat tabulku OS a defaultnich voleb pro prijem redirectu? zminit secure_redirect? dat nejakou citaci treba na ubuntu hardening (vypadla na me z googlu ubuntu secure_redirect)
 
 \subsubsection{Podvržení \texttt{DNS} odpovědi}
 
@@ -194,7 +198,7 @@ Mnohé softwarové produkty dokáží detekovat omezený síťový provoz -- nap
 
 %TODO opravdu by to chtelo nejake screenshoty
 
-Jak bylo uvedeno v podkapitole Realizační technologie \ref{subsec:realizacni-technologie}, \textit{captive portál} při své práci vychází z dat, která putují po síti. Do veřejné sítě \textit{hotspotu} je však jednoduché získat přístup. Útočník na zmíněné síti může naslouchat a například pomocí naklonování \texttt{MAC} a \texttt{IP} adres se následně vydávat za jiné účastníky sítě, čímž se neautorizovaný útočník jeví \textit{captive portálu} jako autorizovaný uživatel.
+Jak bylo uvedeno v podkapitole Realizační technologie \ref{subsec:technologicke-pozadi}, \textit{captive portál} při své práci vychází z dat, která putují po síti. Do veřejné sítě \textit{hotspotu} je však jednoduché získat přístup. Útočník na zmíněné síti může naslouchat a například pomocí naklonování \texttt{MAC} a \texttt{IP} adres se následně vydávat za jiné účastníky sítě, čímž se neautorizovaný útočník jeví \textit{captive portálu} jako autorizovaný uživatel.
 
 % technicke problemy. je potreba prohlizec
 %    ten ale spousta zarizeni proste nema (herni konzole Nintendo DS napr) -- resi se to \texttt{WISPr}-
