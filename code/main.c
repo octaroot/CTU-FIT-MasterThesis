@@ -9,7 +9,7 @@
 #include "common.h"
 
 static void pritnHelp(char *programName) {
-    fprintf(stderr, "%s %s.\n", programName, PROGRAM_VERSION);
+    fprintf(stderr, "%s v%s\n", programName, PROGRAM_VERSION);
     fprintf(stderr, "  -v               print program version and exit\n");
     fprintf(stderr, "  -h               print help and exit\n");
     fprintf(stderr, "  -t <server>      test connectivity to server and exit\n");
@@ -19,7 +19,7 @@ static void pritnHelp(char *programName) {
 }
 
 static void printVersion() {
-    fprintf(stderr, "%s, built on %s %s", PROGRAM_VERSION, __DATE__, __TIME__);
+    fprintf(stderr, "v%s, built on %s %s\n", PROGRAM_VERSION, __DATE__, __TIME__);
     exit(EXIT_SUCCESS);
 }
 
@@ -37,9 +37,9 @@ int main(int argc, char **argv) {
     bool clientMode = false;
     int parameter;
 
-    char *servername = NULL;
+    char *serverName = NULL;
 
-    while ((parameter = getopt(argc, argv, "vhtsc:")) != -1) {
+    while ((parameter = getopt(argc, argv, "vht:sc:")) != -1) {
         switch (parameter) {
             case 'v':
                 printVersion();
@@ -49,14 +49,14 @@ int main(int argc, char **argv) {
                 break;
             case 't':
                 justTestConnectivity = true;
-                servername = optarg;
+                serverName = optarg;
                 break;
             case 's':
                 serverMode = true;
                 break;
             case 'c':
                 clientMode = true;
-                servername = optarg;
+                serverName = optarg;
                 break;
             default:
                 fprintf(stderr, "Unknown or missing operand. Refer to program help (-h)\n");
@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
 
     if (optind < argc) {
         for (int i = optind; i < argc; ++i) {
-            fprintf(stderr, "Unknown or missing operand \"%s\". Refer to program help (-h)\n", argv[i]);
+            fprintf(stderr, "Unknown operand \"%s\". Refer to program help (-h)\n", argv[i]);
         }
         exit(EXIT_FAILURE);
     }
@@ -89,13 +89,19 @@ int main(int argc, char **argv) {
     srand(time(NULL));
 
     if (justTestConnectivity) {
+        printf("Testing connectivity options to %s ...\n", serverName);
+
         //TODO
         exit(EXIT_SUCCESS);
     }
 
     if (serverMode) {
+        printf("Running in server mode ...\n");
+
         //TODO
     } else {
+        printf("Connecting to server %s ...\n", serverName);
+
         //TODO
     }
 
