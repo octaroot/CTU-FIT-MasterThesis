@@ -16,7 +16,7 @@ bool _ICMPTestAvailability(uint32_t endpoint);
 
 const char *_ICMPGetVersion();
 
-void _ICMPStart(uint32_t endpoint);
+void _ICMPStart(uint32_t endpoint, bool serverMode);
 
 void _ICMPStop();
 

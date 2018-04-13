@@ -15,7 +15,7 @@ bool _DNSTestAvailability(uint32_t endpoint);
 
 const char *_DNSGetVersion();
 
-void _DNSStart(uint32_t endpoint);
+void _DNSStart(uint32_t endpoint, bool serverMode);
 
 void _DNSStop();
 

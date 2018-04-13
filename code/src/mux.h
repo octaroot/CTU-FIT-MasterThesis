@@ -10,7 +10,7 @@ typedef struct plugin
 
 	bool (*testAvailability)(uint32_t endpoint);
 
-	void (*start)(uint32_t endpoint);
+	void (*start)(uint32_t endpoint, bool serverMode);
 
 	void (*stop)();
 

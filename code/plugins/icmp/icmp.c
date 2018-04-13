@@ -20,7 +20,7 @@ const char *_ICMPGetVersion()
 	return ICMP_PLUGIN_VERSION;
 }
 
-void _ICMPStart(uint32_t endpoint)
+void _ICMPStart(uint32_t endpoint, bool serverMode)
 {
 	_ICMPRunning = true;
 	while (_ICMPRunning)

@@ -20,7 +20,7 @@ const char *_DNSGetVersion()
 	return DNS_PLUGIN_VERSION;
 }
 
-void _DNSStart(uint32_t endpoint)
+void _DNSStart(uint32_t endpoint, bool serverMode)
 {
 	_DNSRunning = true;
 	while (_DNSRunning)

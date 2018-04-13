@@ -26,7 +26,7 @@ void muxStart(uint32_t endpoint, bool serverMode)
 			//debug print
 			log_verbose("[LOG] %d, thread: %d, %s\n", i, omp_get_thread_num(), plugins[i].getVersion());
 
-			plugins[i].start(endpoint);
+			plugins[i].start(endpoint, serverMode);
 		}
 	}
 }
