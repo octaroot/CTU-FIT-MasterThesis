@@ -7,6 +7,7 @@
 #include <stdbool.h>
 
 #include "common.h"
+#include "tun-device.h"
 
 static void pritnHelp(char *programName) {
     fprintf(stderr, "%s v%s\n", programName, PROGRAM_VERSION);
@@ -95,9 +96,10 @@ int main(int argc, char **argv) {
         exit(EXIT_SUCCESS);
     }
 
+    int device = tunOpen();
+
     if (serverMode) {
         printf("Running in server mode ...\n");
-
         //TODO
     } else {
         printf("Connecting to server %s ...\n", serverName);
@@ -105,6 +107,7 @@ int main(int argc, char **argv) {
         //TODO
     }
 
+    tunClose(device);
 
     exit(EXIT_SUCCESS);
 }
