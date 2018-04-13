@@ -4,6 +4,7 @@
 #include <omp.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <stdint.h>
 #include "mux.h"
 
 #include "../plugins/icmp/icmp.h"
@@ -17,7 +18,7 @@ plugin plugins[] = {
 		{_DNSGetVersion,  _DNSTestAvailability,  _DNSStart,  _DNSStop},
 };
 
-void mux_start()
+void mux_start(uint32_t endpoint)
 {
 #pragma omp parallel num_threads(PLUGIN_COUNT)
 #pragma omp single nowait
@@ -28,7 +29,7 @@ void mux_start()
 			//debug print
 			log_verbose("[LOG] %d, thread: %d, %s\n", i, omp_get_thread_num(), plugins[i].getVersion());
 
-			plugins[i].start(0);
+			plugins[i].start(endpoint);
 		};
 	}
 }

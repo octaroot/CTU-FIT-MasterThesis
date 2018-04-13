@@ -3,7 +3,7 @@
 #include "dns.h"
 
 
-bool _DNSTestAvailability(unsigned int endpoint)
+bool _DNSTestAvailability(uint32_t endpoint)
 {
 	//TODO
 
@@ -20,7 +20,7 @@ const char *_DNSGetVersion()
 	return DNS_PLUGIN_VERSION;
 }
 
-void _DNSStart(unsigned int endpoint)
+void _DNSStart(uint32_t endpoint)
 {
 	_DNSRunning = true;
 	while (_DNSRunning)

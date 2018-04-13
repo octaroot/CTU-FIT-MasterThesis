@@ -1,6 +1,8 @@
 #ifndef CODE_DNS_H
 #define CODE_DNS_H
 
+#include <stdint.h>
+
 #define DNS_PLUGIN_VERSION    "1.0.0-57"
 
 extern int tunDeviceFD;
@@ -9,11 +11,11 @@ bool _DNSRunning;
 
 void _DNSCleanup();
 
-bool _DNSTestAvailability(unsigned int endpoint);
+bool _DNSTestAvailability(uint32_t endpoint);
 
 const char *_DNSGetVersion();
 
-void _DNSStart(unsigned int endpoint);
+void _DNSStart(uint32_t endpoint);
 
 void _DNSStop();
 
