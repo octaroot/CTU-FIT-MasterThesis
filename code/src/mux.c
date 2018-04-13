@@ -8,6 +8,7 @@
 
 #include "../plugins/icmp/icmp.h"
 #include "../plugins/dns/dns.h"
+#include "common.h"
 
 #define PLUGIN_COUNT (sizeof(plugins) / sizeof(plugin))
 
@@ -25,7 +26,7 @@ void mux_start()
 #pragma omp task
 		{
 			//debug print
-			printf("%d, thread: %d, %s\n", i, omp_get_thread_num(), plugins[i].getVersion());
+			log_verbose("[LOG] %d, thread: %d, %s\n", i, omp_get_thread_num(), plugins[i].getVersion());
 
 			plugins[i].start(0);
 		};
