@@ -13,7 +13,7 @@
 
 int tunDeviceFD;
 
-static void pritnHelp(char *programName)
+static void printHelp(char *programName)
 {
 	fprintf(stderr, "%s v%s\n", programName, PROGRAM_VERSION);
 	fprintf(stderr, "  -v               print program version and exit\n");
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 				printVersion();
 				break;
 			case 'h':
-				pritnHelp(argv[0]);
+				printHelp(argv[0]);
 				break;
 			case 't':
 				justTestConnectivity = true;
