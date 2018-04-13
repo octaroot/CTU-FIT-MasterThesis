@@ -16,6 +16,10 @@ typedef struct plugin
 
 } plugin;
 
+void mux_list();
+
+void mux_test(uint32_t endpoint);
+
 void mux_start(uint32_t endpoint);
 
 void mux_stop();

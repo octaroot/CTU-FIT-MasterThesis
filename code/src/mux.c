@@ -42,3 +42,32 @@ void mux_stop()
 		plugins[i].stop();
 	}
 }
+
+void mux_list()
+{
+	printf("There are a total of %zu plugins:\n", PLUGIN_COUNT);
+	for (int i = 0; i < PLUGIN_COUNT; ++i)
+	{
+		printf("\t%s\n", plugins[i].getVersion());
+	}
+}
+
+void mux_test(uint32_t endpoint)
+{
+	printf("Testing availability of %zu plugins:\n", PLUGIN_COUNT);
+	for (int i = 0; i < PLUGIN_COUNT; ++i)
+	{
+		printf("Testing %s ... ", plugins[i].getVersion());
+
+		bool available = plugins[i].testAvailability(endpoint);
+
+		if (available)
+		{
+			printf("OK\n");
+		}
+		else
+		{
+			printf("unavailable\n");
+		}
+	}
+}

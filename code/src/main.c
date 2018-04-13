@@ -44,8 +44,11 @@ int main(int argc, char **argv) {
     char *serverName = NULL;
     uint32_t endpoint;
 
-    while ((parameter = getopt(argc, argv, "vht:sc:")) != -1) {
+    while ((parameter = getopt(argc, argv, "lvht:sc:")) != -1) {
         switch (parameter) {
+            case 'l':
+                mux_list();
+                exit(EXIT_SUCCESS);
             case 'v':
                 printVersion();
                 break;
@@ -104,7 +107,7 @@ int main(int argc, char **argv) {
     if (justTestConnectivity) {
         printf("Testing connectivity options to %s ...\n", serverName);
 
-        //TODO
+        mux_test(endpoint);
         exit(EXIT_SUCCESS);
     }
 
