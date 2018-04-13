@@ -1,6 +1,3 @@
-//tady budou nejak zadratovany odkazy na jednotlive pluginy, takovy "interface" v C.
-//taky se tu budou resit vlakna
-
 #include <omp.h>
 #include <stdio.h>
 #include <unistd.h>
