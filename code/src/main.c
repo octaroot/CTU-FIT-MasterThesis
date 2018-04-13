@@ -30,9 +30,8 @@ static void printVersion() {
 static void handleSignal(int sig) {
     fprintf(stderr, "Detected SIGTERM/SIGINT, closing connection\n");
 
-    //TODO
+    mux_stop();
 }
-
 
 int main(int argc, char **argv) {
 
