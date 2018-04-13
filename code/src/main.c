@@ -16,6 +16,7 @@ int tunDeviceFD;
 static void pritnHelp(char *programName) {
     fprintf(stderr, "%s v%s\n", programName, PROGRAM_VERSION);
     fprintf(stderr, "  -v               print program version and exit\n");
+    fprintf(stderr, "  -l               list compiled plugins and exit\n");
     fprintf(stderr, "  -h               print help and exit\n");
     fprintf(stderr, "  -t <server>      test connectivity to server and exit\n");
     fprintf(stderr, "  -s               run in server mode\n");
