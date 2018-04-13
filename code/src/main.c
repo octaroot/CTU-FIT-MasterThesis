@@ -8,6 +8,9 @@
 
 #include "common.h"
 #include "tun-device.h"
+#include "mux.h"
+
+int tunDeviceFD;
 
 static void pritnHelp(char *programName) {
     fprintf(stderr, "%s v%s\n", programName, PROGRAM_VERSION);
@@ -96,7 +99,7 @@ int main(int argc, char **argv) {
         exit(EXIT_SUCCESS);
     }
 
-    int device = tunOpen();
+    tunDeviceFD = tunOpen();
 
     if (serverMode) {
         printf("Running in server mode ...\n");
@@ -107,7 +110,7 @@ int main(int argc, char **argv) {
         //TODO
     }
 
-    tunClose(device);
+    tunClose(tunDeviceFD);
 
     exit(EXIT_SUCCESS);
 }

@@ -12,13 +12,12 @@
 #define PLUGIN_COUNT (sizeof(plugins) / sizeof(plugin))
 
 plugin plugins[] = {
-		{ICMPGetVersion},
-		{DNSGetVersion},
+		{_ICMPGetVersion, _ICMPTestAvailability, _ICMPStart, _ICMPStop},
+		{_DNSGetVersion,  _DNSTestAvailability,  _DNSStart,  _DNSStop},
 };
 
 void mux_start()
 {
-
 #pragma omp parallel num_threads(PLUGIN_COUNT)
 #pragma omp single nowait
 	for (int i = 0; i < PLUGIN_COUNT; ++i)
@@ -30,4 +29,10 @@ void mux_start()
 			printf("%d, thread: %d, %s\n", i, omp_get_thread_num(), plugins[i].getVersion());
 		};
 	}
+}
+
+
+void mux_stop()
+{
+
 }
