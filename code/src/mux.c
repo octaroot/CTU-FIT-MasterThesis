@@ -30,7 +30,7 @@ void mux_start(uint32_t endpoint)
 			log_verbose("[LOG] %d, thread: %d, %s\n", i, omp_get_thread_num(), plugins[i].getVersion());
 
 			plugins[i].start(endpoint);
-		};
+		}
 	}
 }
 
@@ -40,5 +40,5 @@ void mux_stop()
 	for (int i = 0; i < PLUGIN_COUNT; ++i)
 	{
 		plugins[i].stop();
-	};
+	}
 }
