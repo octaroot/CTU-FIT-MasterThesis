@@ -32,7 +32,7 @@ static void printVersion() {
 static void handleSignal(int sig) {
     fprintf(stderr, "Detected SIGTERM/SIGINT, closing connection\n");
 
-    mux_stop();
+    muxStop();
 }
 
 int main(int argc, char **argv) {
@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
     while ((parameter = getopt(argc, argv, "lvht:sc:")) != -1) {
         switch (parameter) {
             case 'l':
-                mux_list();
+                muxListPlugins();
                 exit(EXIT_SUCCESS);
             case 'v':
                 printVersion();
@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
     if (justTestConnectivity) {
         printf("Testing connectivity options to %s ...\n", serverName);
 
-        mux_test(endpoint);
+        muxTestPlugins(endpoint);
         exit(EXIT_SUCCESS);
     }
 

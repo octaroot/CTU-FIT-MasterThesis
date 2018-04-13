@@ -18,7 +18,7 @@ plugin plugins[] = {
 		{_DNSGetVersion,  _DNSTestAvailability,  _DNSStart,  _DNSStop},
 };
 
-void mux_start(uint32_t endpoint)
+void muxStart(uint32_t endpoint)
 {
 #pragma omp parallel num_threads(PLUGIN_COUNT)
 #pragma omp single nowait
@@ -35,7 +35,7 @@ void mux_start(uint32_t endpoint)
 }
 
 
-void mux_stop()
+void muxStop()
 {
 	for (int i = 0; i < PLUGIN_COUNT; ++i)
 	{
@@ -43,7 +43,7 @@ void mux_stop()
 	}
 }
 
-void mux_list()
+void muxListPlugins()
 {
 	printf("There are a total of %zu plugins:\n", PLUGIN_COUNT);
 	for (int i = 0; i < PLUGIN_COUNT; ++i)
@@ -52,7 +52,7 @@ void mux_list()
 	}
 }
 
-void mux_test(uint32_t endpoint)
+void muxTestPlugins(uint32_t endpoint)
 {
 	printf("Testing availability of %zu plugins:\n", PLUGIN_COUNT);
 	for (int i = 0; i < PLUGIN_COUNT; ++i)

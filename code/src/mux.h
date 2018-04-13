@@ -16,12 +16,12 @@ typedef struct plugin
 
 } plugin;
 
-void mux_list();
+void muxListPlugins();
 
-void mux_test(uint32_t endpoint);
+void muxTestPlugins(uint32_t endpoint);
 
-void mux_start(uint32_t endpoint);
+void muxStart(uint32_t endpoint);
 
-void mux_stop();
+void muxStop();
 
 #endif //CODE_MUX_H
