@@ -4,7 +4,6 @@
 #include <stdint.h>
 
 #define ICMP_PLUGIN_VERSION "1.0.0-icmp"
-#define ICMP_PACKET_MAGIC "CRNC"
 
 extern int tunDeviceFD;
 

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "icmp.h"
-
+#include "client.h"
 
 bool _ICMPTestAvailability(uint32_t endpoint)
 {

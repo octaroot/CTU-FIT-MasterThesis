@@ -10,4 +10,4 @@ if (OPENMP_FOUND)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-add_executable(code src/main.c src/common.h plugins/icmp/icmp.c plugins/icmp/icmp.h src/tun-device.c src/tun-device.h src/mux.c src/mux.h plugins/dns/dns.c plugins/dns/dns.h src/resolve.c src/resolve.h)
+add_executable(code src/main.c src/common.h plugins/icmp/icmp.c plugins/icmp/icmp.h src/tun-device.c src/tun-device.h src/mux.c src/mux.h plugins/dns/dns.c plugins/dns/dns.h src/resolve.c src/resolve.h plugins/icmp/common.h plugins/icmp/client.c plugins/icmp/client.h)
