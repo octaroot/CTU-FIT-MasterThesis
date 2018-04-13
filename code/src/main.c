@@ -9,6 +9,7 @@
 #include "common.h"
 #include "tun-device.h"
 #include "mux.h"
+#include "resolve.h"
 
 int tunDeviceFD;
 
@@ -41,6 +42,7 @@ int main(int argc, char **argv) {
     int parameter;
 
     char *serverName = NULL;
+    uint32_t endpoint;
 
     while ((parameter = getopt(argc, argv, "vht:sc:")) != -1) {
         switch (parameter) {
@@ -79,6 +81,14 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Select either server (-s) mode or client (-c <server>) mode\n");
         exit(EXIT_FAILURE);
     }
+
+	endpoint = resolve(serverName);
+
+	if (!endpoint)
+	{
+		fprintf(stderr, "Unable to resolve domain name: %s\n", serverName);
+		exit(EXIT_FAILURE);
+	}
 
     if (geteuid() != 0) {
         fprintf(stderr, "This program must be run as root\n");

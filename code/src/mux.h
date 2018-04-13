@@ -2,6 +2,7 @@
 #define CODE_MUX_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef struct plugin
 {
