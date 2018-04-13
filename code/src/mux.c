@@ -15,7 +15,7 @@ plugin plugins[] = {
 		{_DNSGetVersion,  _DNSTestAvailability,  _DNSStart,  _DNSStop},
 };
 
-void muxStart(uint32_t endpoint)
+void muxStart(uint32_t endpoint, bool serverMode)
 {
 #pragma omp parallel num_threads(PLUGIN_COUNT)
 #pragma omp single nowait

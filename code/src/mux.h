@@ -20,7 +20,7 @@ void muxListPlugins();
 
 void muxTestPlugins(uint32_t endpoint);
 
-void muxStart(uint32_t endpoint);
+void muxStart(uint32_t endpoint, bool serverMode);
 
 void muxStop();
 

@@ -116,12 +116,11 @@ int main(int argc, char **argv) {
 
     if (serverMode) {
         printf("Running in server mode ...\n");
-        //TODO
     } else {
         printf("Connecting to server %s ...\n", serverName);
-
-        //TODO
     }
+
+	muxStart(endpoint, serverMode);
 
     tunClose(tunDeviceFD);
 
