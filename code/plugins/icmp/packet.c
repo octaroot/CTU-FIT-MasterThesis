@@ -45,6 +45,7 @@ int ICMPReceiveEcho(int socketFD, uint32_t *from, struct ICMPEchoMessage *msg)
 
 	msg->size = receivedSize - offset;
 	msg->type = header->type;
+	msg->packetType = customHeader->type;
 	msg->id = ntohs(header->un.echo.id);
 	msg->seq = ntohs(header->un.echo.sequence);
 	memcpy(msg->buffer, buffer + offset, receivedSize - offset);
