@@ -31,4 +31,11 @@ typedef struct ICMPHandlers
 
 } ICMPHandlers;
 
+typedef struct ICMPPluginState
+{
+	bool connected;
+	uint32_t endpoint;
+
+} ICMPPluginState;
+
 #endif //CODE_ICMP_H

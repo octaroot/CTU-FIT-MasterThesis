@@ -11,6 +11,8 @@
 
 int _ICMPSocketFD;
 
+struct ICMPPluginState pluginState;
+
 bool _ICMPTestAvailability(uint32_t endpoint)
 {
 	//TODO
@@ -20,6 +22,7 @@ bool _ICMPTestAvailability(uint32_t endpoint)
 
 void _ICMPCleanup()
 {
+	pluginState.connected = false;
 	ICMPSocketClose(_ICMPSocketFD);
 }
 
