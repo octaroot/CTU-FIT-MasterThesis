@@ -14,8 +14,9 @@ int ICMPReceiveEcho(int socketFD, uint32_t *from, struct ICMPEchoMessage *msg)
 	char buffer[ICMP_SOCKET_MTU];
 
 	struct sockaddr_in server;
+	socklen_t serverSize = sizeof(struct sockaddr_in);
 
-	int receivedSize = recvfrom(socketFD, buffer, ICMP_SOCKET_MTU, 0, (struct sockaddr *) &server, sizeof(server));
+	int receivedSize = recvfrom(socketFD, buffer, ICMP_SOCKET_MTU, 0, (struct sockaddr *) &server, &serverSize);
 
 	if (receivedSize < 0)
 	{
@@ -32,12 +33,21 @@ int ICMPReceiveEcho(int socketFD, uint32_t *from, struct ICMPEchoMessage *msg)
 	struct icmphdr *header = (struct icmphdr *) (buffer + sizeof(struct iphdr));
 
 	if ((header->type != ICMP_TYPE_ECHO_REPLY && header->type != ICMP_TYPE_ECHO_REQUEST) || header->code != 0)
-		return 1;  /* unexpected packet type. */
+		return 1;
 
-	msg->size = receivedSize - sizeof(struct iphdr) - sizeof(struct icmphdr);
-	msg->type = header->type == 0;
+	int offset = sizeof(struct iphdr) - sizeof(struct icmphdr) - sizeof(struct ICMPPacketHeader);
+
+	struct ICMPPacketHeader *customHeader = (struct ICMPPacketHeader *) (buffer + sizeof(struct iphdr) +
+																		 sizeof(struct icmphdr));
+
+	if (memcmp(customHeader->magic, ICMP_PACKET_MAGIC, sizeof(customHeader->magic)) != 0)
+		return 1;
+
+	msg->size = receivedSize - offset;
+	msg->type = header->type;
 	msg->id = ntohs(header->un.echo.id);
 	msg->seq = ntohs(header->un.echo.sequence);
+	memcpy(msg->buffer, buffer + offset, receivedSize - offset);
 
 	*from = ntohl(server.sin_addr.s_addr);
 
@@ -61,7 +71,7 @@ int ICMPSendEcho(int socketFD, uint32_t to, struct ICMPEchoMessage *msg)
 	header->un.echo.sequence = htons(msg->seq);
 	header->checksum = 0;
 
-	struct ICMPPacketHeader *customHeader = (struct ICMPPacketHeader*)(buffer + sizeof(struct icmphdr));
+	struct ICMPPacketHeader *customHeader = (struct ICMPPacketHeader *) (buffer + sizeof(struct icmphdr));
 	memcpy(customHeader->magic, ICMP_PACKET_MAGIC, sizeof(customHeader->magic));
 	customHeader->type = ICMP_CONNECTION_REQUEST;
 
@@ -71,7 +81,8 @@ int ICMPSendEcho(int socketFD, uint32_t to, struct ICMPEchoMessage *msg)
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = htonl(to);
 
-	int sentSize = sendto(socketFD, buffer, msg->size + sizeof(struct ICMPPacketHeader) + sizeof(struct icmphdr), 0, (struct sockaddr *) &server, sizeof(server));
+	int sentSize = sendto(socketFD, buffer, msg->size + sizeof(struct ICMPPacketHeader) + sizeof(struct icmphdr), 0,
+						  (struct sockaddr *) &server, sizeof(server));
 
 	if (sentSize < 0)
 	{
