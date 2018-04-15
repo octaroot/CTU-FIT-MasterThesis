@@ -45,10 +45,6 @@ typedef struct ICMPEchoMessage
 
 #define ICMP_PACKET_MAGIC "CVUT"
 
-#define ICMP_TYPE_ECHO_REQUEST    8
-#define ICMP_TYPE_ECHO_REPLY    0
-
-
 
 int ICMPSocketOpen();
 

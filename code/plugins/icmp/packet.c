@@ -32,7 +32,7 @@ int ICMPReceiveEcho(int socketFD, uint32_t *from, struct ICMPEchoMessage *msg)
 
 	struct icmphdr *header = (struct icmphdr *) (buffer + sizeof(struct iphdr));
 
-	if ((header->type != ICMP_TYPE_ECHO_REPLY && header->type != ICMP_TYPE_ECHO_REQUEST) || header->code != 0)
+	if ((header->type != ICMP_ECHO_REQUEST && header->type != ICMP_ECHO_REPLY) || header->code != 0)
 		return 1;
 
 	int offset = sizeof(struct iphdr) - sizeof(struct icmphdr) - sizeof(struct ICMPPacketHeader);
