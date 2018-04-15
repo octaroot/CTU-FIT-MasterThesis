@@ -12,7 +12,7 @@ int NATSequenceNumberIdx = 0;
 void ICMPHandlConnectionRequest(int socketFD, uint32_t endpoint, struct ICMPEchoMessage * request)
 {
 	struct ICMPEchoMessage msg;
-	msg.size = 0;
+	msg.size = 1;
 	msg.type = ICMP_ECHO_REPLY;
 	msg.seq = request->seq;
 

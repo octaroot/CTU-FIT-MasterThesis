@@ -9,7 +9,7 @@
 void ICMPSendConnectionRequest(int socketFD, uint32_t endpoint)
 {
 	struct ICMPEchoMessage msg;
-	msg.size = 0;
+	msg.size = 1;
 	msg.type = ICMP_ECHO_REQUEST;
 	msg.packetType = ICMP_CONNECTION_REQUEST;
 	msg.seq = ICMPSequenceNumber++;
@@ -20,7 +20,7 @@ void ICMPSendConnectionRequest(int socketFD, uint32_t endpoint)
 void ICMPSendNATPacket(int socketFD, uint32_t endpoint)
 {
 	struct ICMPEchoMessage msg;
-	msg.size = 0;
+	msg.size = 1;
 	msg.type = ICMP_ECHO_REQUEST;
 	msg.packetType = ICMP_NATPACKET;
 	msg.seq = ICMPSequenceNumber++;
@@ -31,7 +31,7 @@ void ICMPSendNATPacket(int socketFD, uint32_t endpoint)
 void ICMPSendKeepAlive(int socketFD, uint32_t endpoint)
 {
 	struct ICMPEchoMessage msg;
-	msg.size = 0;
+	msg.size = 1;
 	msg.type = ICMP_ECHO_REQUEST;
 	msg.packetType = ICMP_KEEPALIVE;
 	msg.seq = ICMPSequenceNumber++;
