@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 	bool clientMode = false;
 	int parameter;
 
-	char *serverName = NULL;
+	char *serverName = "localhost";
 	uint32_t endpoint;
 
 	while ((parameter = getopt(argc, argv, "lvht:sc:")) != -1)
