@@ -8,7 +8,7 @@ void ICMPClientInitialize(uint32_t endpoint)
 	ICMPSequenceNumber = rand();
 	ICMPIDNumber = rand();
 
-
+	ICMPsendConnectionRequest(_ICMPSocketFD, endpoint);
 }
 
 void ICMPsendConnectionRequest(int socketFD, uint32_t endpoint)
