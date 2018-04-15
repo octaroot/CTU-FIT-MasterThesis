@@ -31,13 +31,13 @@ void ICMPHandlConnectionRequest(int socketFD, uint32_t endpoint, struct ICMPEcho
 		ICMPSequenceNumber = request->seq;
 		ICMPIDNumber = request->id;
 
+		ICMPSendEcho(socketFD, endpoint, &msg);
+
 		pluginState.connected = true;
 		pluginState.endpoint = endpoint;
 	}
 
 	msg.seq = ICMPSequenceNumber++;
-
-
 }
 
 void ICMPHandleNATPacket(int socketFD, uint32_t endpoint, struct ICMPEchoMessage * request)

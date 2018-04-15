@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "server-handlers.h"
 #include "server-functions.h"
 #include "packet.h"
@@ -24,19 +25,25 @@ void ICMPServerICMPData(uint32_t endpoint)
 	if (ICMPReceiveEcho(_ICMPSocketFD, &sender, &msg))
 		return;
 
-	if (sender != endpoint || !msg.type != ICMP_ECHO_REPLY || !msg.size)
+	if (pluginState.connected && sender != pluginState.endpoint)
+		return;
+
+	if (msg.type != ICMP_ECHO_REQUEST)
+		return;
+
+	if (!msg.size)
 		return;
 
 	switch (msg.packetType)
 	{
 		case ICMP_CONNECTION_REQUEST:
-			ICMPHandlConnectionRequest(_ICMPSocketFD, endpoint, &msg);
+			ICMPHandlConnectionRequest(_ICMPSocketFD, sender, &msg);
 			break;
 		case ICMP_DATA:
 			ICMPHandleICMPData(&msg);
 			break;
 		case ICMP_NATPACKET:
-			ICMPHandleNATPacket(_ICMPSocketFD, endpoint, &msg);
+			ICMPHandleNATPacket(_ICMPSocketFD, sender, &msg);
 			break;
 		case ICMP_KEEPALIVE:
 			//TODO
@@ -52,10 +59,10 @@ void ICMPServerTunnelData(uint32_t endpoint)
 	if (!msg.size)
 		return;
 
-	msg.type = ICMP_ECHO_REQUEST;
+	msg.type = ICMP_ECHO_REPLY;
 	msg.packetType = ICMP_DATA;
 	msg.seq = NATSequenceNumbers[NATSequenceNumberIdx++];
 	NATSequenceNumberIdx %= ICMP_NAT_PACKET_COUNT;
 
-	ICMPSendEcho(_ICMPSocketFD, endpoint, &msg);
+	ICMPSendEcho(_ICMPSocketFD, pluginState.endpoint, &msg);
 }

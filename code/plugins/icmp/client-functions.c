@@ -42,6 +42,7 @@ void ICMPSendKeepAlive(int socketFD, uint32_t endpoint)
 void ICMPHandleConnectionAccept(int socketFD, uint32_t endpoint)
 {
 	pluginState.connected = true;
+	pluginState.endpoint = endpoint;
 	for (int i = 0; i < ICMP_NAT_PACKET_COUNT; ++i)
 	{
 		ICMPSendNATPacket(socketFD, endpoint);

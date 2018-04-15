@@ -1,8 +1,10 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "client-handlers.h"
 #include "client-functions.h"
 #include "packet.h"
 #include "../../src/tun-device.h"
+#include "icmp.h"
 
 
 void ICMPClientInitialize(uint32_t endpoint)
@@ -25,19 +27,25 @@ void ICMPClientICMPData(uint32_t endpoint)
 	if (ICMPReceiveEcho(_ICMPSocketFD, &sender, &msg))
 		return;
 
-	if (sender != endpoint || !msg.type != ICMP_ECHO_REPLY || !msg.size)
+	if (pluginState.connected && pluginState.endpoint && sender != pluginState.endpoint)
+		return;
+
+	if (msg.type != ICMP_ECHO_REPLY)
+		return;
+
+	if (!msg.size)
 		return;
 
 	switch (msg.packetType)
 	{
 		case ICMP_CONNECTION_ACCEPT:
-			ICMPHandleConnectionAccept(_ICMPSocketFD, endpoint);
+			ICMPHandleConnectionAccept(_ICMPSocketFD, sender);
 			break;
 		case ICMP_CONNECTION_REJECT:
-			ICMPHandleConnectionReject(_ICMPSocketFD, endpoint);
+			ICMPHandleConnectionReject(_ICMPSocketFD, sender);
 			break;
 		case ICMP_KEEPALIVE:
-			ICMPHandleKeepAliveResponse(_ICMPSocketFD, endpoint);
+			ICMPHandleKeepAliveResponse(_ICMPSocketFD, sender);
 			break;
 		case ICMP_DATA:
 			ICMPHandleICMPData(&msg);
