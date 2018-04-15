@@ -8,6 +8,7 @@
 #include "packet.h"
 
 #include "client-handlers.h"
+#include "server-handlers.h"
 
 int _ICMPSocketFD;
 
@@ -35,7 +36,7 @@ void _ICMPStart(uint32_t endpoint, bool serverMode)
 {
 	ICMPHandlers handlers[] = {
 			{ICMPClientInitialize, ICMPClientCheckHealth, ICMPClientICMPData, ICMPClientTunnelData},
-
+			{ICMPServerInitialize, ICMPServerCheckHealth, ICMPServerICMPData, ICMPServerTunnelData},
 	};
 
 	_ICMPRunning = true;

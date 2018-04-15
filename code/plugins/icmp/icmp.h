@@ -2,8 +2,11 @@
 #define CODE_ICMP_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #define ICMP_PLUGIN_VERSION "1.0.0-icmp"
+
+#define ICMP_NAT_PACKET_COUNT	10
 
 extern int tunDeviceFD;
 
