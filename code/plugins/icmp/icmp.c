@@ -8,7 +8,7 @@
 #include "client.h"
 #include "packet.h"
 
-#include "client-functions.h"
+#include "client-handlers.h"
 
 int _ICMPSocketFD;
 
@@ -32,7 +32,8 @@ const char *_ICMPGetVersion()
 void _ICMPStart(uint32_t endpoint, bool serverMode)
 {
 	ICMPHandlers handlers[] = {
-			{ICMPClientInitialize}
+			{ICMPClientInitialize, ICMPClientCheckHealth, ICMPClientICMPData, ICMPClientTunnelData},
+
 	};
 
 	_ICMPRunning = true;
