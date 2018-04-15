@@ -74,7 +74,7 @@ int ICMPSendEcho(int socketFD, uint32_t to, struct ICMPEchoMessage *msg)
 
 	struct ICMPPacketHeader *customHeader = (struct ICMPPacketHeader *) (buffer + sizeof(struct icmphdr));
 	memcpy(customHeader->magic, ICMP_PACKET_MAGIC, sizeof(customHeader->magic));
-	customHeader->type = ICMP_CONNECTION_REQUEST;
+	customHeader->type = msg->packetType;
 
 	memcpy(buffer + sizeof(struct icmphdr) + sizeof(struct ICMPPacketHeader), msg->buffer, msg->size);
 
