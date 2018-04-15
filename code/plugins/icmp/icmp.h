@@ -19,4 +19,8 @@ void _ICMPStart(uint32_t endpoint, bool serverMode);
 
 void _ICMPStop();
 
+void ICMPRunServer(uint32_t endpoint);
+
+void ICMPRunClient(uint32_t endpoint);
+
 #endif //CODE_ICMP_H
