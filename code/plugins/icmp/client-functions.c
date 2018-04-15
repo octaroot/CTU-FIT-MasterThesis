@@ -3,13 +3,15 @@
 #include "client-functions.h"
 #include "packet.h"
 
-void clientInitialize()
+void ICMPclientInitialize(uint32_t endpoint)
 {
 	ICMPSequenceNumber = rand();
 	ICMPIDNumber = rand();
+
+
 }
 
-void sendConnectionRequest(int socketFD, uint32_t endpoint)
+void ICMPsendConnectionRequest(int socketFD, uint32_t endpoint)
 {
 	struct ICMPEchoMessage msg;
 	msg.size = 0;

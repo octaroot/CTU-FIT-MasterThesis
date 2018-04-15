@@ -23,4 +23,17 @@ void ICMPRunServer(uint32_t endpoint);
 
 void ICMPRunClient(uint32_t endpoint);
 
+
+typedef struct ICMPHandlers
+{
+	void (*initialize)(uint32_t endpoint);
+
+	void (*checkHealth)(uint32_t endpoint);
+
+	void (*ICMPData)(uint32_t endpoint);
+
+	void (*tunnelData)(uint32_t endpoint);
+
+} ICMPHandlers;
+
 #endif //CODE_ICMP_H
