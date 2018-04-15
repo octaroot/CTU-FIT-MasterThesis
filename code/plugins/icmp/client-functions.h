@@ -5,7 +5,7 @@
 
 extern uint16_t ICMPSequenceNumber, ICMPIDNumber;
 
-void ICMPclientInitialize(uint32_t endpoint);
+void ICMPClientInitialize(uint32_t endpoint);
 
 void ICMPsendConnectionRequest(int socketFD, uint32_t endpoint);
 

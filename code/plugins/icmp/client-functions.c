@@ -3,7 +3,7 @@
 #include "client-functions.h"
 #include "packet.h"
 
-void ICMPclientInitialize(uint32_t endpoint)
+void ICMPClientInitialize(uint32_t endpoint)
 {
 	ICMPSequenceNumber = rand();
 	ICMPIDNumber = rand();

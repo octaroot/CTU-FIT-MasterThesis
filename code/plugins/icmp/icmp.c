@@ -32,7 +32,7 @@ const char *_ICMPGetVersion()
 void _ICMPStart(uint32_t endpoint, bool serverMode)
 {
 	ICMPHandlers handlers[] = {
-			{ICMPclientInitialize}
+			{ICMPClientInitialize}
 	};
 
 	_ICMPRunning = true;
@@ -75,7 +75,8 @@ void _ICMPStart(uint32_t endpoint, bool serverMode)
 			fprintf(stderr, "Unable to select() on sockets: %s\n", strerror(errno));
 			return;
 		}
-		else if (lenAvailable == 0)
+
+		if (lenAvailable == 0)
 		{
 			handler->checkHealth(endpoint);
 		}
