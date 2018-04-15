@@ -1,4 +1,0 @@
-#ifndef CODE_ICMP_CLIENT_H
-#define CODE_ICMP_CLIENT_H
-
-#endif //CODE_ICMP_CLIENT_H
