@@ -1,10 +1,11 @@
 #include <memory.h>
 #include <stdlib.h>
 #include <stdio.h>
+
 #include "client-functions.h"
 #include "packet.h"
-#include "../../src/common.h"
 #include "icmp.h"
+
 void ICMPSendConnectionRequest(int socketFD, uint32_t endpoint)
 {
 	struct ICMPEchoMessage msg;
@@ -40,7 +41,8 @@ void ICMPSendKeepAlive(int socketFD, uint32_t endpoint)
 
 void ICMPHandleConnectionAccept(int socketFD, uint32_t endpoint)
 {
-	for (int i = 0; i < 10; ++i)
+	pluginState.connected = true;
+	for (int i = 0; i < ICMP_NAT_PACKET_COUNT; ++i)
 	{
 		ICMPSendNATPacket(socketFD, endpoint);
 	}
@@ -48,6 +50,7 @@ void ICMPHandleConnectionAccept(int socketFD, uint32_t endpoint)
 
 void ICMPHandleConnectionReject(int socketFD, uint32_t endpoint)
 {
+	pluginState.connected = false;
 	_ICMPStop();
 }
 
