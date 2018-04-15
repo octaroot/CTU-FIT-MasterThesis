@@ -59,7 +59,7 @@ void ICMPHandleICMPData(struct ICMPEchoMessage *msg)
 	tunWrite(tunDeviceFD, msg->buffer, msg->size);
 }
 
-void ICMPHandleKeepAliveResponse()
+void ICMPHandleKeepAliveResponse(int socketFD, uint32_t endpoint)
 {
 	// TODO
 }

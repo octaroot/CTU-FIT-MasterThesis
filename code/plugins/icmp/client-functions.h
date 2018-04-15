@@ -19,6 +19,6 @@ void ICMPHandleConnectionReject(int socketFD, uint32_t endpoint);
 
 void ICMPHandleICMPData(struct ICMPEchoMessage *msg);
 
-void ICMPHandleKeepAliveResponse();
+void ICMPHandleKeepAliveResponse(int socketFD, uint32_t endpoint);
 
 #endif //CODE_CLIENT_FUNCTIONS_H

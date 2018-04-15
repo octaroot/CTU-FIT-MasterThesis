@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+extern int tunDeviceFD;
+
 void ICMPClientInitialize(uint32_t endpoint);
 
 void ICMPClientCheckHealth(uint32_t endpoint);
