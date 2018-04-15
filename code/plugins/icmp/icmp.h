@@ -19,11 +19,6 @@ void _ICMPStart(uint32_t endpoint, bool serverMode);
 
 void _ICMPStop();
 
-void ICMPRunServer(uint32_t endpoint);
-
-void ICMPRunClient(uint32_t endpoint);
-
-
 typedef struct ICMPHandlers
 {
 	void (*initialize)(uint32_t endpoint);

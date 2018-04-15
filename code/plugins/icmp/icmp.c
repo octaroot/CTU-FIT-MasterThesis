@@ -5,7 +5,6 @@
 #include <errno.h>
 
 #include "icmp.h"
-#include "client.h"
 #include "packet.h"
 
 #include "client-handlers.h"
