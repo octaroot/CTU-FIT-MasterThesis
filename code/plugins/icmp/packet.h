@@ -54,4 +54,6 @@ int ICMPReceiveEcho(int socketFD, uint32_t *from, struct ICMPEchoMessage *msg);
 
 void ICMPSocketClose(int socketFD);
 
+uint16_t ICMPPacketChecksum(const char *buffer, int size);
+
 #endif //CODE_PACKET_H

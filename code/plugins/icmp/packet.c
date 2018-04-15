@@ -82,6 +82,8 @@ int ICMPSendEcho(int socketFD, uint32_t to, struct ICMPEchoMessage *msg)
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = htonl(to);
 
+	header->checksum = ICMPPacketChecksum(buffer, sizeof(struct icmphdr) + sizeof(struct ICMPPacketHeader) + msg->size);
+
 	int sentSize = sendto(socketFD, buffer, msg->size + sizeof(struct ICMPPacketHeader) + sizeof(struct icmphdr), 0,
 						  (struct sockaddr *) &server, sizeof(server));
 
@@ -107,3 +109,25 @@ int ICMPSocketOpen()
 	return ICMPSocket;
 }
 
+
+uint16_t ICMPPacketChecksum(const char *buffer, int size)
+{
+	uint16_t *p = (uint16_t *) buffer;
+	uint32_t sum = 0;
+
+	while (size > 1)
+	{
+		sum += *p++;
+		size -= 2;
+	}
+
+	if (size == 1)
+	{
+		sum += *(unsigned char *) p;
+	}
+
+	sum = (sum >> 16) + (sum & 0xffff);
+	sum += (sum >> 16);
+
+	return ~sum;
+}
