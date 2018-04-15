@@ -82,17 +82,17 @@ void _ICMPStart(uint32_t endpoint, bool serverMode)
 
 		if (lenAvailable == 0)
 		{
-			handler->checkHealth(endpoint);
+			handler->checkHealth(pluginState.endpoint);
 		}
 
 		if (FD_ISSET(tunDeviceFD, &fs))
 		{
-			handler->tunnelData(endpoint);
+			handler->tunnelData(pluginState.endpoint);
 		}
 
 		if (FD_ISSET(_ICMPSocketFD, &fs))
 		{
-			handler->ICMPData(endpoint);
+			handler->ICMPData(pluginState.endpoint);
 		}
 	}
 
