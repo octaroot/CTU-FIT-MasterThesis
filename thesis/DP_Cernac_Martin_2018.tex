@@ -7,7 +7,10 @@
 \usepackage{amssymb} %additional math symbols
 \usepackage{dirtree}
 \usepackage{pdfpages}
+\usepackage{bytefield}
 \usepackage{listings}
+\usepackage{tikz}
+    \usetikzlibrary{calc,positioning,arrows}
 \lstset{
 basicstyle=\small\ttfamily,
 columns=flexible,
@@ -332,10 +335,68 @@ Tunelování síťového provozu pomocí \texttt{DNS} je populární\cite{sans-d
 \chapter{Návrh řešení}
 
 % cilem prace je vyuzit co nejvic technik a delat MUX trafficu
-
 %uvest definici prostupnosti site - protoze to je to, o co se snazzim
 
-Doplňte vhodný text.
+
+\section{ICMP tunelování}
+
+Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu \texttt{0} a \texttt{8} (\textit{echo reply}, resp. \textit{echo request}), pro které je specifikována proměnlivá délka zpráv. Zprávy těchto typů jsou používány zejména nástrojem \texttt{ping}. Zdrojová stanice vyšle na cílovou stanici zprávu typu \texttt{echo request} a cílová stanice odpoví zprávou \texttt{echo reply}. Strukturu použitých \texttt{ICMP} zpráv znázorňuje diagram\ref{diag:icmp-packet}
+
+
+    \begin{figure}[h]
+	\begin{bytefield}[bitwidth=1em]{32}
+	    \bitheader{0,7,8,15,16,31}
+	    \\
+	    \bitbox{8}{Typ = \texttt{0} (resp. \texttt{8})} & \bitbox{8}{Kód = \texttt{0}} & \bitbox{16}{Kontrolní součet hlavičky}
+	    \\
+	    \bitbox{16}{Identifikátor} & \bitbox{16}{Sekvenční číslo}
+	    \\
+	    \wordbox{2}{Data}
+	\end{bytefield}
+	\caption{Diagram \texttt{ICMP} zprávy typu \texttt{echo request} (resp. \texttt{echo reply})}
+	\label{diag:icmp-packet}
+    \end{figure}
+    
+    Protože \texttt{ICMP} pakety nemají na rozdíl od \texttt{UDP} a \texttt{TCP} paketů zdrojový a cílový port, síťové prvky jako například \texttt{NAT} musejí používat jiné metody pro zacházení s \texttt{ICMP} pakety. Dle \cite{rfc792}[RFC 792] a  \cite{rfc3022}[RFC 3022] lze pro tento účel u zpráv \texttt{echo request} a \texttt{echo reply} pole \textit{Identifikátor}, tedy \texttt{16} bitovou položku pro rozpoznání souvisejících zpráv. Specifikace se nezmiňuje o délce platnosti \textit{identifikátoru}. Díky tomu je možno udržovat komunikaci i pokud je jeden z účastníků omezen \texttt{NAT}, protože je možné klientovi \uv{za NATem} zaslat více paketů se shodnými hodnotami \textit{sekvenční číslo} a \textit{identifikátor}.
+    
+    Aby obě strany tunelu byly schopny identifikovat tok dat tunelu a rozeznat ho od jiných \texttt{ICMP} zpráv, je nutné \uv{tunelové} \texttt{ICMP} zprávy označit. Právě proto začíná každá taková \texttt{ICMP} zpráva stejnou sekvencí čtyř bajtů, která označuje \texttt{ICMP} zprávy, nesoucí tunelovaná data. Komunikující protějšky kontrolují zdrojovou \texttt{IP} adresu označených \texttt{ICMP} zpráv, aby nebylo triviálně možné injektovat komunikaci do tunelu.
+    
+    Komunikace klienta, který se snaží navázat tunelové spojení, je zachycena na diagramu \ref{diag:seq-icmp}.
+    
+
+\begin{figure}[h]
+ \centering
+
+  \begin{tikzpicture}[node distance=5cm,auto,>=stealth']
+    \node[] (Server) {Server};
+    \node[left = of Server] (Klient) {Klient};
+    \node[below of=Server, node distance=6cm] (server_ground) {};
+    \node[below of=Klient, node distance=6cm] (client_ground) {};
+    %
+    \draw (Klient) -- (client_ground);
+    \draw (Server) -- (server_ground);
+    \draw[->] ($(Klient)!0.15!(client_ground)$) -- node[above,scale=1,midway]{Požadavek o spojení} ($(Server)!0.15!(server_ground)$);
+    \draw[<-] ($(Klient)!0.20!(client_ground)$) -- node[below,scale=1,midway]{Přijetí požadavku} ($(Server)!0.20!(server_ground)$);
+    \draw[->] ($(Klient)!0.51!(client_ground)$) -- node[above,scale=1,midway]{Odeslání \uv{NAT} paketů}($(Server)!0.51!(server_ground)$);
+    \draw[->] ($(Klient)!0.54!(client_ground)$) -- 						 ($(Server)!0.54!(server_ground)$);
+    \draw[->] ($(Klient)!0.57!(client_ground)$) -- 						 ($(Server)!0.57!(server_ground)$);
+    \draw[->] ($(Klient)!0.60!(client_ground)$) -- 						 ($(Server)!0.60!(server_ground)$);
+   
+    \draw[->] ($(Klient)!0.80!(client_ground)$) -- node[above,scale=1,midway]{Obousměrná komunikace} ($(Server)!0.80!(server_ground)$);
+    \draw[<-] ($(Klient)!0.85!(client_ground)$) -- 						 ($(Server)!0.85!(server_ground)$);
+\end{tikzpicture}
+\caption{Sekvenční diagram navázání \texttt{ICMP} tunelu}
+\label{diag:seq-icmp}
+\end{figure}
+
+    
+    %TODO reword?
+    %TODO dialog komunikace? styl BI-SI1? Pokud to jde za rozumny cas udelat
+    
+    
+
+
+
 
 \chapter{Implementace}
 
@@ -377,6 +438,7 @@ Doplňte vhodný text.
 	\item[HTTPS] HTTP Secure
 	\item[TTL] Time to live
 	\item[SOCKS] Socket Secure
+	\item[NAT] Network Address Translation
 	\item[SSH] Secure Shell
 	\item[TCP] Transmission Control Protocol
 	\item[UDP] User Datagram Protocol
