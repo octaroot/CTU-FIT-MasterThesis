@@ -18,6 +18,10 @@ breaklines=true,
 captionpos=b
 }
 \renewcommand{\lstlistingname}{Ukázka kódu}
+\newcommand{\colorbitbox}[3]{%
+\rlap{\bitbox{#2}{\color{#1}\rule{\width}{\height}}}%
+\bitbox{#2}{#3}}
+\definecolor{lightyellow}{rgb}{1,1,0.8}
 
 % % list of acronyms
 % \usepackage[acronym,nonumberlist,toc,numberedsection=autolabel]{glossaries}
@@ -359,9 +363,27 @@ Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu
     
     Protože \texttt{ICMP} pakety nemají na rozdíl od \texttt{UDP} a \texttt{TCP} paketů zdrojový a cílový port, síťové prvky jako například \texttt{NAT} musejí používat jiné metody pro zacházení s \texttt{ICMP} pakety. Dle \cite{rfc792}[RFC 792] a  \cite{rfc3022}[RFC 3022] lze pro tento účel u zpráv \texttt{echo request} a \texttt{echo reply} pole \textit{Identifikátor}, tedy \texttt{16} bitovou položku pro rozpoznání souvisejících zpráv. Specifikace se nezmiňuje o délce platnosti \textit{identifikátoru}. Díky tomu je možno udržovat komunikaci i pokud je jeden z účastníků omezen \texttt{NAT}, protože je možné klientovi \uv{za NATem} zaslat více paketů se shodnými hodnotami \textit{sekvenční číslo} a \textit{identifikátor}.
     
-    Aby obě strany tunelu byly schopny identifikovat tok dat tunelu a rozeznat ho od jiných \texttt{ICMP} zpráv, je nutné \uv{tunelové} \texttt{ICMP} zprávy označit. Právě proto začíná každá taková \texttt{ICMP} zpráva stejnou sekvencí čtyř bajtů, která označuje \texttt{ICMP} zprávy, nesoucí tunelovaná data. Komunikující protějšky kontrolují zdrojovou \texttt{IP} adresu označených \texttt{ICMP} zpráv, aby nebylo triviálně možné injektovat komunikaci do tunelu.
+    Aby obě strany tunelu byly schopny identifikovat tok dat tunelu a rozeznat ho od jiných \texttt{ICMP} zpráv, je nutné \uv{tunelové} \texttt{ICMP} zprávy označit. Právě proto začíná každá taková \texttt{ICMP} zpráva stejnou sekvencí čtyř bajtů, která označuje \texttt{ICMP} zprávy, nesoucí tunelovaná data. Komunikující protějšky kontrolují zdrojovou \texttt{IP} adresu označených \texttt{ICMP} zpráv, aby nebylo triviálně možné injektovat komunikaci do tunelu. Těchto dodatečných pět bajtů je potřebných pro správnou funkci tunelu a předávání servisních zpráv. Jejich rozmístění je vyznačeno na diagramu \ref{diag:icmp-packet-tunel}.
     
-    Komunikace klienta, který se snaží navázat tunelové spojení, je zachycena na diagramu \ref{diag:seq-icmp}.
+    \begin{figure}[h]
+	\begin{bytefield}[bitwidth=1em]{32}
+	    \bitheader{0,7,8,15,16,31}
+	    \\
+	    \bitbox{8}{Typ = \texttt{0} (resp. \texttt{8})} & \bitbox{8}{Kód = \texttt{0}} & \bitbox{16}{Kontrolní součet hlavičky}
+	    \\
+	    \bitbox{16}{Identifikátor} & \bitbox{16}{Sekvenční číslo}
+	    \\
+	    \colorbitbox{lightyellow}{32}{Značka zprávy tunelu}
+	    \\
+	    \colorbitbox{lightyellow}{8}{Typ zprávy} & \bitbox[lr]{24}{}
+	    \\
+	    \bitbox[lbr]{32}{Data}
+	\end{bytefield}
+	\caption{Diagram \texttt{ICMP} zprávy typu \texttt{echo request} (resp. \texttt{echo reply}) s vyznačenou hlavičkou dat tunelu}
+	\label{diag:icmp-packet-tunel}
+    \end{figure}
+    
+    V jednu chvíli server obsluhuje pouze jednoho klienta a požadavky o spojení jiných klientů ignoruje. Situace, kdy se klient připojuje k volnému server je zachycena na diagramu \ref{diag:seq-icmp}.
     
 
 \begin{figure}[h]
@@ -389,9 +411,6 @@ Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu
 \label{diag:seq-icmp}
 \end{figure}
 
-    
-    %TODO reword?
-    %TODO dialog komunikace? styl BI-SI1? Pokud to jde za rozumny cas udelat
     
     
 
