@@ -444,7 +444,7 @@ typedef enum ICMP_PACKET_TYPE
     \draw (Server) -- (server_ground);
     \draw[->] ($(Klient)!0.15!(client_ground)$) -- node[above,scale=1,midway]{Požadavek o spojení (\texttt{CONNECTION\_REQUEST})} ($(Server)!0.15!(server_ground)$);
     \draw[<-] ($(Klient)!0.20!(client_ground)$) -- node[below,scale=1,midway]{Přijetí požadavku (\texttt{CONNECTION\_ACCEPT})} ($(Server)!0.20!(server_ground)$);
-    \draw[->] ($(Klient)!0.51!(client_ground)$) -- node[above,scale=1,midway]{Odeslání \uv{NAT} paketů (\texttt{NAT\_PACKET})}($(Server)!0.51!(server_ground)$);
+    \draw[->] ($(Klient)!0.51!(client_ground)$) -- node[above,scale=1,midway]{Odeslání \uv{NAT} paketů (\texttt{NATPACKET})}($(Server)!0.51!(server_ground)$);
     \draw[->] ($(Klient)!0.54!(client_ground)$) -- 						 ($(Server)!0.54!(server_ground)$);
     \draw[->] ($(Klient)!0.57!(client_ground)$) -- 						 ($(Server)!0.57!(server_ground)$);
     \draw[->] ($(Klient)!0.60!(client_ground)$) -- 						 ($(Server)!0.60!(server_ground)$);
@@ -484,11 +484,6 @@ typedef enum ICMP_PACKET_TYPE
     \end{figure}
 
 
-
-
-\chapter{Implementace}
-
-Doplňte vhodný text.
 
 \chapter{Testování}
 
