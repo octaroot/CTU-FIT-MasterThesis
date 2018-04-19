@@ -17,11 +17,16 @@ columns=flexible,
 breaklines=true,
 captionpos=b
 }
+\newcommand{\colorwordbox}[4][]{%
+\rlap{\wordbox[#1]{#3}{\color{#2}\rule{\width}{\height}}}%
+\wordbox[#1]{#3}{#4}}
 \renewcommand{\lstlistingname}{Ukázka kódu}
-\newcommand{\colorbitbox}[3]{%
-\rlap{\bitbox{#2}{\color{#1}\rule{\width}{\height}}}%
-\bitbox{#2}{#3}}
+\newcommand{\colorbitbox}[4][]{%
+\rlap{\bitbox[#1]{#3}{\color{#2}\rule{\width}{\height}}}%
+\bitbox[#1]{#3}{#4}}
 \definecolor{lightyellow}{rgb}{1,1,0.8}
+\definecolor{lightgreen}{rgb}{0.64,1,0.71}
+\definecolor{lightcyan}{rgb}{0.84,1,1}
 
 % % list of acronyms
 % \usepackage[acronym,nonumberlist,toc,numberedsection=autolabel]{glossaries}
@@ -336,7 +341,7 @@ Tunelování síťového provozu pomocí \texttt{DNS} je populární\cite{sans-d
 % zminit problem TCP over TCP? nevim, jestli takovou vec chci resit .. ale asi ano, protoze primarne budu delat UDP/53+ICMP, takze si TCP moc neuziju
 % TCP jeste probrat s Alesem, jestli se do toho mam poustet, protoze je to nezajimave,trivialni a pokud mam TCP ven, tak proc se patlat s DNS a ICMP ze?
 
-\chapter{Návrh řešení}
+\chapter{Návrh a implementace}
 
 % cilem prace je vyuzit co nejvic technik a delat MUX trafficu
 %uvest definici prostupnosti site - protoze to je to, o co se snazzim
@@ -344,10 +349,11 @@ Tunelování síťového provozu pomocí \texttt{DNS} je populární\cite{sans-d
 
 \section{ICMP tunelování}
 
-Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu \texttt{0} a \texttt{8} (\textit{echo reply}, resp. \textit{echo request}), pro které je specifikována proměnlivá délka zpráv. Zprávy těchto typů jsou používány zejména nástrojem \texttt{ping}. Zdrojová stanice vyšle na cílovou stanici zprávu typu \texttt{echo request} a cílová stanice odpoví zprávou \texttt{echo reply}. Strukturu použitých \texttt{ICMP} zpráv znázorňuje diagram\ref{diag:icmp-packet}
+Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu \texttt{0} a \texttt{8} (\texttt{echo reply}, resp. \texttt{echo request}), pro které je specifikována proměnlivá délka zpráv. Zprávy těchto typů jsou používány zejména nástrojem \texttt{ping} -- například pro zjištění dostupnosti cíle, nebo pro informace o latenci spojení. Zdrojová stanice vyšle na cílovou stanici zprávu typu \texttt{echo request} a cílová stanice odpoví zprávou \texttt{echo reply}. Toto chování je zajištěno v~\cite[RFC1122]{rfc1122}. Strukturu zmíněných \texttt{echo} \texttt{ICMP} zpráv znázorňuje následující diagram \ref{diag:icmp-packet}.
 
 
     \begin{figure}[h]
+    \centering
 	\begin{bytefield}[bitwidth=1em]{32}
 	    \bitheader{0,7,8,15,16,31}
 	    \\
@@ -361,11 +367,12 @@ Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu
 	\label{diag:icmp-packet}
     \end{figure}
     
-    Protože \texttt{ICMP} pakety nemají na rozdíl od \texttt{UDP} a \texttt{TCP} paketů zdrojový a cílový port, síťové prvky jako například \texttt{NAT} musejí používat jiné metody pro zacházení s \texttt{ICMP} pakety. Dle \cite{rfc792}[RFC 792] a  \cite{rfc3022}[RFC 3022] lze pro tento účel u zpráv \texttt{echo request} a \texttt{echo reply} pole \textit{Identifikátor}, tedy \texttt{16} bitovou položku pro rozpoznání souvisejících zpráv. Specifikace se nezmiňuje o délce platnosti \textit{identifikátoru}. Díky tomu je možno udržovat komunikaci i pokud je jeden z účastníků omezen \texttt{NAT}, protože je možné klientovi \uv{za NATem} zaslat více paketů se shodnými hodnotami \textit{sekvenční číslo} a \textit{identifikátor}.
+    Protože \texttt{ICMP} pakety \texttt{echo reply}, (resp. \texttt{echo request}) na rozdíl od \texttt{UDP} a \texttt{TCP} paketů nenesou informaci o zdrojovém/cílovém portu, jsou pro sdružování souvisejících zpráv použity hodnoty \textit{identifikátor} a \textit{sekvenční číslo}. Dle \cite[RFC 792]{rfc792} a \cite[RFC 3022]{rfc3022} mohou síťové prvky, jako například \texttt{NAT}, pro rozpoznání souvisejících zpráv tyto hodnoty používat. Specifikace se však nezmiňuje o délce platnosti \textit{identifikátoru}. Díky tomu je možno udržovat obousměrnou komunikaci, i pokud je jeden z účastníků omezen \texttt{NAT}, protože je možné klientovi \uv{za NATem} zaslat více paketů se shodnými hodnotami \textit{sekvenční číslo} a \textit{identifikátor}.
     
-    Aby obě strany tunelu byly schopny identifikovat tok dat tunelu a rozeznat ho od jiných \texttt{ICMP} zpráv, je nutné \uv{tunelové} \texttt{ICMP} zprávy označit. Právě proto začíná každá taková \texttt{ICMP} zpráva stejnou sekvencí čtyř bajtů, která označuje \texttt{ICMP} zprávy, nesoucí tunelovaná data. Komunikující protějšky kontrolují zdrojovou \texttt{IP} adresu označených \texttt{ICMP} zpráv, aby nebylo triviálně možné injektovat komunikaci do tunelu. Těchto dodatečných pět bajtů je potřebných pro správnou funkci tunelu a předávání servisních zpráv. Jejich rozmístění je vyznačeno na diagramu \ref{diag:icmp-packet-tunel}.
+    Aby obě strany tunelu byly schopny identifikovat tok dat tunelu a rozeznat takové zprávy od jiných \texttt{ICMP} zpráv, je nutné \uv{tunelové} \texttt{ICMP} zprávy označit. Právě proto začíná každá taková \texttt{ICMP} zpráva stejnou sekvencí čtyř bajtů, která označuje \texttt{ICMP} zprávy, nesoucí data síťového tunelu. Komunikující protějšky kontrolují zdrojovou \texttt{IP} adresu označených \texttt{ICMP} zpráv, aby nebylo triviálně možné injektovat komunikaci do tunelu. Těchto dodatečných pět bajtů je potřebných pro správnou funkci tunelu a předávání servisních zpráv. Umístění těchto informací v \texttt{ICMP} paketu je vyznačeno na diagramu \ref{diag:icmp-packet-tunel}.
     
     \begin{figure}[h]
+    \centering
 	\begin{bytefield}[bitwidth=1em]{32}
 	    \bitheader{0,7,8,15,16,31}
 	    \\
@@ -373,23 +380,61 @@ Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu
 	    \\
 	    \bitbox{16}{Identifikátor} & \bitbox{16}{Sekvenční číslo}
 	    \\
-	    \colorbitbox{lightyellow}{32}{Značka zprávy tunelu}
+	    \colorbitbox[ltrb]{lightyellow}{32}{Značka zprávy nesoucí data tunelu}
 	    \\
-	    \colorbitbox{lightyellow}{8}{Typ zprávy} & \bitbox[lr]{24}{}
+	    \colorbitbox[ltrb]{lightyellow}{8}{Typ zprávy} & \bitbox[lr]{24}{}
 	    \\
-	    \bitbox[lbr]{32}{Data}
+	    \bitbox[lr]{32}{Data tunelu}
+	    \\
+	    \bitbox[lbr]{32}{}
 	\end{bytefield}
 	\caption{Diagram \texttt{ICMP} zprávy typu \texttt{echo request} (resp. \texttt{echo reply}) s vyznačenou hlavičkou dat tunelu}
 	\label{diag:icmp-packet-tunel}
     \end{figure}
     
-    V jednu chvíli server obsluhuje pouze jednoho klienta a požadavky o spojení jiných klientů ignoruje. Situace, kdy se klient připojuje k volnému server je zachycena na diagramu \ref{diag:seq-icmp}.
+    Značku zpráv tunelu má uživatel možnost změnit při kompilaci programu. Výchozí značkou je sekvence bajtů \verb|0x63 0x76 0x75 0x74|, tedy \texttt{CVUT}.
+    
+    Typ zprávy označuje jeden z následujících typů:
+    
+\begin{lstlisting}[caption=Výňatek souboru plugins/icmp/packet.h definující typy ICMP zpráv,language=c,frame=single,numbers=left]
+typedef enum ICMP_PACKET_TYPE
+{
+	ICMP_NATPACKET,
+	ICMP_CONNECTION_REQUEST,
+	ICMP_CONNECTION_ACCEPT,
+	ICMP_CONNECTION_REJECT,
+	ICMP_KEEPALIVE,
+	ICMP_DATA
+
+} ICMP_PACKET_TYPE;
+\end{lstlisting}
+
+\subsection{Popis jednotlivých typů \texttt{ICMP} zpráv}
+
+  \paragraph{\texttt{ICMP\_NATPACKET}}
+    Tyto zprávy odesílá klient a přijímá server. Pokud by klientovi dorazila zpráva tohoto typu, bude ignorována. Server zprávu přijme a poznamená si \textit{identifikátor} a \textit{sekvenční číslo} zprávy. Tyto údaje následně server použije při odesílání zpráv klientovi. Jedná se o techniku překonání překážek, které způsobuje \texttt{NAT}.
+    
+  \paragraph{\texttt{ICMP\_CONNECTION\_REQUEST}}
+  
+    Tyto zprávy odesílá klient a přijímá server. Pokud by klientovi dorazila zpráva tohoto typu, bude ignorována. Server zprávu přijme a pokud momentálně není k serveru připojen žádný jiný klient, server odpoví zprávou typu \texttt{ICMP\_CONNECTION\_ACCEPT}, čímž akceptuje žádost klienta o navázání tunelového spojení. V případě, že při přijetí zprávy \texttt{ICMP\_CONNECTION\_REQUEST} server již navázal spojení s jiným klientem, bude žadateli odeslána zpráva typu \texttt{ICMP\_CONNECTION\_REJECT} a požadavek na navázání tunelu tím pádem zamítnut.
+    
+  \paragraph{\texttt{ICMP\_KEEPALIVE}}
+  
+  %TODO
+  
+  \paragraph{\texttt{ICMP\_DATA}}
+  
+    Zprávy tohoto typu nesou data tunelu. Odesílá a přijímá je jak klient, tak server.
+    
+    
+    
+    Situace, kdy se klient připojuje k volnému server je zachycena na diagramu \ref{diag:seq-icmp}.
     
 
 \begin{figure}[h]
  \centering
 
-  \begin{tikzpicture}[node distance=5cm,auto,>=stealth']
+  \begin{tikzpicture}[node distance=8cm,auto,>=stealth']
     \node[] (Server) {Server};
     \node[left = of Server] (Klient) {Klient};
     \node[below of=Server, node distance=6cm] (server_ground) {};
@@ -397,14 +442,14 @@ Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu
     %
     \draw (Klient) -- (client_ground);
     \draw (Server) -- (server_ground);
-    \draw[->] ($(Klient)!0.15!(client_ground)$) -- node[above,scale=1,midway]{Požadavek o spojení} ($(Server)!0.15!(server_ground)$);
-    \draw[<-] ($(Klient)!0.20!(client_ground)$) -- node[below,scale=1,midway]{Přijetí požadavku} ($(Server)!0.20!(server_ground)$);
-    \draw[->] ($(Klient)!0.51!(client_ground)$) -- node[above,scale=1,midway]{Odeslání \uv{NAT} paketů}($(Server)!0.51!(server_ground)$);
+    \draw[->] ($(Klient)!0.15!(client_ground)$) -- node[above,scale=1,midway]{Požadavek o spojení (\texttt{CONNECTION\_REQUEST})} ($(Server)!0.15!(server_ground)$);
+    \draw[<-] ($(Klient)!0.20!(client_ground)$) -- node[below,scale=1,midway]{Přijetí požadavku (\texttt{CONNECTION\_ACCEPT})} ($(Server)!0.20!(server_ground)$);
+    \draw[->] ($(Klient)!0.51!(client_ground)$) -- node[above,scale=1,midway]{Odeslání \uv{NAT} paketů (\texttt{NAT\_PACKET})}($(Server)!0.51!(server_ground)$);
     \draw[->] ($(Klient)!0.54!(client_ground)$) -- 						 ($(Server)!0.54!(server_ground)$);
     \draw[->] ($(Klient)!0.57!(client_ground)$) -- 						 ($(Server)!0.57!(server_ground)$);
     \draw[->] ($(Klient)!0.60!(client_ground)$) -- 						 ($(Server)!0.60!(server_ground)$);
    
-    \draw[->] ($(Klient)!0.80!(client_ground)$) -- node[above,scale=1,midway]{Obousměrná komunikace} ($(Server)!0.80!(server_ground)$);
+    \draw[->] ($(Klient)!0.80!(client_ground)$) -- node[above,scale=1,midway]{Obousměrná komunikace (\texttt{DATA})} ($(Server)!0.80!(server_ground)$);
     \draw[<-] ($(Klient)!0.85!(client_ground)$) -- 						 ($(Server)!0.85!(server_ground)$);
 \end{tikzpicture}
 \caption{Sekvenční diagram navázání \texttt{ICMP} tunelu}
@@ -413,6 +458,30 @@ Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu
 
     
     
+    Celková velikost paketu nesoucího zprávu je standardně nastavena na 1500 bajtů -- jedná se o \texttt{MTU} technologie \textit{Ethernet}. To zahrnuje \texttt{IP} hlavičku (20 bajtů), \texttt{ICMP} hlavičku (8 bajtů) a hlavičku zpráv tunelu (5 bajtů). Pro přenášená data je tedy k dispozici až 1467 zbylých bajtů v jedné zprávě. Režie přenosu dat tunelem tvoří 21 bajtů. Vytvářené pakety se drží standardní hodnoty \texttt{MTU} aby bylo (pokud možno) zamezeno fragmentaci. Diagram paketu se všemi hlavičkami je znázorněn na obrázku \ref{diag:icmp-packet-all-headers}
+    
+    \begin{figure}[h]
+    \centering
+	\begin{bytefield}[bitwidth=1em]{32}
+	    \bitheader{0,7,8,15,16,23,24,31}
+	    \\
+	    \colorwordbox[ltrb]{lightgreen}{5}{IP hlavička (20 bajtů)}
+	    \\
+	    \colorwordbox[ltrb]{lightcyan}{2}{ICMP hlavička (8 bajtů)}
+	    \\
+	    \colorwordbox[ltr]{lightyellow}{1}{Hlavička tunelu (5 bajtů)}
+	    \\
+	    \colorbitbox[lbr]{lightyellow}{8}{} & \bitbox[ltr]{24}{}
+	    \\
+	    \wordbox[lr]{1}{Data tunelu (až 1467 bajtů)}
+	    \\
+	    \skippedwords
+	    \\
+	    \wordbox[lrb]{1}{}
+	\end{bytefield}
+	\caption{Diagram zachycující rozložení paketu \texttt{ICMP} tunelu včetně hlaviček}
+	\label{diag:icmp-packet-all-headers}
+    \end{figure}
 
 
 
@@ -454,6 +523,7 @@ Doplňte vhodný text.
 	\item[SIP] Session Initiation Protocol
 	\item[MITM] Man-in-the-middle
 	\item[HTTP] Hypertext Transfer Protocol
+	\item[MTU] Maximum transmission unit
 	\item[HTTPS] HTTP Secure
 	\item[TTL] Time to live
 	\item[SOCKS] Socket Secure
