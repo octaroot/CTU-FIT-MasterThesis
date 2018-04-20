@@ -380,7 +380,7 @@ Vzhledem k důrazu na snadnou rozšiřitelnost je softwarové řešení navržen
  \item samostatné pluginy, které řeší pouze omezenou funkcionalitu spojenou s tunelováním pomocí konkrétní technologie.
 \end{itemize}
 
-Hlavní část programu má rovněž na starost vytvoření prostředí pro jednotlivé pluginy. Každý plugin totiž pracuje ve vlastním vlákně programu a komunikace s jednotným virtuálním rozhraním probíhá skrze funkce, které mají standardem \texttt{POSIX} garantovánu bezpečnost při paralelním přístupu\footnote{Anglicky \textit{thread-safety}}.
+Hlavní část programu má rovněž na starost vytvoření prostředí pro jednotlivé pluginy. Každý plugin totiž pracuje ve svém vlastním vlákně a komunikuje s jednotným virtuálním rozhraním. Komunikace probíhá skrze funkce, které mají standardem \texttt{POSIX} garantovánu bezpečnost při paralelním přístupu\footnote{Anglicky vlastnost \textit{thread-safety}}. Hlavní část programu tedy při spuštění zpracuje uživatelské vstupy, vytvoří virtuální síťové rozhraní, spustí pluginy a na konci práce programu pluginy ukončí a rozhraní zruší. \textit{File descriptor} síťového rozhraní je v programu sdílen (pouze pro čtení) všemi pluginy.
 
 Jednotlivé pluginy jsou schopny ověřit možnost navázání spojení skrze \textit{captive portál} a změřit datovou prostupnost tunelu. Každému dostupnému pluginu je věnována jedna z následujících podkapitol, vysvětlující vnitřní činnost pluginu.
 
