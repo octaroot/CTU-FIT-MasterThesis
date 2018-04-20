@@ -343,11 +343,49 @@ Tunelování síťového provozu pomocí \texttt{DNS} je populární\cite{sans-d
 
 \chapter{Návrh a implementace}
 
+Stěžejním cílem této diplomové práce je vytvoření protokolu pro obejití Captive portálů s důrazem na co největší prostupnost. Tato kapitola shrnuje návrh takového protokolu a následnou implementaci.
+
 % cilem prace je vyuzit co nejvic technik a delat MUX trafficu
 %uvest definici prostupnosti site - protoze to je to, o co se snazzim
 
+\section{Dosažení maximální prostupnosti}
 
-\section{ICMP tunelování}
+Navržený protokol by při obcházení omezení \textit{captive portálu} měl upřednostňovat síťovou propustnost. Za tímto účelem bude vyvinutý software mít k dispozici více možných způsobů obejití \textit{captive portálu} a na základě naměřených dat se bude schopen rozhodnout, který způsob tunelování je nejefektivnější, případně jaká kombinace více tunelů poskytuje nejlepší výsledky.
+
+
+
+\section{Volba technických prostředků}
+
+Integraci síťového tunelu do operačního systému lze řešit řadou způsobů v závislosti na operačním systému, jeho verzi a v závislosti na požadavcích pro přenositelnost. Snahu o nalezení ideálního řešení projevila celá řada softwarových projektů, jako například:
+
+\begin{itemize}
+ \item \textit{Tor}, známý \textit{open-source} software pro stejnojmenou síť, která umožňuje anonymizaci uživatelů při pohybu na Internetu,
+ \item \textit{OpenVPN}, populární \textit{open-source} software zejména pro vytváření šifrovaných tunelů (VPN).
+\end{itemize}
+
+Každé z výše uvedených softwarových řešení přistupuje k problému jinou cestou. Software anonymizační síťě \textit{Tor} na klientské stanici vytváří \texttt{SOCKS} proxy a umožňuje jiným programům komunikovat skrze tuto proxy službu. Jedná se o velmi dobře přenositelné řešení, protože nespoléhá na specifickou podporu operačního systému. Nevýhodou tohoto řešení je přenesení problému kompatibility z operačního systému na jednotlivé aplikace. Pokud aplikace nepodporuje, nebo uživateli nedovolí nastavit komunikace skrze \texttt{SOCKS} proxy, nebude schopna anonymizační sítě \textit{Tor} využít.
+
+Oproti tomu technologie \textit{OpenVPN} je silně vázána na podporu ze strany operačního systému. Na klientské stanici vytváří virtuální síťové rozhraní, které se uživateli jeví jako jakékoliv jiné síťové rozhraní. Lze upravit systémovou směrovací tabulku, aby preferovala virtuální síťové rozhraní a komunikující aplikace tudíž nemusí podporovat komunikaci skrze \texttt{SOCKS} proxy. Nevýhodou je závislost na podpoře virtuálních síťových rozhraní v operačním systému.
+
+Pro tuto práci byla zvolena implementace pomocí virtuálního síťového rozhraní, neboť toto řešení lze považovat za obecnější, neboť není nutná přímá podpora koncových aplikací. Podpora virtuálních rozhraní je zahrnuta v Linuxovém jádře od verze 2.2 (vydáno v roce 1999), \textit{FreeBSD} 3.0 a \textit{Solaris} 2.6. Z ostatních rodin operačních systémů je částečná podpora zahrnuta rovněž v \textit{macOS}, \textit{iOS} a \textit{Andorid}. Pro platformu \textit{Microsoft Windows} existují doplňky třetích stran, které přináší podporu virtuálních rozhraní.
+
+Pro implementaci tunelu byl zvolen typ rozhraní \textit{TUN}, které simuluje síťové rozhraní na třetí vrstvě ISO/OSI modelu a síťová data předává danému uživatelskému programu. Vzhledem k velmi silné vazbě linuxového jádra na jazyk \textit{C} je software pro diplomovou práci vytvořen rovněž v jazyce \textit{C}. Velká část softwarového řešení provádí nízkoúrovňové operace, pro které mají jiné jazyky omezenou podporu. Jedná se zejména o pokročilou práci s \textit{file descriptory} virtuálních síťových rozhraní a pokročilou práci se síťovými sokety.
+
+\section{Struktura softwarového řešení}
+
+Vzhledem k důrazu na snadnou rozšiřitelnost je softwarové řešení navrženo do dvou částí:
+
+\begin{itemize}
+ \item hlavní část programu, která vytváří a spravuje virtuální síťové rozhraní,
+ \item samostatné pluginy, které řeší pouze omezenou funkcionalitu spojenou s tunelováním pomocí konkrétní technologie.
+\end{itemize}
+
+Hlavní část programu má rovněž na starost vytvoření prostředí pro jednotlivé pluginy. Každý plugin totiž pracuje ve vlastním vlákně programu a komunikace s jednotným virtuálním rozhraním probíhá skrze funkce, které mají standardem \texttt{POSIX} garantovánu bezpečnost při paralelním přístupu\footnote{Anglicky \textit{thread-safety}}.
+
+Jednotlivé pluginy jsou schopny ověřit možnost navázání spojení skrze \textit{captive portál} a změřit datovou prostupnost tunelu. Každému dostupnému pluginu je věnována jedna z následujících podkapitol, vysvětlující vnitřní činnost pluginu.
+
+
+\section{Plugin pro ICMP tunelování}
 
 Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu \texttt{0} a \texttt{8} (\texttt{echo reply}, resp. \texttt{echo request}), pro které je specifikována proměnlivá délka zpráv. Zprávy těchto typů jsou používány zejména nástrojem \texttt{ping} -- například pro zjištění dostupnosti cíle, nebo pro informace o latenci spojení. Zdrojová stanice vyšle na cílovou stanici zprávu typu \texttt{echo request} a cílová stanice odpoví zprávou \texttt{echo reply}. Toto chování je zajištěno v~\cite[RFC1122]{rfc1122}. Strukturu zmíněných \texttt{echo} \texttt{ICMP} zpráv znázorňuje následující diagram \ref{diag:icmp-packet}.
 
@@ -394,9 +432,18 @@ Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu
     
     Značku zpráv tunelu má uživatel možnost změnit při kompilaci programu. Výchozí značkou je sekvence bajtů \verb|0x63 0x76 0x75 0x74|, tedy \texttt{CVUT}.
     
-    Typ zprávy označuje jeden z následujících typů:
+
+    \vfill
+    \pagebreak
     
-\begin{lstlisting}[caption=Výňatek souboru plugins/icmp/packet.h definující typy ICMP zpráv,language=c,frame=single,numbers=left]
+\subsection{Popis jednotlivých typů \texttt{ICMP} zpráv}
+    
+    Typ zprávy označuje jeden z typů, zachycených v ukázce kódu \ref{code:icmp-types}:
+    
+
+    
+    \begin{figure}[h]
+	\begin{lstlisting}[caption=Výňatek souboru plugins/icmp/packet.h definující typy ICMP zpráv,language=c,frame=single,numbers=left]
 typedef enum ICMP_PACKET_TYPE
 {
 	ICMP_NATPACKET,
@@ -407,9 +454,9 @@ typedef enum ICMP_PACKET_TYPE
 	ICMP_DATA
 
 } ICMP_PACKET_TYPE;
-\end{lstlisting}
-
-\subsection{Popis jednotlivých typů \texttt{ICMP} zpráv}
+      \end{lstlisting}
+      \label{code:icmp-types}
+    \end{figure}
 
   \paragraph{\texttt{ICMP\_NATPACKET}}
     Tyto zprávy odesílá klient a přijímá server. Pokud by klientovi dorazila zpráva tohoto typu, bude ignorována. Server zprávu přijme a poznamená si \textit{identifikátor} a \textit{sekvenční číslo} zprávy. Tyto údaje následně server použije při odesílání zpráv klientovi. Jedná se o techniku překonání překážek, které způsobuje \texttt{NAT}.
@@ -482,6 +529,15 @@ typedef enum ICMP_PACKET_TYPE
 	\caption{Diagram zachycující rozložení paketu \texttt{ICMP} tunelu včetně hlaviček}
 	\label{diag:icmp-packet-all-headers}
     \end{figure}
+    
+    
+    
+
+    \vfill
+    \pagebreak
+    \subsection{Plugin pro DNS tunelování}
+    
+    %TODO
 
 
 
@@ -532,6 +588,7 @@ Doplňte vhodný text.
 	\item[WPA] Wi-Fi Protected Access
 	\item[WISPr] Wireless Internet Service Provider roaming
 	\item[VoIP] Voice over IP
+	\item[VPN] Virtual private network
 \end{description}
 
 
