@@ -286,7 +286,7 @@ Protokol \texttt{ICMP} je rovněž velmi důležitým síťovým protokolem. Je 
 Tunelování pomocí \texttt{ICMP} je technicky možné díky RFC 792\cite{rfc792}, kde je u typů zpráv \texttt{0} a \texttt{8} (\textit{echo reply}, resp. \textit{echo message}) specifikována proměnlivá délka zpráv.
 
 \subsection{Využití nefiltrovaných portů}
-
+\label{subsec:nonfiltered-ports}
 Jak bylo uvedeno na začátku podkapitoly \ref{sec:metody-obchazeni-captive-portalu} \textit{Metody pro obcházení captive portálů}, v konfiguraci firewallu se mohou z různých důvodů vyskytovat výjimky, které lze zneužít k tunelování provozu bez nutnosti maskovat komunikaci jako \texttt{DNS} nebo \texttt{ICMP} provoz. Zpravidla\cite{defcon-captive-article} se jedná o porty 
 
 \begin{itemize}
@@ -371,6 +371,8 @@ Pro tuto práci byla zvolena implementace pomocí virtuálního síťového rozh
 
 Pro implementaci tunelu byl zvolen typ rozhraní \textit{TUN}, které simuluje síťové rozhraní na třetí vrstvě ISO/OSI modelu a síťová data předává danému uživatelskému programu. Vzhledem k velmi silné vazbě linuxového jádra na jazyk \textit{C} je software pro diplomovou práci vytvořen rovněž v jazyce \textit{C}. Velká část softwarového řešení provádí nízkoúrovňové operace, pro které mají jiné jazyky omezenou podporu. Jedná se zejména o pokročilou práci s \textit{file descriptory} virtuálních síťových rozhraní a pokročilou práci se síťovými sokety.
 
+Virtuální síťové rozhraní navíc poskytuje uživateli volnost užití libovolného \texttt{IP} síťového rozsahu. Pokud by uživatel vyžadoval existenci \textit{SOCKS} proxy, lze ji vytvořit po navázání tunelu například pomocí nástroje \texttt{SSH} jak bylo popsáno v podkapitole \ref{subsec:nonfiltered-ports} \textit{Využití nefiltrovaných portů}.
+
 \section{Struktura softwarového řešení}
 
 Vzhledem k důrazu na snadnou rozšiřitelnost je softwarové řešení navrženo do dvou částí:
@@ -407,6 +409,8 @@ Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu
     
     Protože \texttt{ICMP} pakety \texttt{echo reply}, (resp. \texttt{echo request}) na rozdíl od \texttt{UDP} a \texttt{TCP} paketů nenesou informaci o zdrojovém/cílovém portu, jsou pro sdružování souvisejících zpráv použity hodnoty \textit{identifikátor} a \textit{sekvenční číslo}. Dle \cite[RFC 792]{rfc792} a \cite[RFC 3022]{rfc3022} mohou síťové prvky, jako například \texttt{NAT}, pro rozpoznání souvisejících zpráv tyto hodnoty používat. Specifikace se však nezmiňuje o délce platnosti \textit{identifikátoru}. Díky tomu je možno udržovat obousměrnou komunikaci, i pokud je jeden z účastníků omezen \texttt{NAT}, protože je možné klientovi \uv{za NATem} zaslat více paketů se shodnými hodnotami \textit{sekvenční číslo} a \textit{identifikátor}.
     
+    Systém, který dodržuje \cite[RFC1122]{rfc1122} se však bude snažit na příchozí \texttt{ICMP} \textit{echo request} pakety reagovat. Toto chování je pro správnou funkci tunelu nežádoucí. V linuxových distribucích je možné povolit ignorování příchozích zpráv \texttt{ICMP echo} změnou souboru \texttt{/proc/sys/net/ipv4/icmp\_echo\_ignore\_all}.
+    
     Aby obě strany tunelu byly schopny identifikovat tok dat tunelu a rozeznat takové zprávy od jiných \texttt{ICMP} zpráv, je nutné \uv{tunelové} \texttt{ICMP} zprávy označit. Právě proto začíná každá taková \texttt{ICMP} zpráva stejnou sekvencí čtyř bajtů, která označuje \texttt{ICMP} zprávy, nesoucí data síťového tunelu. Komunikující protějšky kontrolují zdrojovou \texttt{IP} adresu označených \texttt{ICMP} zpráv, aby nebylo triviálně možné injektovat komunikaci do tunelu. Těchto dodatečných pět bajtů je potřebných pro správnou funkci tunelu a předávání servisních zpráv. Umístění těchto informací v \texttt{ICMP} paketu je vyznačeno na diagramu \ref{diag:icmp-packet-tunel}.
     
     \begin{figure}[h]
@@ -431,11 +435,7 @@ Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu
     \end{figure}
     
     Značku zpráv tunelu má uživatel možnost změnit při kompilaci programu. Výchozí značkou je sekvence bajtů \verb|0x63 0x76 0x75 0x74|, tedy \texttt{CVUT}.
-    
-
-    \vfill
-    \pagebreak
-    
+        
 \subsection{Popis jednotlivých typů \texttt{ICMP} zpráv}
     
     Typ zprávy označuje jeden z typů, zachycených v ukázce kódu \ref{code:icmp-types}:
@@ -458,16 +458,24 @@ typedef enum ICMP_PACKET_TYPE
       \label{code:icmp-types}
     \end{figure}
 
-  \paragraph{\texttt{ICMP\_NATPACKET}}
+  \paragraph{\texttt{NATPACKET}}
     Tyto zprávy odesílá klient a přijímá server. Pokud by klientovi dorazila zpráva tohoto typu, bude ignorována. Server zprávu přijme a poznamená si \textit{identifikátor} a \textit{sekvenční číslo} zprávy. Tyto údaje následně server použije při odesílání zpráv klientovi. Jedná se o techniku překonání překážek, které způsobuje \texttt{NAT}.
     
-  \paragraph{\texttt{ICMP\_CONNECTION\_REQUEST}}
+  \paragraph{\texttt{CONNECTION\_REQUEST}}
   
-    Tyto zprávy odesílá klient a přijímá server. Pokud by klientovi dorazila zpráva tohoto typu, bude ignorována. Server zprávu přijme a pokud momentálně není k serveru připojen žádný jiný klient, server odpoví zprávou typu \texttt{ICMP\_CONNECTION\_ACCEPT}, čímž akceptuje žádost klienta o navázání tunelového spojení. V případě, že při přijetí zprávy \texttt{ICMP\_CONNECTION\_REQUEST} server již navázal spojení s jiným klientem, bude žadateli odeslána zpráva typu \texttt{ICMP\_CONNECTION\_REJECT} a požadavek na navázání tunelu tím pádem zamítnut.
+    Tyto zprávy odesílá klient a přijímá server. Pokud by klientovi dorazila zpráva tohoto typu, bude ignorována. Server zprávu přijme a pokud momentálně není k serveru připojen žádný jiný klient, server odpoví zprávou typu \texttt{CONNECTION\_ACCEPT}, čímž akceptuje žádost klienta o navázání tunelového spojení. V případě, že při přijetí zprávy \texttt{CONNECTION\_REQUEST} server již navázal spojení s jiným klientem, bude žadateli odeslána zpráva typu \texttt{CONNECTION\_REJECT} a požadavek na navázání tunelu tím pádem zamítnut.
     
-  \paragraph{\texttt{ICMP\_KEEPALIVE}}
+  \paragraph{\texttt{CONNECTION\_ACCEPT}}
   
-  %TODO
+    Viz předchozí odstavec \texttt{CONNECTION\_REQUEST}.
+    
+  \paragraph{\texttt{CONNECTION\_REJECT}}
+  
+    Viz předchozí odstavec \texttt{CONNECTION\_REQUEST}.
+    
+  \paragraph{\texttt{KEEPALIVE}}
+  
+  Zprávy \texttt{KEEPALIVE} slouží k detekci problémů se spojením klienta a serveru. Zprávy odesílá klient (ohlašuje svou aktivitu serveru) a server na ně stejnou zprávou odpovídá (ujišťuje klienta, že spojení je v pořádku). Do jisté míry pakety \texttt{KEEPALIVE} napodobují nástroj \texttt{ping}. Pokud opakovaně nedojde k přijetí zprávy \texttt{KEEPALIVE}, klient a server považují spojení za přerušené nebo ukončené. Server navíc začne opět přijímat požadavky pro připojení \texttt{CONNECTION\_REQUEST}.
   
   \paragraph{\texttt{ICMP\_DATA}}
   
@@ -505,7 +513,7 @@ typedef enum ICMP_PACKET_TYPE
 
     
     
-    Celková velikost paketu nesoucího zprávu je standardně nastavena na 1500 bajtů -- jedná se o \texttt{MTU} technologie \textit{Ethernet}. To zahrnuje \texttt{IP} hlavičku (20 bajtů), \texttt{ICMP} hlavičku (8 bajtů) a hlavičku zpráv tunelu (5 bajtů). Pro přenášená data je tedy k dispozici až 1467 zbylých bajtů v jedné zprávě. Režie přenosu dat tunelem tvoří 21 bajtů. Vytvářené pakety se drží standardní hodnoty \texttt{MTU} aby bylo (pokud možno) zamezeno fragmentaci. Diagram paketu se všemi hlavičkami je znázorněn na obrázku \ref{diag:icmp-packet-all-headers}
+    Celková velikost paketu nesoucího zprávu je standardně nastavena na 1500 bajtů -- jedná se o \texttt{MTU} technologie \textit{Ethernet}. To zahrnuje \texttt{IP} hlavičku (20 bajtů), \texttt{ICMP} hlavičku (8 bajtů) a hlavičku zpráv tunelu (5 bajtů). Pro přenášená data je tedy k dispozici až 1467 zbylých bajtů v jedné zprávě. Režie přenosu dat tunelem tvoří 21 bajtů. Vytvářené pakety se drží standardní hodnoty \texttt{MTU} aby bylo (pokud možno) zamezeno fragmentaci. Diagram paketu se všemi hlavičkami je znázorněn na obrázku \ref{diag:icmp-packet-all-headers}.
     
     \begin{figure}[h]
     \centering
