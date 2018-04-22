@@ -59,7 +59,7 @@ void ICMPHandleAuthResponse(int socketFD, uint32_t endpoint, struct ICMPEchoMess
 	msg.type = ICMP_ECHO_REPLY;
 	msg.seq = request->seq;
 
-	if (request->size == AUTH_RESPONSE_LENGTH)
+	if (!pluginState.connected && request->size == AUTH_RESPONSE_LENGTH)
 	{
 		for (int i = 0; i < ICMP_MAX_AUTH_REQUESTS; ++i)
 		{
@@ -78,9 +78,17 @@ void ICMPHandleAuthResponse(int socketFD, uint32_t endpoint, struct ICMPEchoMess
 
 					ICMPSendEcho(socketFD, endpoint, &msg);
 
-					authICMPIds[i] = 0;
-					free(authCtxs[i]);
-					authCtxs[i] = NULL;
+					// zruseni vsech ostatnich challenge-response pozadavku
+					memset(authICMPIds, 0, ICMP_MAX_AUTH_REQUESTS);
+					for (i = 0; i < ICMP_MAX_AUTH_REQUESTS; ++i)
+					{
+						if (authCtxs[i])
+						{
+							free(authCtxs[i]);
+							authCtxs[i] = NULL;
+						}
+					}
+
 					return;
 				}
 			}
