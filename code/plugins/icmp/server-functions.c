@@ -44,7 +44,7 @@ void ICMPHandlConnectionRequest(int socketFD, uint32_t endpoint, struct ICMPEcho
 
 	msg.packetType = ICMP_AUTH_CHALLENGE;
 	msg.size = AUTH_CHALLENGE_LENGTH;
-	memcpy(msg.buffer, authCtxs[authCtxIdx]->response, AUTH_CHALLENGE_LENGTH);
+	memcpy(msg.buffer, authCtxs[authCtxIdx]->challenge, AUTH_CHALLENGE_LENGTH);
 
 	ICMPSequenceNumber = request->seq;
 	ICMPIDNumber = request->id;
@@ -65,21 +65,23 @@ void ICMPHandleAuthResponse(int socketFD, uint32_t endpoint, struct ICMPEchoMess
 		{
 			if (request->id == authICMPIds[i] && authCtxs[i] != NULL)
 			{
-				if (checkResponse(authCtxs[i], (unsigned char *) msg.buffer, AUTH_RESPONSE_LENGTH))
+				printf("found req in server memory\n");
+				if (checkResponse(authCtxs[i], (unsigned char *) request->buffer, AUTH_RESPONSE_LENGTH))
 				{
 					msg.packetType = ICMP_CONNECTION_ACCEPT;
 
 					ICMPSequenceNumber = request->seq;
 					ICMPIDNumber = request->id;
 
-					ICMPSendEcho(socketFD, endpoint, &msg);
-
 					pluginState.connected = true;
 					pluginState.endpoint = endpoint;
+
+					ICMPSendEcho(socketFD, endpoint, &msg);
 
 					authICMPIds[i] = 0;
 					free(authCtxs[i]);
 					authCtxs[i] = NULL;
+					return;
 				}
 			}
 		}
