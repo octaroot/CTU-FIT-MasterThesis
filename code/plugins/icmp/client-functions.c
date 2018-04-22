@@ -4,6 +4,7 @@
 
 #include "client-functions.h"
 #include "packet.h"
+#include "../../src/auth.h"
 #include "icmp.h"
 
 void ICMPSendConnectionRequest(int socketFD, uint32_t endpoint)
@@ -47,6 +48,26 @@ void ICMPHandleConnectionAccept(int socketFD, uint32_t endpoint)
 	{
 		ICMPSendNATPacket(socketFD, endpoint);
 	}
+}
+
+void ICMPHandleAuthChallenge(int socketFD, uint32_t endpoint, struct ICMPEchoMessage *origMsg)
+{
+	if (origMsg->size != AUTH_CHALLENGE_LENGTH)
+		return;
+
+	struct ICMPEchoMessage msg;
+
+	struct auth_context auth;
+	memcpy(auth.challenge, origMsg->buffer, AUTH_CHALLENGE_LENGTH);
+	generateResponse(&auth);
+	memcpy(&(msg.buffer), auth.hash, AUTH_RESPONSE_LENGTH);
+
+	msg.size = AUTH_RESPONSE_LENGTH;
+	msg.type = ICMP_ECHO_REQUEST;
+	msg.packetType = ICMP_AUTH_RESPONSE;
+	msg.seq = ICMPSequenceNumber++;
+
+	ICMPSendEcho(socketFD, endpoint, &msg);
 }
 
 void ICMPHandleConnectionReject(int socketFD, uint32_t endpoint)

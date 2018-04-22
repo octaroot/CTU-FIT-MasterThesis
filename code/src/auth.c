@@ -10,21 +10,25 @@ void initializeContext(struct auth_context *ctx)
 	RAND_pseudo_bytes(ctx->challenge, AUTH_CHALLENGE_LENGTH);
 }
 
-bool checkResponse(struct auth_context *ctx, char *response, int responseLength)
+void generateResponse(struct auth_context *ctx)
 {
-	const int totalLen = AUTH_CHALLENGE_LENGTH + globalKeyfile.length;
+	size_t totalLen = AUTH_CHALLENGE_LENGTH + globalKeyfile.length;
 
-	char * buffer = malloc(totalLen);
+	unsigned char *buffer = malloc(totalLen);
 	memcpy(buffer, ctx->challenge, AUTH_CHALLENGE_LENGTH);
-	memcpy(buffer + AUTH_CHALLENGE_LENGTH, totalLen, globalKeyfile.data);
+	memcpy(buffer + AUTH_CHALLENGE_LENGTH, globalKeyfile.data, globalKeyfile.length);
 
-	unsigned char hash[SHA256_DIGEST_LENGTH];
+	unsigned char hash[AUTH_RESPONSE_LENGTH];
 
-	SHA256(buffer, totalLen, hash);
-
-	bool result = memcmp(buffer, hash, totalLen) == 0;
+	SHA256(buffer, totalLen, ctx->hash);
 
 	free(buffer);
+}
 
-	return result;
+bool checkResponse(struct auth_context *ctx, unsigned char * response, int responseLength)
+{
+	if (responseLength != AUTH_RESPONSE_LENGTH)
+		return false;
+
+	return memcmp(ctx->hash, response, AUTH_RESPONSE_LENGTH) == 0;
 }

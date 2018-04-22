@@ -49,6 +49,9 @@ void ICMPClientICMPData(uint32_t endpoint)
 
 	switch (msg.packetType)
 	{
+		case ICMP_AUTH_CHALLENGE:
+			ICMPHandleAuthChallenge(_ICMPSocketFD, sender, &msg);
+			break;
 		case ICMP_CONNECTION_ACCEPT:
 			ICMPHandleConnectionAccept(_ICMPSocketFD, sender);
 			break;

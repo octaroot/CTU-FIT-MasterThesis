@@ -17,6 +17,8 @@ void ICMPSendKeepAlive(int socketFD, uint32_t endpoint);
 
 void ICMPHandleConnectionAccept(int socketFD, uint32_t endpoint);
 
+void ICMPHandleAuthChallenge(int socketFD, uint32_t endpoint, struct ICMPEchoMessage *origMsg);
+
 void ICMPHandleConnectionReject(int socketFD, uint32_t endpoint);
 
 void ICMPHandleICMPData(struct ICMPEchoMessage *msg);

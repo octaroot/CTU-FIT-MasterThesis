@@ -88,7 +88,7 @@ void _ICMPStart(uint32_t endpoint, bool serverMode)
 			handler->checkHealth(pluginState.endpoint);
 		}
 
-		if (FD_ISSET(tunDeviceFD, &fs))
+		if (pluginState.connected && FD_ISSET(tunDeviceFD, &fs))
 		{
 			handler->tunnelData(pluginState.endpoint);
 		}
