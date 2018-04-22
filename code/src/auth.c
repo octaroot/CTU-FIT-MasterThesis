@@ -21,18 +21,6 @@ void generateResponse(struct auth_context *ctx)
 
 	SHA256(buffer, totalLen, ctx->response);
 
-	printf("\nVSTU:");
-	for (int i = 0; i < AUTH_CHALLENGE_LENGTH; ++i)
-	{
-		printf("%x ", ctx->challenge[i]);
-	}
-	printf("\n out:");
-	for (int i = 0; i < AUTH_RESPONSE_LENGTH; ++i)
-	{
-		printf("%x ", ctx->response[i]);
-	}
-	puts("");
-
 	free(buffer);
 }
 
@@ -40,18 +28,6 @@ bool checkResponse(struct auth_context *ctx, unsigned char * response, int respo
 {
 	if (responseLength != AUTH_RESPONSE_LENGTH)
 		return false;
-
-printf("\norig:");
-	for (int i = 0; i < AUTH_RESPONSE_LENGTH; ++i)
-	{
-		printf("%x ", ctx->response[i]);
-	}
-printf("\ntest:");
-	for (int i = 0; i < AUTH_RESPONSE_LENGTH; ++i)
-	{
-		printf("%x ", response[i]);
-	}
-	puts("");
 
 	return memcmp(ctx->response, response, AUTH_RESPONSE_LENGTH) == 0;
 }
