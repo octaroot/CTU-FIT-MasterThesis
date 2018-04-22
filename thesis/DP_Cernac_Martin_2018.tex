@@ -389,7 +389,7 @@ Hlavní část programu má rovněž na starost vytvoření prostředí pro jedn
 Jednotlivé pluginy jsou schopny ověřit možnost navázání spojení skrze \textit{captive portál} a změřit datovou prostupnost tunelu. Každému dostupnému pluginu je věnována jedna z následujících podkapitol, vysvětlující vnitřní činnost pluginu.
 
 
-\section{Plugin pro ICMP tunelování}
+\section{Plugin pro \texttt{ICMP} tunelování}
 
 Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu \texttt{0} a \texttt{8} (\texttt{echo reply}, resp. \texttt{echo request}), pro které je specifikována proměnlivá délka zpráv. Zprávy těchto typů jsou používány zejména nástrojem \texttt{ping} -- například pro zjištění dostupnosti cíle, nebo pro informace o latenci spojení. Zdrojová stanice vyšle na cílovou stanici zprávu typu \texttt{echo request} a cílová stanice odpoví zprávou \texttt{echo reply}. Toto chování je zajištěno v~\cite[RFC1122]{rfc1122}. Strukturu zmíněných \texttt{echo} \texttt{ICMP} zpráv znázorňuje následující diagram \ref{diag:icmp-packet}.
 
@@ -445,41 +445,50 @@ Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu
 
     
     \begin{figure}[h]
-	\begin{lstlisting}[caption=Výňatek souboru plugins/icmp/packet.h definující typy ICMP zpráv,language=c,frame=single,numbers=left]
+	\begin{lstlisting}[caption=Výňatek souboru \texttt{plugins/icmp/packet.h} definující typy \texttt{ICMP} zpráv,language=c,frame=single,numbers=left]
 typedef enum ICMP_PACKET_TYPE
 {
-	ICMP_NATPACKET,
 	ICMP_CONNECTION_REQUEST,
+	ICMP_AUTH_CHALLENGE,
+	ICMP_AUTH_RESPONSE,
 	ICMP_CONNECTION_ACCEPT,
 	ICMP_CONNECTION_REJECT,
+	ICMP_NATPACKET,
 	ICMP_KEEPALIVE,
 	ICMP_DATA
-
 } ICMP_PACKET_TYPE;
       \end{lstlisting}
       \label{code:icmp-types}
     \end{figure}
 
-  \paragraph{\texttt{NATPACKET}}
-    Tyto zprávy odesílá klient a přijímá server. Pokud by klientovi dorazila zpráva tohoto typu, bude ignorována. Server zprávu přijme a poznamená si \textit{identifikátor} a \textit{sekvenční číslo} zprávy. Tyto údaje následně server použije při odesílání zpráv klientovi. Jedná se o techniku překonání překážek, které způsobuje \texttt{NAT}.
-    
   \paragraph{\texttt{CONNECTION\_REQUEST}}
   
-    Tyto zprávy odesílá klient a přijímá server. Pokud by klientovi dorazila zpráva tohoto typu, bude ignorována. Server zprávu přijme a pokud momentálně není k serveru připojen žádný jiný klient, server odpoví zprávou typu \texttt{CONNECTION\_ACCEPT}, čímž akceptuje žádost klienta o navázání tunelového spojení. V případě, že při přijetí zprávy \texttt{CONNECTION\_REQUEST} server již navázal spojení s jiným klientem, bude žadateli odeslána zpráva typu \texttt{CONNECTION\_REJECT} a požadavek na navázání tunelu tím pádem zamítnut.
+    Tyto zprávy odesílá klient a přijímá server. Pokud by klientovi dorazila zpráva tohoto typu, bude ignorována. Server zprávu přijme a pokud momentálně není k serveru připojen žádný jiný klient, server odpoví zprávou typu \texttt{AUTH\_CHALLENGE}, čímž klienta vyzve k autentizaci. V případě, že při přijetí zprávy \texttt{CONNECTION\_REQUEST} server již navázal spojení s jiným klientem, bude žadateli odeslána zpráva typu \texttt{CONNECTION\_REJECT} a požadavek na navázání tunelu tím pádem zamítnut.
+    
+  \paragraph{\texttt{AUTH\_CHALLENGE}}
+  
+    Tento typ zpráv posílá server klientovi. Server příchozí zprávy tohoto typu ignoruje. Klient po přijetí zpracuje výzvu k autorizaci (protokol \textit{Challenge-Response}) a výsledek předá serveru (viz následující odstavec \textbf{\texttt{AUTH\_RESPONSE}}. V závislosti na tom, jestli server uživatele autorizuje bude klientovi odeslána zpráva typu \texttt{CONNECTION\_ACCEPT} a tunelové spojení zahájeno, nebo bude jeho požadavek zamítnut zprávou \texttt{CONNECTION\_REJECT}.
+    
+  \paragraph{\texttt{AUTH\_RESPONSE}}
+  
+    Zprávy tohoto typu odesílá klient serveru. Klient příchozí zprávy tohoto typu ignoruje. Obsahem zprávy je odpověď \textit{Challenge-Response} protokolu na základě v minulosti přijaté zprávy \texttt{AUTH\_CHALLENGE}. V závislosti na tom, jestli server uživatele autorizuje bude klientovi odeslána zpráva typu \texttt{CONNECTION\_ACCEPT} a tunelové spojení zahájeno, nebo bude jeho požadavek zamítnut zprávou \texttt{CONNECTION\_REJECT}.
     
   \paragraph{\texttt{CONNECTION\_ACCEPT}}
   
-    Viz předchozí odstavec \texttt{CONNECTION\_REQUEST}.
+    Touto zprávou server stvrzuje úspěšné navázání spojení s adresovaným klientem. Server příchozí zprávy tohoto typu ignoruje. Po celou dobu spojení odmítá server jakékoliv další pokusy o připojení jiných klientů.
     
   \paragraph{\texttt{CONNECTION\_REJECT}}
+    
+    Touto zprávou server oznamuje zamítnutí klientova požadavku na vytvoření tunelového spojení se serverem. Server příchozí zprávy tohoto typu ignoruje. Zprávu klient obdrží pokud se pokusí připojit k již obsazenému serveru, nebo se mu nepodaří autorizovat.
   
-    Viz předchozí odstavec \texttt{CONNECTION\_REQUEST}.
+  \paragraph{\texttt{NATPACKET}}
+    Tyto zprávy odesílá klient a přijímá server. Pokud by klientovi dorazila zpráva tohoto typu, bude ignorována. Server zprávu přijme a poznamená si \textit{identifikátor} a \textit{sekvenční číslo} zprávy. Tyto údaje následně server použije při odesílání zpráv klientovi. Jedná se o techniku překonání překážek, které způsobuje \texttt{NAT}.
     
   \paragraph{\texttt{KEEPALIVE}}
   
   Zprávy \texttt{KEEPALIVE} slouží k detekci problémů se spojením klienta a serveru. Zprávy odesílá klient (ohlašuje svou aktivitu serveru) a server na ně stejnou zprávou odpovídá (ujišťuje klienta, že spojení je v pořádku). Do jisté míry pakety \texttt{KEEPALIVE} napodobují nástroj \texttt{ping}. Pokud opakovaně nedojde k přijetí zprávy \texttt{KEEPALIVE}, klient a server považují spojení za přerušené nebo ukončené. Server navíc začne opět přijímat požadavky pro připojení \texttt{CONNECTION\_REQUEST}.
   
-  \paragraph{\texttt{ICMP\_DATA}}
+  \paragraph{\texttt{DATA}}
   
     Zprávy tohoto typu nesou data tunelu. Odesílá a přijímá je jak klient, tak server.
     
@@ -494,20 +503,25 @@ typedef enum ICMP_PACKET_TYPE
   \begin{tikzpicture}[node distance=8cm,auto,>=stealth']
     \node[] (Server) {Server};
     \node[left = of Server] (Klient) {Klient};
-    \node[below of=Server, node distance=6cm] (server_ground) {};
-    \node[below of=Klient, node distance=6cm] (client_ground) {};
+    \node[below of=Server, node distance=9cm] (server_ground) {};
+    \node[below of=Klient, node distance=9cm] (client_ground) {};
     %
     \draw (Klient) -- (client_ground);
     \draw (Server) -- (server_ground);
     \draw[->] ($(Klient)!0.15!(client_ground)$) -- node[above,scale=1,midway]{Požadavek o spojení (\texttt{CONNECTION\_REQUEST})} ($(Server)!0.15!(server_ground)$);
-    \draw[<-] ($(Klient)!0.20!(client_ground)$) -- node[below,scale=1,midway]{Přijetí požadavku (\texttt{CONNECTION\_ACCEPT})} ($(Server)!0.20!(server_ground)$);
-    \draw[->] ($(Klient)!0.51!(client_ground)$) -- node[above,scale=1,midway]{Odeslání \uv{NAT} paketů (\texttt{NATPACKET})}($(Server)!0.51!(server_ground)$);
-    \draw[->] ($(Klient)!0.54!(client_ground)$) -- 						 ($(Server)!0.54!(server_ground)$);
-    \draw[->] ($(Klient)!0.57!(client_ground)$) -- 						 ($(Server)!0.57!(server_ground)$);
-    \draw[->] ($(Klient)!0.60!(client_ground)$) -- 						 ($(Server)!0.60!(server_ground)$);
+    
+    \draw[<-] ($(Klient)!0.30!(client_ground)$) -- node[above,scale=1,midway]{Výzva k autorizaci (\texttt{AUTH\_REQUEST})} ($(Server)!0.30!(server_ground)$);
+    \draw[->] ($(Klient)!0.34!(client_ground)$) -- node[below,scale=1,midway]{Odpověď na výzvu k autorizaci (\texttt{AUTH\_RESPONSE})} ($(Server)!0.34!(server_ground)$);
+    
+    \draw[<-] ($(Klient)!0.55!(client_ground)$) -- node[above,scale=1,midway]{Přijetí požadavku (\texttt{CONNECTION\_ACCEPT})} ($(Server)!0.55!(server_ground)$);
+    
+    \draw[->] ($(Klient)!0.71!(client_ground)$) -- node[above,scale=1,midway]{Odeslání \uv{NAT} paketů (\texttt{NATPACKET})}($(Server)!0.71!(server_ground)$);
+    \draw[->] ($(Klient)!0.73!(client_ground)$) -- 						 ($(Server)!0.73!(server_ground)$);
+    \draw[->] ($(Klient)!0.75!(client_ground)$) -- 						 ($(Server)!0.75!(server_ground)$);
+    \draw[->] ($(Klient)!0.77!(client_ground)$) -- 						 ($(Server)!0.77!(server_ground)$);
    
-    \draw[->] ($(Klient)!0.80!(client_ground)$) -- node[above,scale=1,midway]{Obousměrná komunikace (\texttt{DATA})} ($(Server)!0.80!(server_ground)$);
-    \draw[<-] ($(Klient)!0.85!(client_ground)$) -- 						 ($(Server)!0.85!(server_ground)$);
+    \draw[->] ($(Klient)!0.90!(client_ground)$) -- node[above,scale=1,midway]{Obousměrná komunikace (\texttt{DATA})} ($(Server)!0.90!(server_ground)$);
+    \draw[<-] ($(Klient)!0.95!(client_ground)$) -- 						 ($(Server)!0.95!(server_ground)$);
 \end{tikzpicture}
 \caption{Sekvenční diagram navázání \texttt{ICMP} tunelu}
 \label{diag:seq-icmp}
