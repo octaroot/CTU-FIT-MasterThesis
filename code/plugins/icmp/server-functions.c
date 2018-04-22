@@ -54,6 +54,8 @@ void ICMPHandleKeepAlive(int socketFD, uint32_t endpoint, struct ICMPEchoMessage
 	if (!pluginState.connected || pluginState.endpoint != endpoint)
 		return;
 
+	pluginState.noReplyCount = 0;
+
 	request->type = ICMP_ECHO_REPLY;
 
 	ICMPSendEcho(socketFD, endpoint, request);

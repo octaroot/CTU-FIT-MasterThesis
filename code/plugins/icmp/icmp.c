@@ -24,6 +24,7 @@ bool _ICMPTestAvailability(uint32_t endpoint)
 void _ICMPCleanup()
 {
 	pluginState.connected = false;
+	pluginState.noReplyCount = 0;
 	ICMPSocketClose(_ICMPSocketFD);
 }
 
@@ -34,6 +35,8 @@ const char *_ICMPGetVersion()
 
 void _ICMPStart(uint32_t endpoint, bool serverMode)
 {
+	pluginState.noReplyCount = 0;
+	pluginState.connected = false;
 	ICMPHandlers handlers[] = {
 			{ICMPClientInitialize, ICMPClientCheckHealth, ICMPClientICMPData, ICMPClientTunnelData},
 			{ICMPServerInitialize, ICMPServerCheckHealth, ICMPServerICMPData, ICMPServerTunnelData},

@@ -17,6 +17,14 @@ void ICMPClientInitialize(uint32_t endpoint)
 
 void ICMPClientCheckHealth(uint32_t endpoint)
 {
+	if (pluginState.noReplyCount++ > ICMP_KEEPALIVE_TIMEOUT)
+	{
+		// timed out, close connection
+		_ICMPStop();
+		return;
+	}
+
+	ICMPSendKeepAlive(_ICMPSocketFD, endpoint);
 }
 
 void ICMPClientICMPData(uint32_t endpoint)

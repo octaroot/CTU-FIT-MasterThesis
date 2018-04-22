@@ -14,7 +14,12 @@ void ICMPServerInitialize(uint32_t endpoint)
 
 void ICMPServerCheckHealth(uint32_t endpoint)
 {
-
+	if (pluginState.noReplyCount++ > ICMP_KEEPALIVE_TIMEOUT)
+	{
+		// timed out, close connection
+		_ICMPStop();
+		return;
+	}
 }
 
 void ICMPServerICMPData(uint32_t endpoint)
@@ -46,7 +51,7 @@ void ICMPServerICMPData(uint32_t endpoint)
 			ICMPHandleNATPacket(_ICMPSocketFD, sender, &msg);
 			break;
 		case ICMP_KEEPALIVE:
-			//TODO
+			ICMPHandleKeepAlive(_ICMPSocketFD, sender, &msg);
 			break;
 	}
 }

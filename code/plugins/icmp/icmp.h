@@ -8,6 +8,8 @@
 
 #define ICMP_NAT_PACKET_COUNT	10
 
+#define ICMP_KEEPALIVE_TIMEOUT	10
+
 extern int tunDeviceFD;
 
 bool _ICMPRunning;
@@ -38,6 +40,7 @@ typedef struct ICMPPluginState
 {
 	bool connected;
 	uint32_t endpoint;
+	int noReplyCount;
 
 } ICMPPluginState;
 

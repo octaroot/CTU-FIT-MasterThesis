@@ -65,5 +65,5 @@ void ICMPHandleICMPData(struct ICMPEchoMessage *msg)
 
 void ICMPHandleKeepAliveResponse(int socketFD, uint32_t endpoint)
 {
-	// TODO
+	pluginState.noReplyCount = 0;
 }
