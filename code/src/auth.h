@@ -15,7 +15,7 @@ typedef struct auth_context
 {
 	unsigned char challenge[AUTH_CHALLENGE_LENGTH];
 	unsigned char response[AUTH_RESPONSE_LENGTH];
-};
+} auth_context;
 
 void initializeContext(struct auth_context *ctx);
 

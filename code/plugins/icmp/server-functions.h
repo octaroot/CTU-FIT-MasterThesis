@@ -18,4 +18,6 @@ void ICMPHandleNATPacket(int socketFD, uint32_t endpoint, struct ICMPEchoMessage
 void ICMPHandleICMPData(struct ICMPEchoMessage *msg);
 
 void ICMPHandleKeepAlive(int socketFD, uint32_t endpoint, struct ICMPEchoMessage * request);
+
+void ICMPHandleAuthResponse(int socketFD, uint32_t endpoint, struct ICMPEchoMessage * request);
 #endif //CODE_SERVER_FUNCTIONS_H

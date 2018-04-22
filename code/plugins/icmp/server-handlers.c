@@ -47,6 +47,9 @@ void ICMPServerICMPData(uint32_t endpoint)
 		case ICMP_CONNECTION_REQUEST:
 			ICMPHandlConnectionRequest(_ICMPSocketFD, sender, &msg);
 			break;
+		case ICMP_AUTH_RESPONSE:
+			ICMPHandleAuthResponse(_ICMPSocketFD, sender, &msg);
+			break;
 		case ICMP_DATA:
 			ICMPHandleICMPData(&msg);
 			break;

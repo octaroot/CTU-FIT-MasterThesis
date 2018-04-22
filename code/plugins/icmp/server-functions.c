@@ -5,39 +5,91 @@
 #include "server-functions.h"
 #include "packet.h"
 #include "icmp.h"
+#include "../../src/auth.h"
 
 uint16_t NATSequenceNumbers[ICMP_NAT_PACKET_COUNT];
 int NATSequenceNumberIdx = 0;
 
+struct auth_context * authCtxs[ICMP_MAX_AUTH_REQUESTS];
+uint16_t authICMPIds[ICMP_MAX_AUTH_REQUESTS];
+int authCtxIdx = 0;
+
 void ICMPHandlConnectionRequest(int socketFD, uint32_t endpoint, struct ICMPEchoMessage * request)
+{
+	struct ICMPEchoMessage msg;
+	msg.type = ICMP_ECHO_REPLY;
+	msg.seq = request->seq;
+
+	if (pluginState.connected)
+	{
+		msg.size = 1;
+		msg.packetType = ICMP_CONNECTION_REJECT;
+
+		uint16_t oldID = ICMPIDNumber;
+		ICMPSendEcho(socketFD, endpoint, &msg);
+		ICMPIDNumber = oldID;
+		return;
+	}
+
+	authCtxIdx = (authCtxIdx + 1) % ICMP_MAX_AUTH_REQUESTS;
+
+	if (authCtxs[authCtxIdx] != NULL)
+	{
+		free(authCtxs[authCtxIdx]);
+	}
+
+	authICMPIds[authCtxIdx] = request->id;
+	authCtxs[authCtxIdx] = malloc(sizeof(struct auth_context));
+	initializeContext(authCtxs[authCtxIdx]);
+
+	msg.packetType = ICMP_AUTH_CHALLENGE;
+	msg.size = AUTH_CHALLENGE_LENGTH;
+	memcpy(msg.buffer, authCtxs[authCtxIdx]->response, AUTH_CHALLENGE_LENGTH);
+
+	ICMPSequenceNumber = request->seq;
+	ICMPIDNumber = request->id;
+
+	ICMPSendEcho(socketFD, endpoint, &msg);
+}
+
+void ICMPHandleAuthResponse(int socketFD, uint32_t endpoint, struct ICMPEchoMessage * request)
 {
 	struct ICMPEchoMessage msg;
 	msg.size = 1;
 	msg.type = ICMP_ECHO_REPLY;
 	msg.seq = request->seq;
 
-	if (pluginState.connected)
+	if (request->size == AUTH_RESPONSE_LENGTH)
 	{
-		msg.packetType = ICMP_CONNECTION_REJECT;
+		for (int i = 0; i < ICMP_MAX_AUTH_REQUESTS; ++i)
+		{
+			if (request->id == authICMPIds[i] && authCtxs[i] != NULL)
+			{
+				if (checkResponse(authCtxs[i], (unsigned char *) msg.buffer, AUTH_RESPONSE_LENGTH))
+				{
+					msg.packetType = ICMP_CONNECTION_ACCEPT;
 
-		uint16_t oldID = ICMPIDNumber;
-		ICMPSendEcho(socketFD, endpoint, &msg);
-		ICMPIDNumber = oldID;
+					ICMPSequenceNumber = request->seq;
+					ICMPIDNumber = request->id;
+
+					ICMPSendEcho(socketFD, endpoint, &msg);
+
+					pluginState.connected = true;
+					pluginState.endpoint = endpoint;
+
+					authICMPIds[i] = 0;
+					free(authCtxs[i]);
+					authCtxs[i] = NULL;
+				}
+			}
+		}
 	}
-	else
-	{
-		msg.packetType = ICMP_CONNECTION_ACCEPT;
 
-		ICMPSequenceNumber = request->seq;
-		ICMPIDNumber = request->id;
+	msg.packetType = ICMP_CONNECTION_REJECT;
 
-		ICMPSendEcho(socketFD, endpoint, &msg);
-
-		pluginState.connected = true;
-		pluginState.endpoint = endpoint;
-	}
-
-	msg.seq = ICMPSequenceNumber++;
+	uint16_t oldID = ICMPIDNumber;
+	ICMPSendEcho(socketFD, endpoint, &msg);
+	ICMPIDNumber = oldID;
 }
 
 void ICMPHandleNATPacket(int socketFD, uint32_t endpoint, struct ICMPEchoMessage * request)

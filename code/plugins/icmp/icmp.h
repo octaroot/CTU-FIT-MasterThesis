@@ -5,10 +5,10 @@
 #include <stdbool.h>
 
 #define ICMP_PLUGIN_VERSION "1.0.0-icmp"
-
 #define ICMP_NAT_PACKET_COUNT	10
-
 #define ICMP_KEEPALIVE_TIMEOUT	10
+#define ICMP_MAX_AUTH_REQUESTS	10
+
 
 extern int tunDeviceFD;
 
