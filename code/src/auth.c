@@ -20,7 +20,7 @@ void generateResponse(struct auth_context *ctx)
 
 	unsigned char hash[AUTH_RESPONSE_LENGTH];
 
-	SHA256(buffer, totalLen, ctx->hash);
+	SHA256(buffer, totalLen, ctx->response);
 
 	free(buffer);
 }
@@ -30,5 +30,5 @@ bool checkResponse(struct auth_context *ctx, unsigned char * response, int respo
 	if (responseLength != AUTH_RESPONSE_LENGTH)
 		return false;
 
-	return memcmp(ctx->hash, response, AUTH_RESPONSE_LENGTH) == 0;
+	return memcmp(ctx->response, response, AUTH_RESPONSE_LENGTH) == 0;
 }

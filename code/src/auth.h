@@ -13,8 +13,8 @@ extern struct keyfile globalKeyfile;
 
 typedef struct auth_context
 {
-	char challenge[AUTH_CHALLENGE_LENGTH];
-	unsigned char hash[AUTH_RESPONSE_LENGTH];
+	unsigned char challenge[AUTH_CHALLENGE_LENGTH];
+	unsigned char response[AUTH_RESPONSE_LENGTH];
 };
 
 void initializeContext(struct auth_context *ctx);

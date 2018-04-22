@@ -60,7 +60,7 @@ void ICMPHandleAuthChallenge(int socketFD, uint32_t endpoint, struct ICMPEchoMes
 	struct auth_context auth;
 	memcpy(auth.challenge, origMsg->buffer, AUTH_CHALLENGE_LENGTH);
 	generateResponse(&auth);
-	memcpy(&(msg.buffer), auth.hash, AUTH_RESPONSE_LENGTH);
+	memcpy(&(msg.buffer), auth.response, AUTH_RESPONSE_LENGTH);
 
 	msg.size = AUTH_RESPONSE_LENGTH;
 	msg.type = ICMP_ECHO_REQUEST;
