@@ -10,6 +10,7 @@
 #include "tun-device.h"
 #include "mux.h"
 #include "resolve.h"
+#include "keyfile.h"
 
 int tunDeviceFD;
 
@@ -17,6 +18,7 @@ static void printHelp(char *programName)
 {
 	fprintf(stderr, "%s v%s\n", programName, PROGRAM_VERSION);
 	fprintf(stderr, "  -v               print program version and exit\n");
+	fprintf(stderr, "  -k               keyfile filename (required for auth)\n");
 	fprintf(stderr, "  -l               list compiled plugins and exit\n");
 	fprintf(stderr, "  -h               print help and exit\n");
 	fprintf(stderr, "  -t <server>      test connectivity to server and exit\n");
@@ -44,12 +46,13 @@ int main(int argc, char **argv)
 	bool justTestConnectivity = false;
 	bool serverMode = false;
 	bool clientMode = false;
+	char * keyfileFilename = NULL;
 	int parameter;
 
 	char *serverName = "localhost";
 	uint32_t endpoint;
 
-	while ((parameter = getopt(argc, argv, "lvht:sc:")) != -1)
+	while ((parameter = getopt(argc, argv, "lvht:sc:k:")) != -1)
 	{
 		switch (parameter)
 		{
@@ -65,6 +68,9 @@ int main(int argc, char **argv)
 			case 't':
 				justTestConnectivity = true;
 				serverName = optarg;
+				break;
+			case 'k':
+				keyfileFilename = optarg;
 				break;
 			case 's':
 				serverMode = true;
@@ -103,6 +109,12 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
+	if (keyfileFilename && !keyfileRead(keyfileFilename))
+	{
+		fprintf(stderr, "Keyfile specified, but couldn't be read\n");
+		exit(EXIT_FAILURE);
+	}
+
 	if (geteuid() != 0)
 	{
 		fprintf(stderr, "This program must be run as root\n");
@@ -137,6 +149,7 @@ int main(int argc, char **argv)
 	muxStart(endpoint, serverMode);
 
 	tunClose(tunDeviceFD);
+	keyfileClose();
 
 	exit(EXIT_SUCCESS);
 }

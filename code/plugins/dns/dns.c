@@ -26,6 +26,7 @@ void _DNSStart(uint32_t endpoint, bool serverMode)
 	while (_DNSRunning)
 	{
 		//TODO
+		_DNSRunning = false;
 	}
 
 	_DNSCleanup();
