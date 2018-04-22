@@ -354,7 +354,7 @@ Navržený protokol by při obcházení omezení \textit{captive portálu} měl 
 
 
 
-\section{Volba technických prostředků}
+\section{Možné technické prostředky}
 
 Integraci síťového tunelu do operačního systému lze řešit řadou způsobů v závislosti na operačním systému, jeho verzi a v závislosti na požadavcích pro přenositelnost. Snahu o nalezení ideálního řešení projevila celá řada softwarových projektů, jako například:
 
@@ -366,6 +366,8 @@ Integraci síťového tunelu do operačního systému lze řešit řadou způsob
 Každé z výše uvedených softwarových řešení přistupuje k problému jinou cestou. Software anonymizační síťě \textit{Tor} na klientské stanici vytváří \texttt{SOCKS} proxy a umožňuje jiným programům komunikovat skrze tuto proxy službu. Jedná se o velmi dobře přenositelné řešení, protože nespoléhá na specifickou podporu operačního systému. Nevýhodou tohoto řešení je přenesení problému kompatibility z operačního systému na jednotlivé aplikace. Pokud aplikace nepodporuje, nebo uživateli nedovolí nastavit komunikace skrze \texttt{SOCKS} proxy, nebude schopna anonymizační sítě \textit{Tor} využít.
 
 Oproti tomu technologie \textit{OpenVPN} je silně vázána na podporu ze strany operačního systému. Na klientské stanici vytváří virtuální síťové rozhraní, které se uživateli jeví jako jakékoliv jiné síťové rozhraní. Lze upravit systémovou směrovací tabulku, aby preferovala virtuální síťové rozhraní a komunikující aplikace tudíž nemusí podporovat komunikaci skrze \texttt{SOCKS} proxy. Nevýhodou je závislost na podpoře virtuálních síťových rozhraní v operačním systému.
+
+\section{Vybrané technické prostředky}
 
 Pro tuto práci byla zvolena implementace pomocí virtuálního síťového rozhraní, neboť toto řešení lze považovat za obecnější, neboť není nutná přímá podpora koncových aplikací. Podpora virtuálních rozhraní je zahrnuta v Linuxovém jádře od verze 2.2 (vydáno v roce 1999), \textit{FreeBSD} 3.0 a \textit{Solaris} 2.6. Z ostatních rodin operačních systémů je částečná podpora zahrnuta rovněž v \textit{macOS}, \textit{iOS} a \textit{Andorid}. Pro platformu \textit{Microsoft Windows} existují doplňky třetích stran, které přináší podporu virtuálních rozhraní.
 
