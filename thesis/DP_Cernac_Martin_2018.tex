@@ -570,10 +570,18 @@ typedef enum ICMP_PACKET_TYPE
     %porty 5060,5061 ? (SIP, SIP encrypt)
     
     %TODO
-
     
-    %SCTP????
-    %nebude fungovat kvuli NATu pravdepodobne, ale za pokus nebo alespon zminku to rozhodne stoji !!
+\section{Plugin pro \texttt{SCTP} tunelování}
+
+    \texttt{SCTP} je protokolem transportní vrstvy ISO/OSI modelu, stejně jako protokoly \texttt{TCP} nebo \texttt{UDP}. Přebírá některé vlastnosti těchto protokolů (\texttt{TCP} garanci doručení paketů ve správném pořadí, nebo \texttt{UDP} způsob komunikace (oproti \texttt{TCP} proudové komunikaci). Navíc přidává funkce jako možnost více proudové komunikace v rámci jednoho spojení. Jedná se o \textit{relativně} mladý protokol, definovaný v \cite[RFC 4960]{rfc4960} v roce 2007.
+    
+    Stejně jako u \texttt{ICMP} je možné, že implementace \textit{captive portálu} nebude pamatovat na jiné protokoly než \texttt{TCP} a \texttt{UDP}. Právě proto je v rámce této práce implementován rovněž tunel pomocí \texttt{SCTP} protokolu.
+
+    %porty 443, 80, 3128
+    %porty 5060,5061 ? (SIP, SIP encrypt)
+    
+    %TODO
+
 
 
 \chapter{Testování}
