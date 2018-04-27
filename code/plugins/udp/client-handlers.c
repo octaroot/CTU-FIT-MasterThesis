@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <memory.h>
 #include "client-handlers.h"
 #include "client-functions.h"
 #include "packet.h"
@@ -9,13 +10,16 @@
 
 void UDPClientInitialize(struct sockaddr_in * endpoint)
 {
-	UDPSendConnectionRequest(pluginState.socket, endpoint);
+	memcpy(pluginState.endpoint, endpoint, sizeof(struct sockaddr_in));
+	UDPSendConnectionRequest(pluginState.socket, pluginState.endpoint);
 }
 
 void UDPClientCheckHealth(struct sockaddr_in * endpoint)
 {
 	if (!pluginState.connected)
 		return;
+
+	printf("no ping in: %d secs\n", pluginState.noReplyCount);
 
 	if (pluginState.noReplyCount++ > UDP_KEEPALIVE_TIMEOUT)
 	{
@@ -24,7 +28,7 @@ void UDPClientCheckHealth(struct sockaddr_in * endpoint)
 		return;
 	}
 
-	UDPSendKeepAlive(pluginState.socket, endpoint);
+	UDPSendKeepAlive(pluginState.socket, pluginState.endpoint);
 }
 
 void UDPClientUDPData(struct sockaddr_in * endpoint)
@@ -35,7 +39,7 @@ void UDPClientUDPData(struct sockaddr_in * endpoint)
 	if (UDPReceiveMsg(pluginState.socket, &sender, &msg))
 		return;
 
-	if (pluginState.connected && equalSockaddr(&sender, pluginState.endpoint))
+	if (pluginState.connected && !equalSockaddr(&sender, pluginState.endpoint))
 		return;
 
 	//TODO: add port check??
@@ -73,5 +77,5 @@ void UDPClientTunnelData(struct sockaddr_in * endpoint)
 
 	msg.packetType = UDP_DATA;
 
-	UDPSendMsg(pluginState.socket, endpoint, &msg);
+	UDPSendMsg(pluginState.socket, pluginState.endpoint, &msg);
 }
