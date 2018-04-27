@@ -4,14 +4,12 @@
 #include <stdint.h>
 #include "udp.h"
 
-extern uint16_t NATSequenceNumberIdx,NATSequenceNumbers[UDP_NAT_PACKET_COUNT];
+void UDPServerInitialize(struct sockaddr_in * endpoint);
 
-void UDPServerInitialize(uint32_t endpoint);
+void UDPServerCheckHealth(struct sockaddr_in * endpoint);
 
-void UDPServerCheckHealth(uint32_t endpoint);
+void UDPServerUDPData(struct sockaddr_in * endpoint);
 
-void UDPServerUDPData(uint32_t endpoint);
-
-void UDPServerTunnelData(uint32_t endpoint);
+void UDPServerTunnelData(struct sockaddr_in * endpoint);
 
 #endif //CODE_SERVER_HANDLERS_H

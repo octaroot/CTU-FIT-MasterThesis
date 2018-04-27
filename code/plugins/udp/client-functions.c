@@ -7,55 +7,36 @@
 #include "../../src/auth.h"
 #include "udp.h"
 
-void UDPSendConnectionRequest(int socketFD, uint32_t endpoint)
+void UDPSendConnectionRequest(int socketFD, struct sockaddr_in * endpoint)
 {
-	struct UDPEchoMessage msg;
+	struct UDPMessage msg;
 	msg.size = 1;
-	msg.type = UDP_ECHO_REQUEST;
 	msg.packetType = UDP_CONNECTION_REQUEST;
-	msg.seq = UDPSequenceNumber++;
 
-	UDPSendEcho(socketFD, endpoint, &msg);
+	UDPSendMsg(socketFD, endpoint, &msg);
 }
 
-void UDPSendNATPacket(int socketFD, uint32_t endpoint)
+void UDPSendKeepAlive(int socketFD, struct sockaddr_in * endpoint)
 {
-	struct UDPEchoMessage msg;
+	struct UDPMessage msg;
 	msg.size = 1;
-	msg.type = UDP_ECHO_REQUEST;
-	msg.packetType = UDP_NATPACKET;
-	msg.seq = UDPSequenceNumber++;
-
-	UDPSendEcho(socketFD, endpoint, &msg);
-}
-
-void UDPSendKeepAlive(int socketFD, uint32_t endpoint)
-{
-	struct UDPEchoMessage msg;
-	msg.size = 1;
-	msg.type = UDP_ECHO_REQUEST;
 	msg.packetType = UDP_KEEPALIVE;
-	msg.seq = UDPSequenceNumber++;
 
-	UDPSendEcho(socketFD, endpoint, &msg);
+	UDPSendMsg(socketFD, endpoint, &msg);
 }
 
-void UDPHandleConnectionAccept(int socketFD, uint32_t endpoint)
+void UDPHandleConnectionAccept(struct sockaddr_in * endpoint)
 {
 	pluginState.connected = true;
 	pluginState.endpoint = endpoint;
-	for (int i = 0; i < UDP_NAT_PACKET_COUNT; ++i)
-	{
-		UDPSendNATPacket(socketFD, endpoint);
-	}
 }
 
-void UDPHandleAuthChallenge(int socketFD, uint32_t endpoint, struct UDPEchoMessage *origMsg)
+void UDPHandleAuthChallenge(int socketFD, struct sockaddr_in * endpoint, struct UDPMessage *origMsg)
 {
 	if (origMsg->size != AUTH_CHALLENGE_LENGTH)
 		return;
 
-	struct UDPEchoMessage msg;
+	struct UDPMessage msg;
 
 	struct auth_context auth;
 	memcpy(auth.challenge, origMsg->buffer, AUTH_CHALLENGE_LENGTH);
@@ -63,20 +44,18 @@ void UDPHandleAuthChallenge(int socketFD, uint32_t endpoint, struct UDPEchoMessa
 	memcpy(msg.buffer, auth.response, AUTH_RESPONSE_LENGTH);
 
 	msg.size = AUTH_RESPONSE_LENGTH;
-	msg.type = UDP_ECHO_REQUEST;
 	msg.packetType = UDP_AUTH_RESPONSE;
-	msg.seq = UDPSequenceNumber++;
 
-	UDPSendEcho(socketFD, endpoint, &msg);
+	UDPSendMsg(socketFD, endpoint, &msg);
 }
 
-void UDPHandleConnectionReject(int socketFD, uint32_t endpoint)
+void UDPHandleConnectionReject(int socketFD, struct sockaddr_in * endpoint)
 {
 	pluginState.connected = false;
 	_UDPStop();
 }
 
-void UDPHandleUDPData(struct UDPEchoMessage *msg)
+void UDPHandleUDPData(struct UDPMessage *msg)
 {
 	if (msg->size <= 0)
 		return;
@@ -84,7 +63,7 @@ void UDPHandleUDPData(struct UDPEchoMessage *msg)
 	tunWrite(tunDeviceFD, msg->buffer, msg->size);
 }
 
-void UDPHandleKeepAliveResponse(int socketFD, uint32_t endpoint)
+void UDPHandleKeepAliveResponse()
 {
 	pluginState.noReplyCount = 0;
 }

@@ -5,19 +5,13 @@
 #include <stdbool.h>
 #include "packet.h"
 
-extern uint16_t UDPSequenceNumber, UDPIDNumber;
-
-extern int _UDPSocketFD;
-
 extern struct UDPPluginState pluginState;
 
-void UDPHandlConnectionRequest(int socketFD, uint32_t endpoint, struct UDPEchoMessage * request);
+void UDPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, struct UDPMessage *request);
 
-void UDPHandleNATPacket(int socketFD, uint32_t endpoint, struct UDPEchoMessage * request);
+void UDPHandleUDPData(struct UDPMessage *msg);
 
-void UDPHandleUDPData(struct UDPEchoMessage *msg);
+void UDPHandleKeepAlive(int socketFD, struct sockaddr_in * endpoint, struct UDPMessage * request);
 
-void UDPHandleKeepAlive(int socketFD, uint32_t endpoint, struct UDPEchoMessage * request);
-
-void UDPHandleAuthResponse(int socketFD, uint32_t endpoint, struct UDPEchoMessage * request);
+void UDPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct UDPMessage * request);
 #endif //CODE_SERVER_FUNCTIONS_H

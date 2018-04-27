@@ -3,20 +3,18 @@
 #include <string.h>
 #include <unistd.h>
 #include <netinet/ip.h>
-#include <netinet/ip_udp.h>
+#include <netinet/udp.h>
+#include <stdbool.h>
 
 #include "packet.h"
 
-uint16_t UDPSequenceNumber, UDPIDNumber;
-
-int UDPReceiveEcho(int socketFD, uint32_t *from, struct UDPEchoMessage *msg)
+int UDPReceiveMsg(int socketFD, struct sockaddr_in *from, struct UDPMessage *msg)
 {
 	char buffer[UDP_SOCKET_MTU];
 
-	struct sockaddr_in server;
-	socklen_t serverSize = sizeof(struct sockaddr_in);
+	socklen_t serverSize = sizeof(*from);
 
-	int receivedSize = recvfrom(socketFD, buffer, UDP_SOCKET_MTU, 0, (struct sockaddr *) &server, &serverSize);
+	int receivedSize = recvfrom(socketFD, buffer, UDP_SOCKET_MTU, 0, from, &serverSize);
 
 	if (receivedSize < 0)
 	{
@@ -24,33 +22,22 @@ int UDPReceiveEcho(int socketFD, uint32_t *from, struct UDPEchoMessage *msg)
 		return 1;
 	}
 
-	if (receivedSize < (int) sizeof(struct iphdr) + (int) sizeof(struct udphdr))
+	if (receivedSize < (int) sizeof(struct UDPPacketHeader))
 	{
 		fprintf(stderr, "Received malformed UDP packet: %s\n", strerror(errno));
 		return 1;
 	}
 
-	struct udphdr *header = (struct udphdr *) (buffer + sizeof(struct iphdr));
-
-	if ((header->type != UDP_ECHO_REQUEST && header->type != UDP_ECHO_REPLY) || header->code != 0)
-		return 1;
-
-	int offset = sizeof(struct iphdr) + sizeof(struct udphdr) + sizeof(struct UDPPacketHeader);
-
-	struct UDPPacketHeader *customHeader = (struct UDPPacketHeader *) (buffer + sizeof(struct iphdr) +
-																		 sizeof(struct udphdr));
+	struct UDPPacketHeader *customHeader = (struct UDPPacketHeader *) buffer;
 
 	if (memcmp(customHeader->magic, UDP_PACKET_MAGIC, sizeof(customHeader->magic)) != 0)
 		return 1;
 
-	msg->size = receivedSize - offset;
-	msg->type = header->type;
-	msg->packetType = customHeader->type;
-	msg->id = ntohs(header->un.echo.id);
-	msg->seq = ntohs(header->un.echo.sequence);
-	memcpy(msg->buffer, buffer + offset, receivedSize - offset);
+	int offset = sizeof(struct UDPPacketHeader);
 
-	*from = ntohl(server.sin_addr.s_addr);
+	msg->size = receivedSize - offset;
+	msg->packetType = customHeader->type;
+	memcpy(msg->buffer, buffer + offset, receivedSize - offset);
 
 	return 0;
 }
@@ -61,31 +48,17 @@ void UDPSocketClose(int socketFD)
 		close(socketFD);
 }
 
-int UDPSendEcho(int socketFD, uint32_t to, struct UDPEchoMessage *msg)
+int UDPSendMsg(int socketFD, struct sockaddr_in * to, struct UDPMessage *msg)
 {
 	char buffer[UDP_SOCKET_MTU];
-
-	struct udphdr *header = (struct udphdr *) (buffer);
-	header->type = msg->type;
-	header->code = 0;
-	header->un.echo.id = htons(UDPIDNumber);
-	header->un.echo.sequence = htons(msg->seq);
-	header->checksum = 0;
 
 	struct UDPPacketHeader *customHeader = (struct UDPPacketHeader *) (buffer + sizeof(struct udphdr));
 	memcpy(customHeader->magic, UDP_PACKET_MAGIC, sizeof(customHeader->magic));
 	customHeader->type = msg->packetType;
 
-	memcpy(buffer + sizeof(struct udphdr) + sizeof(struct UDPPacketHeader), msg->buffer, msg->size);
+	memcpy(buffer + sizeof(struct UDPPacketHeader), msg->buffer, msg->size);
 
-	struct sockaddr_in server;
-	server.sin_family = AF_INET;
-	server.sin_addr.s_addr = htonl(to);
-
-	header->checksum = UDPPacketChecksum(buffer, sizeof(struct udphdr) + sizeof(struct UDPPacketHeader) + msg->size);
-
-	int sentSize = sendto(socketFD, buffer, msg->size + sizeof(struct UDPPacketHeader) + sizeof(struct udphdr), 0,
-						  (struct sockaddr *) &server, sizeof(server));
+	int sentSize = sendto(socketFD, buffer, msg->size + sizeof(struct UDPPacketHeader), 0, to, sizeof(*to));
 
 	if (sentSize < 0)
 	{
@@ -98,7 +71,7 @@ int UDPSendEcho(int socketFD, uint32_t to, struct UDPEchoMessage *msg)
 
 int UDPSocketOpen()
 {
-	int UDPSocket = socket(AF_INET, SOCK_RAW, 0);
+	int UDPSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 	if (UDPSocket < 0)
 	{
@@ -107,4 +80,9 @@ int UDPSocketOpen()
 	}
 
 	return UDPSocket;
+}
+
+bool equalSockaddr(struct sockaddr_in * a, struct sockaddr_in * b)
+{
+	return a && b && a->sin_port == b->sin_port && a->sin_addr.s_addr == b->sin_addr.s_addr;
 }

@@ -5,24 +5,20 @@
 #include <stdbool.h>
 #include "packet.h"
 
-extern uint16_t UDPSequenceNumber, UDPIDNumber;
-
-extern int _UDPSocketFD;
-
 extern struct UDPPluginState pluginState;
 
-void UDPSendConnectionRequest(int socketFD, uint32_t endpoint);
+void UDPSendConnectionRequest(int socketFD, struct sockaddr_in * endpoint);
 
-void UDPSendKeepAlive(int socketFD, uint32_t endpoint);
+void UDPSendKeepAlive(int socketFD, struct sockaddr_in * endpoint);
 
-void UDPHandleConnectionAccept(int socketFD, uint32_t endpoint);
+void UDPHandleConnectionAccept(struct sockaddr_in * endpoint);
 
-void UDPHandleAuthChallenge(int socketFD, uint32_t endpoint, struct UDPEchoMessage *origMsg);
+void UDPHandleAuthChallenge(int socketFD, struct sockaddr_in * endpoint, struct UDPMessage *origMsg);
 
-void UDPHandleConnectionReject(int socketFD, uint32_t endpoint);
+void UDPHandleConnectionReject(int socketFD, struct sockaddr_in * endpoint);
 
-void UDPHandleUDPData(struct UDPEchoMessage *msg);
+void UDPHandleUDPData(struct UDPMessage *msg);
 
-void UDPHandleKeepAliveResponse(int socketFD, uint32_t endpoint);
+void UDPHandleKeepAliveResponse();
 
 #endif //CODE_CLIENT_FUNCTIONS_H

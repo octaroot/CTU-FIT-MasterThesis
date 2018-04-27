@@ -1,18 +1,32 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <memory.h>
 #include "server-handlers.h"
 #include "server-functions.h"
 #include "packet.h"
 #include "../../src/tun-device.h"
 
 
-void UDPServerInitialize(uint32_t endpoint)
+void UDPServerInitialize(struct sockaddr_in *endpoint)
 {
-	UDPSequenceNumber = 0;
-	UDPIDNumber = 0;
+	struct sockaddr_in sock;
+
+	// zero out the structure
+	memset(&sock, 0, sizeof(sock));
+
+	sock.sin_family = AF_INET;
+	//sock.sin_port = htons(PORT);
+	sock.sin_port = endpoint->sin_port;
+	sock.sin_addr.s_addr = htonl(INADDR_ANY);
+
+	if (bind(pluginState.socket, (struct sockaddr*)(&sock), sizeof(sock)) < 0)
+	{
+		fprintf(stderr, "Unable to bind UDP socket to port %d\n", ntohs(endpoint->sin_port));
+		_UDPStop();
+	}
 }
 
-void UDPServerCheckHealth(uint32_t endpoint)
+void UDPServerCheckHealth(struct sockaddr_in *endpoint)
 {
 	if (!pluginState.connected)
 		return;
@@ -25,19 +39,18 @@ void UDPServerCheckHealth(uint32_t endpoint)
 	}
 }
 
-void UDPServerUDPData(uint32_t endpoint)
+void UDPServerUDPData(struct sockaddr_in *endpoint)
 {
-	UDPEchoMessage msg;
-	uint32_t sender;
+	UDPMessage msg;
+	struct sockaddr_in sender;
 
-	if (UDPReceiveEcho(_UDPSocketFD, &sender, &msg))
+	if (UDPReceiveMsg(pluginState.socket, &sender, &msg))
 		return;
 
-	if (pluginState.connected && sender != pluginState.endpoint)
+	if (pluginState.connected && !equalSockaddr(&sender, pluginState.endpoint))
 		return;
 
-	if (msg.type != UDP_ECHO_REQUEST)
-		return;
+	//add port check ??
 
 	if (!msg.size)
 		return;
@@ -45,35 +58,29 @@ void UDPServerUDPData(uint32_t endpoint)
 	switch (msg.packetType)
 	{
 		case UDP_CONNECTION_REQUEST:
-			UDPHandlConnectionRequest(_UDPSocketFD, sender, &msg);
+			UDPHandleConnectionRequest(pluginState.socket, &sender, &msg);
 			break;
 		case UDP_AUTH_RESPONSE:
-			UDPHandleAuthResponse(_UDPSocketFD, sender, &msg);
+			UDPHandleAuthResponse(pluginState.socket, &sender, &msg);
 			break;
 		case UDP_DATA:
 			UDPHandleUDPData(&msg);
 			break;
-		case UDP_NATPACKET:
-			UDPHandleNATPacket(_UDPSocketFD, sender, &msg);
-			break;
 		case UDP_KEEPALIVE:
-			UDPHandleKeepAlive(_UDPSocketFD, sender, &msg);
+			UDPHandleKeepAlive(pluginState.socket, &sender, &msg);
 			break;
 	}
 }
 
-void UDPServerTunnelData(uint32_t endpoint)
+void UDPServerTunnelData(struct sockaddr_in *endpoint)
 {
-	UDPEchoMessage msg;
-	tunRead(tunDeviceFD, (char*)&(msg.buffer), &(msg.size));
+	UDPMessage msg;
+	tunRead(tunDeviceFD, (char *) &(msg.buffer), &(msg.size));
 
 	if (!msg.size)
 		return;
 
-	msg.type = UDP_ECHO_REPLY;
 	msg.packetType = UDP_DATA;
-	msg.seq = NATSequenceNumbers[NATSequenceNumberIdx++];
-	NATSequenceNumberIdx %= UDP_NAT_PACKET_COUNT;
 
-	UDPSendEcho(_UDPSocketFD, pluginState.endpoint, &msg);
+	UDPSendMsg(pluginState.socket, pluginState.endpoint, &msg);
 }

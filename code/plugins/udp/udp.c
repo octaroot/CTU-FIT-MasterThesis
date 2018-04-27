@@ -10,8 +10,6 @@
 #include "client-handlers.h"
 #include "server-handlers.h"
 
-int _UDPSocketFD;
-
 struct UDPPluginState pluginState;
 
 bool _UDPTestAvailability(uint32_t endpoint)
@@ -25,7 +23,7 @@ void _UDPCleanup()
 {
 	pluginState.connected = false;
 	pluginState.noReplyCount = 0;
-	UDPSocketClose(_UDPSocketFD);
+	UDPSocketClose(pluginState.socket);
 }
 
 const char *_UDPGetVersion()
@@ -33,7 +31,7 @@ const char *_UDPGetVersion()
 	return UDP_PLUGIN_VERSION;
 }
 
-void _UDPStart(uint32_t endpoint, bool serverMode)
+void _UDPStart(uint32_t address, bool serverMode)
 {
 	pluginState.noReplyCount = 0;
 	pluginState.connected = false;
@@ -44,9 +42,9 @@ void _UDPStart(uint32_t endpoint, bool serverMode)
 
 	_UDPRunning = true;
 
-	_UDPSocketFD = UDPSocketOpen();
+	pluginState.socket = UDPSocketOpen();
 
-	if (!_UDPSocketFD)
+	if (!pluginState.socket)
 	{
 		_UDPRunning = false;
 		return;
@@ -54,9 +52,17 @@ void _UDPStart(uint32_t endpoint, bool serverMode)
 
 	UDPHandlers *handler = &(handlers[serverMode]);
 
-	handler->initialize(endpoint);
+	struct sockaddr_in endpoint;
+	memset(&endpoint, 0, sizeof(struct sockaddr_in));
 
-	int maxFD = MAX(_UDPSocketFD, tunDeviceFD);
+
+	endpoint.sin_family = AF_INET;
+	endpoint.sin_addr.s_addr = htonl(address);
+	endpoint.sin_port = htons(5060);
+
+	handler->initialize(&endpoint);
+
+	int maxFD = MAX(pluginState.socket, tunDeviceFD);
 	struct timeval timeout;
 
 	while (_UDPRunning)
@@ -64,7 +70,7 @@ void _UDPStart(uint32_t endpoint, bool serverMode)
 		fd_set fs;
 
 		FD_ZERO(&fs);
-		FD_SET(_UDPSocketFD, &fs);
+		FD_SET(pluginState.socket, &fs);
 		FD_SET(tunDeviceFD, &fs);
 
 		timeout.tv_sec = 1;
@@ -93,7 +99,7 @@ void _UDPStart(uint32_t endpoint, bool serverMode)
 			handler->tunnelData(pluginState.endpoint);
 		}
 
-		if (FD_ISSET(_UDPSocketFD, &fs))
+		if (FD_ISSET(pluginState.socket, &fs))
 		{
 			handler->UDPData(pluginState.endpoint);
 		}

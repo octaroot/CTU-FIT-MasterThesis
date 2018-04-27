@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <netinet/in.h>
+#include <netinet/udp.h>
 
 #define UDP_PLUGIN_VERSION "1.0.0-udp"
 #define UDP_NAT_PACKET_COUNT	10
@@ -16,30 +18,31 @@ bool _UDPRunning;
 
 void _UDPCleanup();
 
-bool _UDPTestAvailability(uint32_t endpoint);
+bool _UDPTestAvailability(uint32_t address);
 
 const char *_UDPGetVersion();
 
-void _UDPStart(uint32_t endpoint, bool serverMode);
+void _UDPStart(uint32_t address, bool serverMode);
 
 void _UDPStop();
 
 typedef struct UDPHandlers
 {
-	void (*initialize)(uint32_t endpoint);
+	void (*initialize)(struct sockaddr_in * endpoint);
 
-	void (*checkHealth)(uint32_t endpoint);
+	void (*checkHealth)(struct sockaddr_in * endpoint);
 
-	void (*UDPData)(uint32_t endpoint);
+	void (*UDPData)(struct sockaddr_in * endpoint);
 
-	void (*tunnelData)(uint32_t endpoint);
+	void (*tunnelData)(struct sockaddr_in * endpoint);
 
 } UDPHandlers;
 
 typedef struct UDPPluginState
 {
 	bool connected;
-	uint32_t endpoint;
+	struct sockaddr_in * endpoint;
+	int socket;
 	int noReplyCount;
 
 } UDPPluginState;

@@ -2,12 +2,13 @@
 #define CODE_PACKET_H
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <netinet/ip.h>
-#include <netinet/ip_udp.h>
+#include <netinet/udp.h>
 
 #include "../../src/tun-device.h"
 
-#define UDP_SOCKET_MTU  (TUN_DEVICE_MTU + sizeof(struct UDPPacketHeader) + sizeof(struct iphdr) + sizeof(struct udphdr))
+#define UDP_SOCKET_MTU  (TUN_DEVICE_MTU + sizeof(struct UDPPacketHeader))
 
 typedef enum UDP_PACKET_TYPE
 {
@@ -27,27 +28,24 @@ typedef struct UDPPacketHeader
 	uint8_t type; /* UDP_PACKET_TYPE */
 } UDPPacketHeader;
 
-typedef struct UDPEchoMessage
+typedef struct UDPMessage
 {
 	int size;
-	UDP_TYPE type;
 	UDP_PACKET_TYPE packetType;
 	char buffer[TUN_DEVICE_MTU];
-	uint16_t id;
-	uint16_t seq;
-} UDPEchoMessage;
+} UDPMessage;
 
 #define UDP_PACKET_MAGIC "CVUT"
 
 
 int UDPSocketOpen();
 
-int UDPSendEcho(int socketFD, uint32_t to, struct UDPEchoMessage *msg);
+int UDPSendMsg(int socketFD, struct sockaddr_in * to, struct UDPMessage *msg);
 
-int UDPReceiveEcho(int socketFD, uint32_t *from, struct UDPEchoMessage *msg);
+int UDPReceiveMsg(int socketFD, struct sockaddr_in *from, struct UDPMessage *msg);
 
 void UDPSocketClose(int socketFD);
 
-uint16_t UDPPacketChecksum(const char *buffer, int size);
+bool equalSockaddr(struct sockaddr_in * a, struct sockaddr_in * b);
 
 #endif //CODE_PACKET_H
