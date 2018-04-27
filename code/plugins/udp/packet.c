@@ -14,7 +14,7 @@ int UDPReceiveMsg(int socketFD, struct sockaddr_in *from, struct UDPMessage *msg
 
 	socklen_t serverSize = sizeof(*from);
 
-	int receivedSize = recvfrom(socketFD, buffer, UDP_SOCKET_MTU, 0, from, &serverSize);
+	int receivedSize = recvfrom(socketFD, buffer, UDP_SOCKET_MTU, 0, (struct sockaddr*)from, &serverSize);
 
 	if (receivedSize < 0)
 	{
@@ -52,13 +52,13 @@ int UDPSendMsg(int socketFD, struct sockaddr_in * to, struct UDPMessage *msg)
 {
 	char buffer[UDP_SOCKET_MTU];
 
-	struct UDPPacketHeader *customHeader = (struct UDPPacketHeader *) (buffer + sizeof(struct udphdr));
+	struct UDPPacketHeader *customHeader = (struct UDPPacketHeader *) (buffer);
 	memcpy(customHeader->magic, UDP_PACKET_MAGIC, sizeof(customHeader->magic));
 	customHeader->type = msg->packetType;
 
 	memcpy(buffer + sizeof(struct UDPPacketHeader), msg->buffer, msg->size);
 
-	int sentSize = sendto(socketFD, buffer, msg->size + sizeof(struct UDPPacketHeader), 0, to, sizeof(*to));
+	int sentSize = sendto(socketFD, buffer, msg->size + sizeof(struct UDPPacketHeader), 0, (struct sockaddr*)to, sizeof(*to));
 
 	if (sentSize < 0)
 	{

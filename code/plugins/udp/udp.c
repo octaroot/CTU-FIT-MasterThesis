@@ -3,6 +3,7 @@
 #include <memory.h>
 #include <sys/param.h>
 #include <errno.h>
+#include <stdlib.h>
 
 #include "udp.h"
 #include "packet.h"
@@ -35,6 +36,9 @@ void _UDPStart(uint32_t address, bool serverMode)
 {
 	pluginState.noReplyCount = 0;
 	pluginState.connected = false;
+	pluginState.endpoint = malloc(sizeof(struct sockaddr_in));
+
+
 	UDPHandlers handlers[] = {
 			{UDPClientInitialize, UDPClientCheckHealth, UDPClientUDPData, UDPClientTunnelData},
 			{UDPServerInitialize, UDPServerCheckHealth, UDPServerUDPData, UDPServerTunnelData},
@@ -92,6 +96,7 @@ void _UDPStart(uint32_t address, bool serverMode)
 		if (lenAvailable == 0)
 		{
 			handler->checkHealth(pluginState.endpoint);
+			continue;
 		}
 
 		if (pluginState.connected && FD_ISSET(tunDeviceFD, &fs))

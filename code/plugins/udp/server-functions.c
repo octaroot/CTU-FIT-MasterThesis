@@ -54,15 +54,14 @@ void UDPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct U
 		{
 			if (authCtxs[i] != NULL && equalSockaddr(endpoint, &(UDPauthUDPIds[i])))
 			{
-				printf("found req in server memory\n");
 				if (checkResponse(authCtxs[i], (unsigned char *) request->buffer, AUTH_RESPONSE_LENGTH))
 				{
 					msg.packetType = UDP_CONNECTION_ACCEPT;
 
 					pluginState.connected = true;
-					memcpy(&(pluginState.endpoint), endpoint, sizeof(struct sockaddr_in));
+					memcpy(pluginState.endpoint, endpoint, sizeof(struct sockaddr_in));
 
-					UDPSendMsg(socketFD, endpoint, &msg);
+					UDPSendMsg(socketFD, pluginState.endpoint, &msg);
 
 					// zruseni vsech ostatnich challenge-response pozadavku
 					for (i = 0; i < UDP_MAX_AUTH_REQUESTS; ++i)
@@ -93,5 +92,5 @@ void UDPHandleKeepAlive(int socketFD, struct sockaddr_in * endpoint, struct UDPM
 
 	pluginState.noReplyCount = 0;
 
-	UDPSendMsg(socketFD, endpoint, request);
+	UDPSendMsg(socketFD, pluginState.endpoint, request);
 }

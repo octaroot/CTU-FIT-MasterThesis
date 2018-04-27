@@ -12,7 +12,7 @@
 #define PLUGIN_COUNT (sizeof(plugins) / sizeof(plugin))
 
 plugin plugins[] = {
-		{_ICMPGetVersion, _ICMPTestAvailability, _ICMPStart, _ICMPStop},
+		//{_ICMPGetVersion, _ICMPTestAvailability, _ICMPStart, _ICMPStop},
 		{_DNSGetVersion,  _DNSTestAvailability,  _DNSStart,  _DNSStop},
 		{_UDPGetVersion,  _UDPTestAvailability,  _UDPStart,  _UDPStop},
 };

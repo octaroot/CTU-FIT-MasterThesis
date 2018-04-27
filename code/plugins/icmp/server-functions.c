@@ -65,7 +65,6 @@ void ICMPHandleAuthResponse(int socketFD, uint32_t endpoint, struct ICMPEchoMess
 		{
 			if (request->id == authICMPIds[i] && authCtxs[i] != NULL)
 			{
-				printf("found req in server memory\n");
 				if (checkResponse(authCtxs[i], (unsigned char *) request->buffer, AUTH_RESPONSE_LENGTH))
 				{
 					msg.packetType = ICMP_CONNECTION_ACCEPT;

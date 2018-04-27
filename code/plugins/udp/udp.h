@@ -7,7 +7,6 @@
 #include <netinet/udp.h>
 
 #define UDP_PLUGIN_VERSION "1.0.0-udp"
-#define UDP_NAT_PACKET_COUNT	10
 #define UDP_KEEPALIVE_TIMEOUT	10
 #define UDP_MAX_AUTH_REQUESTS	10
 

@@ -19,8 +19,6 @@ void UDPClientCheckHealth(struct sockaddr_in * endpoint)
 	if (!pluginState.connected)
 		return;
 
-	printf("no ping in: %d secs\n", pluginState.noReplyCount);
-
 	if (pluginState.noReplyCount++ > UDP_KEEPALIVE_TIMEOUT)
 	{
 		// timed out, close connection

@@ -22,13 +22,12 @@ void UDPSendKeepAlive(int socketFD, struct sockaddr_in * endpoint)
 	msg.size = 1;
 	msg.packetType = UDP_KEEPALIVE;
 
-	UDPSendMsg(socketFD, endpoint, &msg);
+	UDPSendMsg(socketFD, pluginState.endpoint, &msg);
 }
 
 void UDPHandleConnectionAccept(struct sockaddr_in * endpoint)
 {
 	pluginState.connected = true;
-	pluginState.endpoint = endpoint;
 }
 
 void UDPHandleAuthChallenge(int socketFD, struct sockaddr_in * endpoint, struct UDPMessage *origMsg)
@@ -46,7 +45,7 @@ void UDPHandleAuthChallenge(int socketFD, struct sockaddr_in * endpoint, struct 
 	msg.size = AUTH_RESPONSE_LENGTH;
 	msg.packetType = UDP_AUTH_RESPONSE;
 
-	UDPSendMsg(socketFD, endpoint, &msg);
+	UDPSendMsg(socketFD, pluginState.endpoint, &msg);
 }
 
 void UDPHandleConnectionReject(int socketFD, struct sockaddr_in * endpoint)
