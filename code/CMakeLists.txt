@@ -15,7 +15,13 @@ include_directories(${OPENSSL_INCLUDE_DIRs})
 
 link_libraries(${OPENSSL_LIBRARIES})
 
-add_executable(code src/main.c src/common.h plugins/icmp/icmp.c plugins/icmp/icmp.h src/tun-device.c src/tun-device.h src/mux.c src/mux.h plugins/dns/dns.c plugins/dns/dns.h src/resolve.c src/resolve.h plugins/icmp/packet.c plugins/icmp/packet.h plugins/icmp/client-functions.c plugins/icmp/client-functions.h plugins/icmp/client-handlers.c plugins/icmp/client-handlers.h plugins/icmp/server-handlers.c plugins/icmp/server-handlers.h plugins/icmp/server-functions.c plugins/icmp/server-functions.h src/keyfile.c src/keyfile.h src/auth.c src/auth.h)
+file(GLOB_RECURSE plugin_files "plugins/*/*.c" "plugins/*/*.h")
+file(GLOB_RECURSE src_files "src/*.c" "src/*.h")
+
+add_executable(code
+        ${src_files}
+        ${plugin_files}
+        )
 
 add_custom_command(TARGET code
         POST_BUILD
