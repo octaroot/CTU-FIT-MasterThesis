@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define DNS_PLUGIN_VERSION    "1.0.0-57"
+#define DNS_PLUGIN_VERSION    "1.0.0-dns"
 
 extern int tunDeviceFD;
 

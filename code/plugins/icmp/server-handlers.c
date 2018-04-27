@@ -45,7 +45,7 @@ void ICMPServerICMPData(uint32_t endpoint)
 	switch (msg.packetType)
 	{
 		case ICMP_CONNECTION_REQUEST:
-			ICMPHandlConnectionRequest(_ICMPSocketFD, sender, &msg);
+			ICMPHandleConnectionRequest(_ICMPSocketFD, sender, &msg);
 			break;
 		case ICMP_AUTH_RESPONSE:
 			ICMPHandleAuthResponse(_ICMPSocketFD, sender, &msg);

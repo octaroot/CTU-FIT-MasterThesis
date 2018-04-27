@@ -11,7 +11,7 @@ extern int _ICMPSocketFD;
 
 extern struct ICMPPluginState pluginState;
 
-void ICMPHandlConnectionRequest(int socketFD, uint32_t endpoint, struct ICMPEchoMessage * request);
+void ICMPHandleConnectionRequest(int socketFD, uint32_t endpoint, struct ICMPEchoMessage *request);
 
 void ICMPHandleNATPacket(int socketFD, uint32_t endpoint, struct ICMPEchoMessage * request);
 

@@ -14,7 +14,7 @@ struct auth_context * authCtxs[ICMP_MAX_AUTH_REQUESTS];
 uint16_t authICMPIds[ICMP_MAX_AUTH_REQUESTS];
 int authCtxIdx = 0;
 
-void ICMPHandlConnectionRequest(int socketFD, uint32_t endpoint, struct ICMPEchoMessage * request)
+void ICMPHandleConnectionRequest(int socketFD, uint32_t endpoint, struct ICMPEchoMessage *request)
 {
 	struct ICMPEchoMessage msg;
 	msg.type = ICMP_ECHO_REPLY;
