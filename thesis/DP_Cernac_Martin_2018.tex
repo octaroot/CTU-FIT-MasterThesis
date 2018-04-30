@@ -389,6 +389,59 @@ Hlavní část programu má rovněž na starost vytvoření prostředí pro jedn
 Jednotlivé pluginy jsou schopny ověřit možnost navázání spojení skrze \textit{captive portál} a změřit datovou prostupnost tunelu. Každému dostupnému pluginu je věnována jedna z následujících podkapitol, vysvětlující vnitřní činnost pluginu.
 
 
+\section{Ověření nového klienta}
+
+Serverová část softwarového řešení před navázáním tunelového spojení vyžaduje autentizaci klienta. I přesto, že tato diplomová práce explicitně neřeší otázky soukromí a bezpečnosti Internetových služeb, považuji alespoň základní úroveň kontroly přístupu za adekvátní. Právě proto je jako součást praktické části diplomové práce implementováno ověřování klientů pomocí protokolu \textit{výzva-odpověď} (známý také jako \textit{Challenge-response protocol}).
+
+Protokol \textit{výzva-odpověď} přímo nespecifikuje konkrétní prostředky pro autorizaci -- může se například jednat o triviální dvojici údajů jako přihlašovací jméno a heslo, nebo komplexnější metody využívající asymetrické kryptografie. Pro účely této práce je jako technický prostředek použito sdílené tajemství (tzv. \texttt{keyfile}), který může obsahovat jako značné množství (řádově tisíce) bajtů dat, tak i relativně krátké (řádově desítky) znaků. Je tudíž možné jako sdílené tajemství použít buď soubor s binárními daty, distribuován mezi server a klient alternativním kanálem, nebo pouze krátký textový soubor se zapamatovatelným heslem.
+
+Na základě sdíleného tajemství vytvoří klient otisk (\textit{hash}), který na \textit{výzvu} serveru zašle jako \textit{odpověď}. Server stejnou cestou vytvoří svůj otisk dat a výsledek porovná. Pokud jsou otisky stejné, patrně klient a server znají sdílené tajemství a klientovi je povoleno navázat tunelové spojení.
+
+\textit{Otisk}, nebo-li \textit{hash}, je z dat tajemství generován předvolenou bezpečnou \textit{hashovací funkcí} (výchozí volbou je \textit{SHA256}). Klient zasílá serveru pouze otisk, aby bylo zabráněno odposlechnutí tajemství. Vyzrazení sdíleného tajemství je zabráněno díky jedné ze stěžejních vlastností \textit{hashovací funkce} -- \textit{jednosměrnost}. Díky této vlastnosti je výpočetně extrémně náročné z výstupu (\textit{otisk}) \textit{hashovací funkce} získat vstupní hodnotu (\textit{sdílené tajemství}). Vyzrazení tajemství není však jediným bezpečnostním rizikem při implementaci protokolu \textit{výzvy-odpověď}.
+
+\subsection{Bezpečnostní aspekty}
+
+Útočník, který je schopen odposlouchávat síťový provoz během úspěšné autentizace klienta, může odposlechnutou komunikaci využít k následné vlastní autentizaci. Pro zabránění \textit{útoků přehráním} (známého také jako \textit{Replay attack}) je každý proces autentizace doplněn o unikátní hodnotu (často označovanou jako \textit{sůl}, anglicky \textit{salt}) vázanou na konkrétní požadavek o spojení. Server tuto unikátní hodnotu vygeneruje, zapamatuje si ji a zašle klientovi. Klient následně při vytváření otisku tuto unikátní hodnotu spojí s daty sdíleného tajemství a výsledný otisk tedy závisí nejen na sdíleném tajemství, ale rovněž na unikátní hodnotě požadavku. Díky tomu má každý požadavek jiný \textit{správný} otisk.
+
+Při použití soli je klíčové vygenerování dostatečně náhodné hodnoty. Pokud není zajištěna dostatečná náhodnost dat, může s dostatečnou znalostí protokolu útočník hodnotu soli uhodnout nebo případně dopředu předvídat. Pro generování pseudonáhodných hodnot je v práci použita knihovna \textit{OpenSSL}, konkrétně funkce \texttt{RAND\_bytes()}, která dle specifikace\cite{openssl-randbytes} generuje kryptograficky silná pseudonáhodná čísla.
+
+\begin{figure}[h]
+ \centering
+
+  \begin{tikzpicture}[node distance=0.7\textwidth,auto,>=stealth']
+    \node[] (Server) {Server};
+    \node[left = of Server] (Klient) {Klient};
+    \node[below of=Server, node distance=8cm] (server_ground) {};
+    \node[below of=Klient, node distance=8cm] (client_ground) {};
+    %
+    \draw (Klient) -- (client_ground);
+    \draw (Server) -- (server_ground);
+    \draw[->] ($(Klient)!0.15!(client_ground)$) --
+		node[above,scale=1,midway]{Požadavek o spojení (\texttt{CONNECTION\_REQUEST})}
+		node[below,scale=1,midway]{\texttt{($\emptyset$)}}
+	      ($(Server)!0.15!(server_ground)$);
+    
+    \draw[<-] ($(Klient)!0.35!(client_ground)$) --
+		node[above,scale=1,midway]{Výzva k autorizaci (\texttt{AUTH\_REQUEST})}
+		node[below,scale=1,midway]{\texttt{(unikátní hodnota)}}
+	      ($(Server)!0.35!(server_ground)$);
+    
+    \draw[->] ($(Klient)!0.55!(client_ground)$) --
+		node[above,scale=1,midway]{Odpověď na výzvu k autorizaci (\texttt{AUTH\_RESPONSE})} 
+		node[below,scale=1,midway]{\texttt{HASH(unikátní hodnota || sdílené tajemství)}} 
+	      ($(Server)!0.55!(server_ground)$);
+    
+    \draw[<-] ($(Klient)!0.90!(client_ground)$) --
+		node[above,scale=1,align=center]{Přijetí požadavku (\texttt{CONNECTION\_ACCEPT})\\ \textit{nebo}\\ Odmítnutí požadavku (\texttt{CONNECTION\_REJECT})}
+		node[below,scale=1,midway]{\texttt{($\emptyset$)}}
+	      ($(Server)!0.90!(server_ground)$);
+    
+\end{tikzpicture}
+\caption{Sekvenční diagram autentizace klienta pomocí protokolu \textit{výzva-odpověď}}
+\label{diag:seq-icmp}
+\end{figure}
+
+
 \section{Plugin pro \texttt{ICMP} tunelování}
 
 Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu \texttt{0} a \texttt{8} (\texttt{echo reply}, resp. \texttt{echo request}), pro které je specifikována proměnlivá délka zpráv. Zprávy těchto typů jsou používány zejména nástrojem \texttt{ping} -- například pro zjištění dostupnosti cíle, nebo pro informace o latenci spojení. Zdrojová stanice vyšle na cílovou stanici zprávu typu \texttt{echo request} a cílová stanice odpoví zprávou \texttt{echo reply}. Toto chování je zajištěno v~\cite[RFC1122]{rfc1122}. Strukturu zmíněných \texttt{echo} \texttt{ICMP} zpráv znázorňuje následující diagram \ref{diag:icmp-packet}.
@@ -409,7 +462,7 @@ Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu
 	\label{diag:icmp-packet}
     \end{figure}
     
-    Protože \texttt{ICMP} pakety \texttt{echo reply}, (resp. \texttt{echo request}) na rozdíl od \texttt{UDP} a \texttt{TCP} paketů nenesou informaci o zdrojovém/cílovém portu, jsou pro sdružování souvisejících zpráv použity hodnoty \textit{identifikátor} a \textit{sekvenční číslo}. Dle \cite[RFC 792]{rfc792} a \cite[RFC 3022]{rfc3022} mohou síťové prvky, jako například \texttt{NAT}, pro rozpoznání souvisejících zpráv tyto hodnoty používat. Specifikace se však nezmiňuje o délce platnosti \textit{identifikátoru}. Díky tomu je možno udržovat obousměrnou komunikaci, i pokud je jeden z účastníků omezen \texttt{NAT}, protože je možné klientovi \uv{za NATem} zaslat více paketů se shodnými hodnotami \textit{sekvenční číslo} a \textit{identifikátor}.
+    Protože \texttt{ICMP} pakety \texttt{echo reply}, (resp. \texttt{echo request}) na rozdíl od \texttt{UDP} a \texttt{TCP} paketů nenesou informaci o zdrojovém/cílovém portu, jsou pro sdružování souvisejících zpráv použity hodnoty \textit{identifikátor} a \textit{sekvenční číslo}. Dle \cite[RFC 792]{rfc792} a \cite[RFC 3022]{rfc3022} mohou síťové prvky, jako například \texttt{NAT}, pro rozpoznání souvisejících zpráv tyto hodnoty používat. Specifikace se však nezmiňuje o délce platnosti \textit{identifikátoru}. Díky tomu je možno udržovat obousměrnou komunikaci, i pokud je jeden z účastníků omezen \texttt{NAT}, protože je možné klientovi \uv{za NATem} zaslat více paketů se shodnými hodnotami \textit{sekvenční číslo} a \textit{identifikátor}. Na základě hodnoty \textit{identifikátor} je identifikována i žádost klienta o připojení a následná odpověď na výzvu serveru.
     
     Systém, který dodržuje \cite[RFC1122]{rfc1122} se však bude snažit na příchozí \texttt{ICMP} \textit{echo request} pakety reagovat. Toto chování je pro správnou funkci tunelu nežádoucí. V linuxových distribucích je možné povolit ignorování příchozích zpráv \texttt{ICMP echo} změnou souboru \texttt{/proc/sys/net/ipv4/icmp\_echo\_ignore\_all}.
     
@@ -439,6 +492,7 @@ Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu
     Značku zpráv tunelu má uživatel možnost změnit při kompilaci programu. Výchozí značkou je sekvence bajtů \verb|0x63 0x76 0x75 0x74|, tedy \texttt{CVUT}.
         
 \subsection{Popis jednotlivých typů \texttt{ICMP} zpráv}
+\label{subsec:icmp-msg-types}
     
     Typ zprávy označuje jeden z typů, zachycených v ukázce kódu \ref{code:icmp-types}:
     
@@ -503,8 +557,8 @@ typedef enum ICMP_PACKET_TYPE
   \begin{tikzpicture}[node distance=8cm,auto,>=stealth']
     \node[] (Server) {Server};
     \node[left = of Server] (Klient) {Klient};
-    \node[below of=Server, node distance=9cm] (server_ground) {};
-    \node[below of=Klient, node distance=9cm] (client_ground) {};
+    \node[below of=Server, node distance=8cm] (server_ground) {};
+    \node[below of=Klient, node distance=8cm] (client_ground) {};
     %
     \draw (Klient) -- (client_ground);
     \draw (Server) -- (server_ground);
@@ -531,7 +585,7 @@ typedef enum ICMP_PACKET_TYPE
     
     Celková velikost paketu nesoucího zprávu je standardně nastavena na 1500 bajtů -- jedná se o \texttt{MTU} technologie \textit{Ethernet}. To zahrnuje \texttt{IP} hlavičku (20 bajtů), \texttt{ICMP} hlavičku (8 bajtů) a hlavičku zpráv tunelu (5 bajtů). Pro přenášená data je tedy k dispozici až 1467 zbylých bajtů v jedné zprávě. Režie přenosu dat tunelem tvoří 21 bajtů. Vytvářené pakety se drží standardní hodnoty \texttt{MTU} aby bylo (pokud možno) zamezeno fragmentaci. Diagram paketu se všemi hlavičkami je znázorněn na obrázku \ref{diag:icmp-packet-all-headers}.
     
-    \begin{figure}[h]
+    \begin{figure}[h!]
     \centering
 	\begin{bytefield}[bitwidth=1em]{32}
 	    \bitheader{0,7,8,15,16,23,24,31}
@@ -546,28 +600,117 @@ typedef enum ICMP_PACKET_TYPE
 	    \\
 	    \wordbox[lr]{1}{Data tunelu (až 1467 bajtů)}
 	    \\
-	    \skippedwords
-	    \\
 	    \wordbox[lrb]{1}{}
 	\end{bytefield}
-	\caption{Diagram zachycující rozložení paketu \texttt{ICMP} tunelu včetně hlaviček}
+	\caption{Diagram paketu včetně rozložení \texttt{ICMP} zprávy tunelu a hlaviček}
 	\label{diag:icmp-packet-all-headers}
     \end{figure}
     
     
-\section{Plugin pro \texttt{DNS} tunelování}
-    
-    %TODO
-    
 \section{Plugin pro \texttt{UDP} tunelování}
     
-    Tunelování dat skrze \texttt{UDP} tunel je primárním principem technologie \textit{OpenVPN}\footnote{\textit{OpenVPN} samozřejmě podporuje i \texttt{TCP} tunelování}. Jedná se o jednoduchý způsob tunelování dat sítí.
-    %porty 53,67 ? (DNS,DHCP)
-    %porty 5060,5061 ? (SIP, SIP encrypt)
+    Tunelování dat skrze \texttt{UDP} tunel je primárním principem technologie \textit{OpenVPN}\footnote{\textit{OpenVPN} samozřejmě podporuje i \texttt{TCP} tunelování}. Jedná se o jednoduchý způsob tunelování dat sítí, kdy jsou data tunelu zapouzdřena do \texttt{UDP} datagramů. Protokol \texttt{UDP} nezajišťuje doručení zpráv v původním pořadí a neobsahuje ani mechanismy pro detekci ztracených nebo duplicitních zpráv. Tato zodpovědnost je ponechána na protokolech vyšších vrstev. Strukturu \texttt{UDP} datagramu znázorňuje diagram \ref{diag:udp-packet}.
+
+    \begin{figure}[h]
+    \centering
+	\begin{bytefield}[bitwidth=.95em]{32}
+	    \bitheader{0,7,8,15,16,23,24,31}
+	    \\
+	    \colorwordbox[ltrb]{lightgreen}{5}{IP hlavička (20 bajtů)}
+	    \\
+	      \begin{rightwordgroup}{8 bajtů\\ \texttt{UDP} hlavička}
+	    \colorbitbox[ltrb]{lightcyan}{16}{Zdrojový port} & \colorbitbox[ltrb]{lightcyan}{16}{Cílový port}
+	    \\
+	    \colorbitbox[ltrb]{lightcyan}{16}{Délka} & \colorbitbox[ltrb]{lightcyan}{16}{Kontrolní součet} 
+	      \end{rightwordgroup}
+	    \\
+	    \colorwordbox[ltr]{lightyellow}{1}{Hlavička tunelu (5 bajtů)}
+	    \\
+	    \colorbitbox[lbr]{lightyellow}{8}{} & \bitbox[ltr]{24}{}
+	    \\
+	    \wordbox[lr]{1}{Data tunelu}
+	    \\
+	    \wordbox[lrb]{1}{}
+	\end{bytefield}
+	\caption{Diagram paketu obsahující \texttt{UDP} datagram s daty tunelu}
+	\label{diag:udp-packet}
+    \end{figure}
+
+Rozdílem oproti tunelování pomocí \texttt{ICMP} je volba portu pro komunikaci. Volbu portu závisí na předpokládané výjimce na firewallu \textit{captive portálu}. Mezi běžné aplikace protokolu \texttt{UDP} patří zejména:
+
+\begin{itemize}
+ \item \textit{Domain Name System}, protokol pro překlad doménových jmen, port \texttt{53},
+ \item \textit{Network Time Protocol}, protokol pro synchronizaci času, port \texttt{123},
+ \item \textit{OpenVPN}, SW pro síťové tunely, port \texttt{1194},
+ \item \textit{Session Initiation Protocol}, protokol pro přenos signalizace, port \texttt{5060}
+\end{itemize}
+
+Výše zmíněné služby jsou široce rozšířené a je tudíž možné, že pro ně na firewallu \textit{captive portálu} bude existovat výjimka. Například \texttt{IP} telefony typicky nejsou schopny se ověřovat \textit{captive portálu} a právě proto by pro takové zařízení mohla existovat výjimka ve firewallu. Má proto smysl provozovat \texttt{UDP} tunel na takovém portu -- tedy za účelem zvýšení šance nalezení bezpečnostních nedostatků firewallu \textit{captive portálu}. Z výčtu jsem záměrně vynechal některé známé aplikace protokolu \texttt{UDP}, jako například \texttt{DHCP} -- protože má silně lokální charakter a je velmi nepravděpodobné, že by neautentizovaným klientům bylo povoleno komunikovat s \texttt{DHCP} serverem napříč Internetem. Protokol \texttt{DNS} rovněž není vhodným kandidátem, protože pro \texttt{DNS} je v rámci této práce implementována sofistikovanější metoda tunelování dat, blíže popsaná v podkapitole \ref{sec:dns-tunnel} \textit{Plugin pro \texttt{DNS} tunelování}.
+
+Vhodnými kandidáty jsou tedy porty \texttt{123} (\texttt{NTP}) a \texttt{5060} (\texttt{SIP}). Službu \textit{OpenVPN}, která do jisté míry plní podobný účel, lze pohodlně provozovat bok po boku softwarového řešení této diplomové práce. Není proto důvodu zbytečně okupovat výchozí port jiného software.
+    
+    \subsection{Popis jednotlivých typů \texttt{UDP} zpráv}
+        
+    Typ zprávy označuje jeden z typů, zachycených v ukázce kódu \ref{code:udp-types}:
+        
+    \begin{figure}[h]
+	\begin{lstlisting}[caption=Výňatek souboru \texttt{plugins/udp/packet.h} definující typy \texttt{UDP} zpráv,language=c,frame=single,numbers=left]
+typedef enum UDP_PACKET_TYPE
+{
+	UDP_CONNECTION_REQUEST,
+	UDP_AUTH_CHALLENGE,
+	UDP_AUTH_RESPONSE,
+	UDP_CONNECTION_ACCEPT,
+	UDP_CONNECTION_REJECT,
+	UDP_KEEPALIVE,
+	UDP_DATA
+} UDP_PACKET_TYPE;
+      \end{lstlisting}
+      \label{code:udp-types}
+    \end{figure}
+
+    Z výňatku kódu je patrná analogie s výčtem zpráv \ref{subsec:icmp-msg-types} z podkapitoly \textit{Plugin pro \texttt{ICMP} tunelování}. Jediným rozdílem oproti dříve popsaným typům zpráv je absence zpráv typu \texttt{NATPACKET}, protože protistrana (server) je schopen s klientem za \texttt{NAT} komunikovat díky překladu portů přímo. Klíčové jsou tím pádem \texttt{KEEPALIVE} zprávy, které slouží zejména k přesvědčení \texttt{NAT} zařízení o tom, že komunikace ještě neustala. Díky tomu může server komunikovat s klientem i skrze \texttt{NAT}.
+    
+    Protože se však význam ostatních zpráv nijak nemění, je jejich opětovný popis vynechán s odkazem na popis v podkapitole \ref{subsec:icmp-msg-types} \textit{Popis jednotlivých typů \texttt{ICMP} zpráv}.
+
+    Velmi podobný je také sekvenční diagram \ref{diag:seq-udp-tcp} komunikace klienta a serveru při pokusu o navázání spojení. V diagramu se nadále nevyskytují zprávy typu \texttt{NATPACKET}.
+    
+\begin{figure}[h]
+ \centering
+
+  \begin{tikzpicture}[node distance=8cm,auto,>=stealth']
+    \node[] (Server) {Server};
+    \node[left = of Server] (Klient) {Klient};
+    \node[below of=Server, node distance=7cm] (server_ground) {};
+    \node[below of=Klient, node distance=7cm] (client_ground) {};
+    %
+    \draw (Klient) -- (client_ground);
+    \draw (Server) -- (server_ground);
+    \draw[->] ($(Klient)!0.15!(client_ground)$) -- node[above,scale=1,midway]{Požadavek o spojení (\texttt{CONNECTION\_REQUEST})} ($(Server)!0.15!(server_ground)$);
+    
+    \draw[<-] ($(Klient)!0.35!(client_ground)$) -- node[above,scale=1,midway]{Výzva k autorizaci (\texttt{AUTH\_REQUEST})} ($(Server)!0.35!(server_ground)$);
+    \draw[->] ($(Klient)!0.40!(client_ground)$) -- node[below,scale=1,midway]{Odpověď na výzvu k autorizaci (\texttt{AUTH\_RESPONSE})} ($(Server)!0.40!(server_ground)$);
+    
+    \draw[<-] ($(Klient)!0.65!(client_ground)$) -- node[above,scale=1,midway]{Přijetí požadavku (\texttt{CONNECTION\_ACCEPT})} ($(Server)!0.65!(server_ground)$);
+    
+  
+    \draw[->] ($(Klient)!0.85!(client_ground)$) -- node[above,scale=1,midway]{Obousměrná komunikace (\texttt{DATA})} ($(Server)!0.85!(server_ground)$);
+    \draw[<-] ($(Klient)!0.90!(client_ground)$) -- 						 ($(Server)!0.90!(server_ground)$);
+\end{tikzpicture}
+\caption{Sekvenční diagram navázání \texttt{UDP}/\texttt{TCP} tunelu}
+\label{diag:seq-udp-tcp}
+\end{figure}
+
     
 \section{Plugin pro \texttt{TCP} tunelování}
     %porty 443, 80, 3128
     %porty 5060,5061 ? (SIP, SIP encrypt)
+    
+    %TODO
+    
+    
+\section{Plugin pro \texttt{DNS} tunelování}
+\label{sec:dns-tunnel}
     
     %TODO
     
