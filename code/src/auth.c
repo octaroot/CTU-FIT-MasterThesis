@@ -7,7 +7,7 @@
 
 void initializeContext(struct auth_context *ctx)
 {
-	RAND_pseudo_bytes(ctx->challenge, AUTH_CHALLENGE_LENGTH);
+	RAND_bytes(ctx->challenge, AUTH_CHALLENGE_LENGTH);
 	generateResponse(ctx);
 }
 
