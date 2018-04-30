@@ -47,7 +47,7 @@ void UDPServerUDPData(struct sockaddr_in *endpoint)
 	if (UDPReceiveMsg(pluginState.socket, &sender, &msg))
 		return;
 
-	if (pluginState.connected && !equalSockaddr(&sender, pluginState.endpoint))
+	if (pluginState.connected && !UDPequalSockaddr(&sender, pluginState.endpoint))
 		return;
 
 	//add port check ??

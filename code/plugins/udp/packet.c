@@ -82,7 +82,7 @@ int UDPSocketOpen()
 	return UDPSocket;
 }
 
-bool equalSockaddr(struct sockaddr_in * a, struct sockaddr_in * b)
+bool UDPequalSockaddr(struct sockaddr_in * a, struct sockaddr_in * b)
 {
 	return a && b && a->sin_port == b->sin_port && a->sin_addr.s_addr == b->sin_addr.s_addr;
 }

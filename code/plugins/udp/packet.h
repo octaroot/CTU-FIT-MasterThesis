@@ -46,6 +46,6 @@ int UDPReceiveMsg(int socketFD, struct sockaddr_in *from, struct UDPMessage *msg
 
 void UDPSocketClose(int socketFD);
 
-bool equalSockaddr(struct sockaddr_in * a, struct sockaddr_in * b);
+bool UDPequalSockaddr(struct sockaddr_in * a, struct sockaddr_in * b);
 
 #endif //CODE_PACKET_H

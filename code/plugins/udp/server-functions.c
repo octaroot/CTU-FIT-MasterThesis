@@ -52,7 +52,7 @@ void UDPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct U
 	{
 		for (int i = 0; i < UDP_MAX_AUTH_REQUESTS; ++i)
 		{
-			if (authCtxs[i] != NULL && equalSockaddr(endpoint, &(UDPauthUDPIds[i])))
+			if (authCtxs[i] != NULL && UDPequalSockaddr(endpoint, &(UDPauthUDPIds[i])))
 			{
 				if (checkResponse(authCtxs[i], (unsigned char *) request->buffer, AUTH_RESPONSE_LENGTH))
 				{
@@ -87,7 +87,7 @@ void UDPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct U
 
 void UDPHandleKeepAlive(int socketFD, struct sockaddr_in * endpoint, struct UDPMessage * request)
 {
-	if (!pluginState.connected || !equalSockaddr(endpoint, pluginState.endpoint))
+	if (!pluginState.connected || !UDPequalSockaddr(endpoint, pluginState.endpoint))
 		return;
 
 	pluginState.noReplyCount = 0;
