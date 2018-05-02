@@ -16,7 +16,7 @@ int TCPReceiveMsg(int socketFD, struct sockaddr_in *from, struct TCPMessage *msg
 
 	unsigned char headerBuffer[3];
 
-	int readSize;
+	unsigned int readSize;
 
 	readSize = read(socketFD, headerBuffer, 3);
 	if (readSize < 0)
@@ -25,7 +25,12 @@ int TCPReceiveMsg(int socketFD, struct sockaddr_in *from, struct TCPMessage *msg
 	}
 	else if (readSize != 3)
 	{
-		fprintf(stderr, "Received malformed TCP packet: Unable to read packet header: %s\n", strerror(errno));
+		fprintf(stderr, "Received malformed TCP packet: Unable to read packet header: %s (%d)\n", strerror(errno), errno);
+		if (errno == 104)
+		{
+			//connection reset by peer
+			_TCPStopClient();
+		}
 		return 1;
 	}
 
@@ -47,16 +52,22 @@ int TCPReceiveMsg(int socketFD, struct sockaddr_in *from, struct TCPMessage *msg
 	msg->size = customHeader.length;
 	msg->packetType = customHeader.type;
 
-	readSize = read(socketFD, &(msg->buffer), customHeader.length);
-
-	if (readSize < 0)
+	readSize = 0;
+	while (readSize != customHeader.length)
 	{
-		_TCPStopClient();
-	}
-	else if (readSize != customHeader.length)
-	{
-		fprintf(stderr, "Received malformed TCP packet: Bad size (no data left to read)\n");
-		return 1;
+		int result = read(socketFD, msg->buffer, customHeader.length - readSize);
+		if (result < 0)
+		{
+			_TCPStopClient();
+			fprintf(stderr, "Unable to read from TCP socket: %s (%d)\n", strerror(errno), errno);
+			return 1;
+		}
+		readSize += result;
+		fprintf(stderr, "Read %d bytes out of required %d, still waiting for %d\n", readSize, customHeader.length, customHeader.length - readSize);
+		if (readSize < 0)
+		{
+			_TCPStopClient();
+		}
 	}
 
 	return 0;
