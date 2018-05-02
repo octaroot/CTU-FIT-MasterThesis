@@ -38,6 +38,10 @@ typedef struct SCTPMessage
 
 int SCTPSocketOpen();
 
+void SCTPSetInitMsg(int socketFD);
+
+void SCTPSetEvents(int socketFD);
+
 int SCTPSendControl(int socketFD, struct SCTPMessage *msg);
 
 int SCTPSendData(int socketFD, struct SCTPMessage *msg);

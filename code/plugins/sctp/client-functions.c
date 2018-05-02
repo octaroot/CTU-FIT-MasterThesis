@@ -13,7 +13,7 @@ void SCTPSendConnectionRequest(int socketFD, struct sockaddr_in * endpoint)
 	msg.size = 1;
 	msg.packetType = SCTP_CONNECTION_REQUEST;
 
-	SCTPSendControl(socketFD, endpoint, &msg);
+	SCTPSendControl(socketFD, &msg);
 }
 
 void SCTPSendKeepAlive(int socketFD, struct sockaddr_in * endpoint)
@@ -22,7 +22,7 @@ void SCTPSendKeepAlive(int socketFD, struct sockaddr_in * endpoint)
 	msg.size = 1;
 	msg.packetType = SCTP_KEEPALIVE;
 
-	SCTPSendControl(socketFD, pluginState.endpoint, &msg);
+	SCTPSendControl(socketFD, &msg);
 }
 
 void SCTPHandleConnectionAccept(struct sockaddr_in * endpoint)
@@ -45,7 +45,7 @@ void SCTPHandleAuthChallenge(int socketFD, struct sockaddr_in * endpoint, struct
 	msg.size = AUTH_RESPONSE_LENGTH;
 	msg.packetType = SCTP_AUTH_RESPONSE;
 
-	SCTPSendControl(socketFD, pluginState.endpoint, &msg);
+	SCTPSendControl(socketFD, &msg);
 }
 
 void SCTPHandleConnectionReject(int socketFD, struct sockaddr_in * endpoint)

@@ -10,8 +10,8 @@
 #define SCTP_KEEPALIVE_TIMEOUT	10
 #define SCTP_MAX_AUTH_REQUESTS	10
 
-#define SCTP_STREAM_DATA    0
-#define SCTP_STREAM_CONTROL    1
+#define SCTP_STREAM_CONTROL     0
+#define SCTP_STREAM_DATA        1
 
 extern int tunDeviceFD;
 

@@ -13,6 +13,7 @@ void SCTPClientInitialize(struct sockaddr_in * endpoint)
 {
 	memcpy(pluginState.endpoint, endpoint, sizeof(struct sockaddr_in));
 
+
 	if (connect(pluginState.listener, (struct sockaddr*) endpoint, sizeof(*endpoint)) < 0) {
 		fprintf(stderr,"Unable to connect to server (SCTP): %s\n", strerror(errno));
 		_SCTPStop();
@@ -20,6 +21,10 @@ void SCTPClientInitialize(struct sockaddr_in * endpoint)
 	}
 
 	pluginState.socket = pluginState.listener;
+
+
+	SCTPSetInitMsg(pluginState.socket);
+	SCTPSetEvents(pluginState.socket);
 
 	SCTPSendConnectionRequest(pluginState.socket, pluginState.endpoint);
 }
@@ -49,8 +54,10 @@ void SCTPClientSCTPData(struct sockaddr_in * endpoint)
 	SCTPMessage msg;
 	struct sockaddr_in sender;
 
-	if (SCTPReceiveMsg(pluginState.socket, &sender, &msg))
+	if (SCTPReceiveMsg(pluginState.socket, &msg))
 		return;
+
+	fprintf(stderr, "prochozi zprava\n");
 
 	if (!pluginState.connected)
 		return;
@@ -88,5 +95,5 @@ void SCTPClientTunnelData(struct sockaddr_in * endpoint)
 
 	msg.packetType = SCTP_DATA;
 
-	SCTPSendControl(pluginState.socket, pluginState.endpoint, &msg);
+	SCTPSendControl(pluginState.socket, &msg);
 }

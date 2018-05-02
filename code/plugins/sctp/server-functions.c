@@ -19,7 +19,7 @@ void SCTPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, st
 		msg.size = 1;
 		msg.packetType = SCTP_CONNECTION_REJECT;
 
-		SCTPSendControl(socketFD, endpoint, &msg);
+		SCTPSendControl(socketFD, &msg);
 		return;
 	}
 
@@ -37,7 +37,7 @@ void SCTPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, st
 	msg.size = AUTH_CHALLENGE_LENGTH;
 	memcpy(msg.buffer, authCtxs[SCTPauthCtxIdx]->challenge, AUTH_CHALLENGE_LENGTH);
 
-	SCTPSendControl(socketFD, endpoint, &msg);
+	SCTPSendControl(socketFD, &msg);
 }
 
 void SCTPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct SCTPMessage * request)
@@ -57,7 +57,7 @@ void SCTPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct 
 
 					pluginState.auth = true;
 
-					SCTPSendControl(socketFD, pluginState.endpoint, &msg);
+					SCTPSendControl(socketFD, &msg);
 
 					// zruseni vsech ostatnich challenge-response pozadavku
 					for (i = 0; i < SCTP_MAX_AUTH_REQUESTS; ++i)
@@ -77,7 +77,7 @@ void SCTPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct 
 
 	msg.packetType = SCTP_CONNECTION_REJECT;
 
-	SCTPSendControl(socketFD, endpoint, &msg);
+	SCTPSendControl(socketFD, &msg);
 }
 
 void SCTPHandleKeepAlive(int socketFD, struct sockaddr_in * endpoint, struct SCTPMessage * request)
@@ -88,5 +88,5 @@ void SCTPHandleKeepAlive(int socketFD, struct sockaddr_in * endpoint, struct SCT
 	if (pluginState.auth)
 		pluginState.noReplyCount = 0;
 
-	SCTPSendControl(socketFD, pluginState.endpoint, request);
+	SCTPSendControl(socketFD, request);
 }
