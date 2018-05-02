@@ -5,7 +5,6 @@
 #include <netinet/ip.h>
 #include <netinet/sctp.h>
 #include <stdbool.h>
-#include <sys/param.h>
 #include <stdlib.h>
 
 #include "packet.h"
@@ -14,27 +13,37 @@
 
 int SCTPReceiveMsg(int socketFD, struct SCTPMessage *msg)
 {
-	int flags;
-	struct sctp_sndrcvinfo sndrcvinfo;
-	char buffer[SCTP_SOCKET_MTU];
+	int flags = 0;
+	struct sctp_sndrcvinfo sndrcvinfo = {0};
+	unsigned char buffer[SCTP_SOCKET_MTU];
 
-	int readSize = sctp_recvmsg(socketFD, buffer, sizeof(buffer), NULL, 0, &sndrcvinfo, &flags);
+	int readSize = sctp_recvmsg(socketFD, buffer, sizeof(buffer),  (struct sockaddr *) NULL, 0, &sndrcvinfo, &flags);
+
 
 	if (readSize < 0)
 	{
-		fprintf(stderr, "Unable to receive an SCTP packet: %s (%d)\n", strerror(errno), errno);
-		return 1;
+		fprintf(stderr, "Unable to receive an SCTP packet: %s (%d) (flags %x)\n", strerror(errno), errno, flags);
+		exit(1);
 	}
 
 	if (readSize < 1)
 		return 1;
 
+	fprintf(stderr,"\nstream = %d, data = ", (uint16_t)sndrcvinfo.sinfo_stream);
+
+	for (int i = 0; i < readSize; ++i)
+	{
+		fprintf(stderr, "%02x", buffer[i]);
+	}
+
+	fprintf(stderr,"\n");
+
 	switch (sndrcvinfo.sinfo_stream)
 	{
 		case SCTP_STREAM_CONTROL:
+			fprintf(stderr,"...\n");
 			msg->packetType = buffer[0];
 			msg->size = readSize - 1;
-			buffer[0] = msg->packetType;
 			memcpy(msg->buffer, buffer + 1, msg->size);
 			break;
 		case SCTP_STREAM_DATA:
@@ -92,12 +101,11 @@ int SCTPSendData(int socketFD, struct SCTPMessage *msg)
 
 void SCTPSetInitMsg(int socketFD)
 {
-	struct sctp_initmsg initmsg;
+	struct sctp_initmsg initmsg = {0};
 
-	memset(&initmsg, 0, sizeof(initmsg));
-	initmsg.sinit_num_ostreams = 2;
-	initmsg.sinit_max_instreams = 2;
-	initmsg.sinit_max_attempts = 5;
+	initmsg.sinit_num_ostreams = 5;
+	initmsg.sinit_max_instreams = 5;
+	initmsg.sinit_max_attempts = 4;
 
 	if (setsockopt(socketFD, IPPROTO_SCTP, SCTP_INITMSG, &initmsg, sizeof(initmsg)) < 0)
 	{
@@ -108,10 +116,9 @@ void SCTPSetInitMsg(int socketFD)
 
 void SCTPSetEvents(int socketFD)
 {
-	struct sctp_event_subscribe events;
-
-	memset(&events, 0, sizeof(events));
+	struct sctp_event_subscribe events = {0};
 	events.sctp_data_io_event = 1;
+
 	if (setsockopt(socketFD, SOL_SCTP, SCTP_EVENTS, &events, sizeof(events)) < 0) {
 		fprintf(stderr, "Unable to initialize SCTP socket (SCTP events): %s\n", strerror(errno));
 		_SCTPStop();

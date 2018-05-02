@@ -20,11 +20,12 @@ void SCTPClientInitialize(struct sockaddr_in * endpoint)
 		return;
 	}
 
+	SCTPSetEvents(pluginState.listener);
+
 	pluginState.socket = pluginState.listener;
 
-
 	SCTPSetInitMsg(pluginState.socket);
-	SCTPSetEvents(pluginState.socket);
+	//SCTPSetEvents(pluginState.socket);
 
 	SCTPSendConnectionRequest(pluginState.socket, pluginState.endpoint);
 }
@@ -57,7 +58,6 @@ void SCTPClientSCTPData(struct sockaddr_in * endpoint)
 	if (SCTPReceiveMsg(pluginState.socket, &msg))
 		return;
 
-	fprintf(stderr, "prochozi zprava\n");
 
 	if (!pluginState.connected)
 		return;
@@ -95,5 +95,5 @@ void SCTPClientTunnelData(struct sockaddr_in * endpoint)
 
 	msg.packetType = SCTP_DATA;
 
-	SCTPSendControl(pluginState.socket, &msg);
+	SCTPSendData(pluginState.socket, &msg);
 }

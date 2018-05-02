@@ -42,5 +42,5 @@ add_custom_command(TARGET code
         POST_BUILD
         COMMAND /usr/bin/ssh -i /home/martin/.ssh/id_rsa root@dip-test 'killall -9 code 2>/dev/null || true'
         COMMAND /usr/bin/scp -i /home/martin/.ssh/id_rsa /home/martin/Desktop/CTU-FIT-MasterThesis/code/cmake-build-debug/code root@dip-test:/root/code
-        COMMAND /usr/bin/ssh -i /home/martin/.ssh/id_rsa root@dip-test '/root/runcode.sh &'
+#        COMMAND /usr/bin/ssh -i /home/martin/.ssh/id_rsa root@dip-test '/root/runcode.sh &'
         )

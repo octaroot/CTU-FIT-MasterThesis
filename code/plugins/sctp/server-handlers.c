@@ -26,6 +26,7 @@ void SCTPServerInitialize(struct sockaddr_in *endpoint)
 		fprintf(stderr, "Unable to bind SCTP socket to port %d\n", ntohs(endpoint->sin_port));
 		_SCTPStop();
 	}
+	SCTPSetEvents(pluginState.listener);
 
 	SCTPSetInitMsg(pluginState.listener);
 
