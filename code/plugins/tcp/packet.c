@@ -22,15 +22,12 @@ int TCPReceiveMsg(int socketFD, struct sockaddr_in *from, struct TCPMessage *msg
 	if (readSize < 0)
 	{
 		_TCPStopClient();
+		return 1;
 	}
 	else if (readSize != 3)
 	{
 		fprintf(stderr, "Received malformed TCP packet: Unable to read packet header: %s (%d)\n", strerror(errno), errno);
-		if (errno == 104)
-		{
-			//connection reset by peer
-			_TCPStopClient();
-		}
+		_TCPStopClient();
 		return 1;
 	}
 

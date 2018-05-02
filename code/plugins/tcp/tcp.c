@@ -90,13 +90,9 @@ void _TCPStart(uint32_t address, bool serverMode)
 
 			if (lenAvailable < 0)
 			{
-				if (!_TCPRunning)
-				{
-					break;
-				}
-
-				fprintf(stderr, "Unable to select() on sockets: %s\n", strerror(errno));
-				return;
+				_TCPStopClient();
+				_TCPStop();
+				break;
 			}
 
 			if (lenAvailable == 0)
@@ -127,5 +123,6 @@ void _TCPStop()
 void _TCPStopClient()
 {
 	pluginState.connected = false;
+	pluginState.auth = false;
 	close(pluginState.socket);
 }
