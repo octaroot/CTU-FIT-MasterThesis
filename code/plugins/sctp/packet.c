@@ -86,7 +86,7 @@ int SCTPSendControl(int socketFD, struct SCTPMessage *msg)
 
 int SCTPSendData(int socketFD, struct SCTPMessage *msg)
 {
-	int sentSize = sctp_sendmsg(socketFD, msg->buffer, msg->size, NULL, 0, 0, 0, SCTP_STREAM_DATA, 0, 0);
+	int sentSize = sctp_sendmsg(socketFD, msg->buffer, msg->size, NULL, 0, 0, SCTP_UNORDERED, SCTP_STREAM_DATA, 0, 0);
 
 	if (sentSize < 0)
 	{
