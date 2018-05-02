@@ -8,19 +8,29 @@
 #include <sys/param.h>
 
 #include "packet.h"
+#include "tcp.h"
 
 int TCPReceiveMsg(int socketFD, struct sockaddr_in *from, struct TCPMessage *msg)
 {
 	TCPPacketHeader customHeader;
 
-	uint16_t tmpLen;
+	unsigned char headerBuffer[3];
 
-	if (!read(socketFD, &(customHeader.type), 1) || read(socketFD, &tmpLen, 2) != 2)
+	int readSize;
+
+	readSize = read(socketFD, headerBuffer, 3);
+	if (readSize < 0)
 	{
-		fprintf(stderr, "Received malformed TCP packet: Unable to read packet header\n");
+		_TCPStopClient();
+	}
+	else if (readSize != 3)
+	{
+		fprintf(stderr, "Received malformed TCP packet: Unable to read packet header: %s\n", strerror(errno));
 		return 1;
 	}
-	customHeader.length = ntohs(tmpLen);
+
+	customHeader.type = headerBuffer[0];
+	customHeader.length = headerBuffer[1] | (headerBuffer[2] << 8);
 
 	if (customHeader.length < 0)
 	{
@@ -30,13 +40,20 @@ int TCPReceiveMsg(int socketFD, struct sockaddr_in *from, struct TCPMessage *msg
 
 	if (customHeader.length > TCP_SOCKET_MTU)
 	{
-		fprintf(stderr, "Received malformed TCP packet: Size is too large\n");
+		fprintf(stderr, "Received malformed TCP packet: Size is too large (%d)\n", customHeader.length);
 		return 1;
 	}
 
 	msg->size = customHeader.length;
 	msg->packetType = customHeader.type;
-	if (read(socketFD, &(msg->buffer), customHeader.length) != customHeader.length)
+
+	readSize = read(socketFD, &(msg->buffer), customHeader.length);
+
+	if (readSize < 0)
+	{
+		_TCPStopClient();
+	}
+	else if (readSize != customHeader.length)
 	{
 		fprintf(stderr, "Received malformed TCP packet: Bad size (no data left to read)\n");
 		return 1;
@@ -55,8 +72,8 @@ int TCPSendMsg(int socketFD, struct sockaddr_in *to, struct TCPMessage *msg)
 {
 	char buffer[TCP_SOCKET_MTU];
 	buffer[0] = msg->packetType;
-	uint16_t netSize = htons(msg->size);
-	memcpy((void*)buffer, (void*)&netSize, 2);
+	buffer[1] = msg->size & 0xFF;
+	buffer[2] = msg->size >> 8;
 
 	memcpy(buffer + 3, msg->buffer, msg->size);
 
@@ -65,6 +82,7 @@ int TCPSendMsg(int socketFD, struct sockaddr_in *to, struct TCPMessage *msg)
 	if (sentSize < 0)
 	{
 		fprintf(stderr, "Unable to send an TCP packet: %s\n", strerror(errno));
+		_TCPStopClient();
 		return 1;
 	}
 
@@ -91,9 +109,4 @@ int TCPSocketOpen()
 
 
 	return TCPSocket;
-}
-
-bool TCPequalSockaddr(struct sockaddr_in *a, struct sockaddr_in *b)
-{
-	return a && b && a->sin_port == b->sin_port && a->sin_addr.s_addr == b->sin_addr.s_addr;
 }

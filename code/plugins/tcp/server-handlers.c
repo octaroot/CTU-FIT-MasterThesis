@@ -5,6 +5,7 @@
 #include "server-handlers.h"
 #include "server-functions.h"
 #include "packet.h"
+#include <unistd.h>
 #include "../../src/tun-device.h"
 
 
@@ -35,23 +36,59 @@ void TCPServerInitialize(struct sockaddr_in *endpoint)
 
 void TCPServerAcceptClient()
 {
-	socklen_t endpointLen;
-	memset(&pluginState.endpoint, 0, sizeof(pluginState.endpoint));
-	if ((pluginState.socket = accept(pluginState.listener, (struct sockaddr*)pluginState.endpoint, &endpointLen)) < 0) {
-		fprintf(stderr, "Unable to accept a TCP client: %s\n", strerror(errno));
-		_TCPStop();
+	struct timeval timeout;
+
+	while (_TCPRunning)
+	{
+		fd_set fs;
+
+		FD_ZERO(&fs);
+		FD_SET(pluginState.listener, &fs);
+
+		timeout.tv_sec = 1;
+		timeout.tv_usec = 0;
+
+		int lenAvailable = select(pluginState.listener + 1, &fs, NULL, NULL, &timeout);
+
+		if (lenAvailable < 0)
+		{
+			if (!_TCPRunning)
+			{
+				_TCPStop();
+				return;
+			}
+
+			fprintf(stderr, "Unable to select() on TCP listening socket: %s\n", strerror(errno));
+			_TCPStop();
+			return;
+		}
+
+		if (lenAvailable > 0)
+		{
+			socklen_t endpointLen;
+			memset(&pluginState.endpoint, 0, sizeof(pluginState.endpoint));
+			if ((pluginState.socket = accept(pluginState.listener, (struct sockaddr*)pluginState.endpoint, &endpointLen)) < 0) {
+				fprintf(stderr, "Unable to accept a TCP client: %s\n", strerror(errno));
+				_TCPStop();
+			}
+
+			pluginState.noReplyCount = 0;
+			pluginState.auth = false;
+			pluginState.connected = true;
+			return;
+		}
 	}
+
 }
 
 void TCPServerCheckHealth(struct sockaddr_in *endpoint)
 {
-	if (!pluginState.connected)
-		return;
-
 	if (pluginState.noReplyCount++ > TCP_KEEPALIVE_TIMEOUT)
 	{
 		// timed out, close connection
 		pluginState.connected = false;
+		pluginState.auth = false;
+		close(pluginState.socket);
 		return;
 	}
 }
@@ -64,10 +101,8 @@ void TCPServerTCPData(struct sockaddr_in *endpoint)
 	if (TCPReceiveMsg(pluginState.socket, &sender, &msg))
 		return;
 
-	if (pluginState.connected && !TCPequalSockaddr(&sender, pluginState.endpoint))
+	if (!pluginState.connected)
 		return;
-
-	//add port check ??
 
 	if (!msg.size)
 		return;

@@ -44,6 +44,4 @@ int TCPReceiveMsg(int socketFD, struct sockaddr_in *from, struct TCPMessage *msg
 
 void TCPSocketClose(int socketFD);
 
-bool TCPequalSockaddr(struct sockaddr_in * a, struct sockaddr_in * b);
-
 #endif //CODE_PACKET_H

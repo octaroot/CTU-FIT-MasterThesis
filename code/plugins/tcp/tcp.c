@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include <memory.h>
 #include <sys/param.h>
 #include <errno.h>
@@ -123,3 +124,8 @@ void _TCPStop()
 	_TCPRunning = false;
 }
 
+void _TCPStopClient()
+{
+	pluginState.connected = false;
+	close(pluginState.socket);
+}

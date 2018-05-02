@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>
+#include <errno.h>
 #include "client-handlers.h"
 #include "client-functions.h"
 #include "packet.h"
@@ -11,12 +12,21 @@
 void TCPClientInitialize(struct sockaddr_in * endpoint)
 {
 	memcpy(pluginState.endpoint, endpoint, sizeof(struct sockaddr_in));
+
+	if (connect(pluginState.listener, (struct sockaddr*) endpoint, sizeof(*endpoint)) < 0) {
+		fprintf(stderr,"Unable to connect to server (TCP): %s\n", strerror(errno));
+		_TCPStop();
+		return;
+	}
+
+	pluginState.socket = pluginState.listener;
+
 	TCPSendConnectionRequest(pluginState.socket, pluginState.endpoint);
 }
 
 void TCPClientAcceptClient()
 {
-
+	pluginState.connected = true;
 }
 
 void TCPClientCheckHealth(struct sockaddr_in * endpoint)
@@ -42,10 +52,8 @@ void TCPClientTCPData(struct sockaddr_in * endpoint)
 	if (TCPReceiveMsg(pluginState.socket, &sender, &msg))
 		return;
 
-	if (pluginState.connected && !TCPequalSockaddr(&sender, pluginState.endpoint))
+	if (!pluginState.connected)
 		return;
-
-	//TODO: add port check??
 
 	if (!msg.size)
 		return;

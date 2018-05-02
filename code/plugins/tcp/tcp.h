@@ -25,6 +25,8 @@ void _TCPStart(uint32_t address, bool serverMode);
 
 void _TCPStop();
 
+void _TCPStopClient();
+
 typedef struct TCPHandlers
 {
 	void (*initialize)(struct sockaddr_in * endpoint);

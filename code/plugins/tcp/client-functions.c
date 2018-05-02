@@ -27,7 +27,7 @@ void TCPSendKeepAlive(int socketFD, struct sockaddr_in * endpoint)
 
 void TCPHandleConnectionAccept(struct sockaddr_in * endpoint)
 {
-	pluginState.connected = true;
+	pluginState.auth = true;
 }
 
 void TCPHandleAuthChallenge(int socketFD, struct sockaddr_in * endpoint, struct TCPMessage *origMsg)
