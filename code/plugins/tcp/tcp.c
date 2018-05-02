@@ -25,6 +25,7 @@ void _TCPCleanup()
 	pluginState.connected = false;
 	pluginState.noReplyCount = 0;
 	TCPSocketClose(pluginState.socket);
+	TCPSocketClose(pluginState.listener);
 }
 
 const char *_TCPGetVersion()
@@ -40,15 +41,15 @@ void _TCPStart(uint32_t address, bool serverMode)
 
 
 	TCPHandlers handlers[] = {
-			{TCPClientInitialize, TCPClientCheckHealth, TCPClientTCPData, TCPClientTunnelData},
-			{TCPServerInitialize, TCPServerCheckHealth, TCPServerTCPData, TCPServerTunnelData},
+			{TCPClientInitialize, TCPClientAcceptClient, TCPClientCheckHealth, TCPClientTCPData, TCPClientTunnelData},
+			{TCPServerInitialize, TCPServerAcceptClient, TCPServerCheckHealth, TCPServerTCPData, TCPServerTunnelData},
 	};
 
 	_TCPRunning = true;
 
-	pluginState.socket = TCPSocketOpen();
+	pluginState.listener = TCPSocketOpen();
 
-	if (!pluginState.socket)
+	if (!pluginState.listener)
 	{
 		_TCPRunning = false;
 		return;
@@ -66,50 +67,54 @@ void _TCPStart(uint32_t address, bool serverMode)
 
 	handler->initialize(&endpoint);
 
-	int maxFD = MAX(pluginState.socket, tunDeviceFD);
-	struct timeval timeout;
-
 	while (_TCPRunning)
 	{
-		fd_set fs;
+		handler->acceptClient();
 
-		FD_ZERO(&fs);
-		FD_SET(pluginState.socket, &fs);
-		FD_SET(tunDeviceFD, &fs);
+		int maxFD = MAX(pluginState.socket, tunDeviceFD);
+		struct timeval timeout;
 
-		timeout.tv_sec = 1;
-		timeout.tv_usec = 0;
-
-		int lenAvailable = select(maxFD + 1, &fs, NULL, NULL, &timeout);
-
-		if (lenAvailable < 0)
+		while (_TCPRunning && pluginState.connected)
 		{
-			if (!_TCPRunning)
+			fd_set fs;
+
+			FD_ZERO(&fs);
+			FD_SET(pluginState.socket, &fs);
+			FD_SET(tunDeviceFD, &fs);
+
+			timeout.tv_sec = 1;
+			timeout.tv_usec = 0;
+
+			int lenAvailable = select(maxFD + 1, &fs, NULL, NULL, &timeout);
+
+			if (lenAvailable < 0)
 			{
-				break;
+				if (!_TCPRunning)
+				{
+					break;
+				}
+
+				fprintf(stderr, "Unable to select() on sockets: %s\n", strerror(errno));
+				return;
 			}
 
-			fprintf(stderr, "Unable to select() on sockets: %s\n", strerror(errno));
-			return;
-		}
+			if (lenAvailable == 0)
+			{
+				handler->checkHealth(pluginState.endpoint);
+				continue;
+			}
 
-		if (lenAvailable == 0)
-		{
-			handler->checkHealth(pluginState.endpoint);
-			continue;
-		}
+			if (pluginState.auth && FD_ISSET(tunDeviceFD, &fs))
+			{
+				handler->tunnelData(pluginState.endpoint);
+			}
 
-		if (pluginState.connected && FD_ISSET(tunDeviceFD, &fs))
-		{
-			handler->tunnelData(pluginState.endpoint);
-		}
-
-		if (FD_ISSET(pluginState.socket, &fs))
-		{
-			handler->TCPData(pluginState.endpoint);
+			if (FD_ISSET(pluginState.socket, &fs))
+			{
+				handler->TCPData(pluginState.endpoint);
+			}
 		}
 	}
-
 	_TCPCleanup();
 }
 

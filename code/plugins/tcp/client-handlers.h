@@ -8,6 +8,8 @@ extern int tunDeviceFD;
 
 void TCPClientInitialize(struct sockaddr_in * endpoint);
 
+void TCPClientAcceptClient();
+
 void TCPClientCheckHealth(struct sockaddr_in * endpoint);
 
 void TCPClientTCPData(struct sockaddr_in * endpoint);

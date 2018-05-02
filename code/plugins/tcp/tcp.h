@@ -29,6 +29,8 @@ typedef struct TCPHandlers
 {
 	void (*initialize)(struct sockaddr_in * endpoint);
 
+	void (*acceptClient)();
+
 	void (*checkHealth)(struct sockaddr_in * endpoint);
 
 	void (*TCPData)(struct sockaddr_in * endpoint);
@@ -40,8 +42,10 @@ typedef struct TCPHandlers
 typedef struct TCPPluginState
 {
 	bool connected;
+	bool auth;
 	struct sockaddr_in * endpoint;
 	int socket;
+	int listener;
 	int noReplyCount;
 
 } TCPPluginState;

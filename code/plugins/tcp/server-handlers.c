@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>
+#include <errno.h>
 #include "server-handlers.h"
 #include "server-functions.h"
 #include "packet.h"
@@ -19,9 +20,25 @@ void TCPServerInitialize(struct sockaddr_in *endpoint)
 	sock.sin_port = endpoint->sin_port;
 	sock.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	if (bind(pluginState.socket, (struct sockaddr*)(&sock), sizeof(sock)) < 0)
+	if (bind(pluginState.listener, (struct sockaddr*)(&sock), sizeof(sock)) < 0)
 	{
 		fprintf(stderr, "Unable to bind TCP socket to port %d\n", ntohs(endpoint->sin_port));
+		_TCPStop();
+	}
+
+	if (listen(pluginState.listener, 10) < 0)
+	{
+		fprintf(stderr, "Unable to listen on TCP socket: %s\n", strerror(errno));
+		_TCPStop();
+	}
+}
+
+void TCPServerAcceptClient()
+{
+	socklen_t endpointLen;
+	memset(&pluginState.endpoint, 0, sizeof(pluginState.endpoint));
+	if ((pluginState.socket = accept(pluginState.listener, (struct sockaddr*)pluginState.endpoint, &endpointLen)) < 0) {
+		fprintf(stderr, "Unable to accept a TCP client: %s\n", strerror(errno));
 		_TCPStop();
 	}
 }

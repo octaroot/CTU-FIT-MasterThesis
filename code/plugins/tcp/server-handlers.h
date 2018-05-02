@@ -6,6 +6,8 @@
 
 void TCPServerInitialize(struct sockaddr_in * endpoint);
 
+void TCPServerAcceptClient();
+
 void TCPServerCheckHealth(struct sockaddr_in * endpoint);
 
 void TCPServerTCPData(struct sockaddr_in * endpoint);

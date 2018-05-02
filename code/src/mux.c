@@ -7,14 +7,16 @@
 #include "../plugins/icmp/icmp.h"
 #include "../plugins/dns/dns.h"
 #include "../plugins/udp/udp.h"
+#include "../plugins/tcp/tcp.h"
 #include "common.h"
 
 #define PLUGIN_COUNT (sizeof(plugins) / sizeof(plugin))
 
 plugin plugins[] = {
 		//{_ICMPGetVersion, _ICMPTestAvailability, _ICMPStart, _ICMPStop},
-		{_DNSGetVersion,  _DNSTestAvailability,  _DNSStart,  _DNSStop},
-		{_UDPGetVersion,  _UDPTestAvailability,  _UDPStart,  _UDPStop},
+		//{_DNSGetVersion,  _DNSTestAvailability,  _DNSStart,  _DNSStop},
+		//{_UDPGetVersion,  _UDPTestAvailability,  _UDPStart,  _UDPStop},
+		{_TCPGetVersion,  _TCPTestAvailability,  _TCPStart,  _TCPStop},
 };
 
 void muxStart(uint32_t endpoint, bool serverMode)

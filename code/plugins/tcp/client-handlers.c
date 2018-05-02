@@ -14,6 +14,11 @@ void TCPClientInitialize(struct sockaddr_in * endpoint)
 	TCPSendConnectionRequest(pluginState.socket, pluginState.endpoint);
 }
 
+void TCPClientAcceptClient()
+{
+
+}
+
 void TCPClientCheckHealth(struct sockaddr_in * endpoint)
 {
 	if (!pluginState.connected)

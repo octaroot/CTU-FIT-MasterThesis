@@ -8,7 +8,7 @@
 
 #include "../../src/tun-device.h"
 
-#define TCP_SOCKET_MTU  (TUN_DEVICE_MTU + sizeof(struct TCPPacketHeader))
+#define TCP_SOCKET_MTU  (4096 + sizeof(struct TCPPacketHeader))
 
 typedef enum TCP_PACKET_TYPE
 {
@@ -24,18 +24,16 @@ typedef enum TCP_PACKET_TYPE
 
 typedef struct TCPPacketHeader
 {
-	uint8_t magic[4];
 	uint8_t type; /* TCP_PACKET_TYPE */
+	uint16_t length;
 } TCPPacketHeader;
 
 typedef struct TCPMessage
 {
 	int size;
 	TCP_PACKET_TYPE packetType;
-	char buffer[TUN_DEVICE_MTU];
+	char buffer[TCP_SOCKET_MTU];
 } TCPMessage;
-
-#define TCP_PACKET_MAGIC "CVUT"
 
 
 int TCPSocketOpen();
