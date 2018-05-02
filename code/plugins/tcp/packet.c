@@ -63,7 +63,7 @@ int TCPReceiveMsg(int socketFD, struct sockaddr_in *from, struct TCPMessage *msg
 			return 1;
 		}
 		readSize += result;
-		fprintf(stderr, "Read %d bytes out of required %d, still waiting for %d\n", readSize, customHeader.length, customHeader.length - readSize);
+		//fprintf(stderr, "Read %d bytes out of required %d, still waiting for %d\n", readSize, customHeader.length, customHeader.length - readSize);
 		if (readSize < 0)
 		{
 			_TCPStopClient();
