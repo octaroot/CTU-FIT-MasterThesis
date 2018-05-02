@@ -19,16 +19,16 @@ int SCTPReceiveMsg(int socketFD, struct SCTPMessage *msg)
 
 	int readSize = sctp_recvmsg(socketFD, buffer, sizeof(buffer),  (struct sockaddr *) NULL, 0, &sndrcvinfo, &flags);
 
-
 	if (readSize < 0)
 	{
 		fprintf(stderr, "Unable to receive an SCTP packet: %s (%d) (flags %x)\n", strerror(errno), errno, flags);
-		exit(1);
+		_SCTPStopClient();
+		return 1;
 	}
 
 	if (readSize < 1)
 		return 1;
-
+/*
 	fprintf(stderr,"\nstream = %d, data = ", (uint16_t)sndrcvinfo.sinfo_stream);
 
 	for (int i = 0; i < readSize; ++i)
@@ -36,12 +36,11 @@ int SCTPReceiveMsg(int socketFD, struct SCTPMessage *msg)
 		fprintf(stderr, "%02x", buffer[i]);
 	}
 
-	fprintf(stderr,"\n");
+	fprintf(stderr,"\n");*/
 
 	switch (sndrcvinfo.sinfo_stream)
 	{
 		case SCTP_STREAM_CONTROL:
-			fprintf(stderr,"...\n");
 			msg->packetType = buffer[0];
 			msg->size = readSize - 1;
 			memcpy(msg->buffer, buffer + 1, msg->size);

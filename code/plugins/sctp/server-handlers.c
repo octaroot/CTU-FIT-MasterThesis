@@ -103,7 +103,6 @@ void SCTPServerSCTPData(struct sockaddr_in *endpoint)
 
 	if (SCTPReceiveMsg(pluginState.socket, &msg))
 		return;
-	fprintf(stderr, "prochozi zprava\n");
 
 	if (!pluginState.connected)
 		return;
