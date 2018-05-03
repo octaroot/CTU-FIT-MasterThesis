@@ -750,17 +750,122 @@ typedef enum UDP_PACKET_TYPE
     %TODO
     
     
-\section{Plugin pro \texttt{DNS} tunelování}
-\label{sec:dns-tunnel}
-    
-    %TODO
-    
 \section{Plugin pro \texttt{SCTP} tunelování}
 
-    \texttt{SCTP} je protokolem transportní vrstvy ISO/OSI modelu, stejně jako protokoly \texttt{TCP} nebo \texttt{UDP}. Přebírá některé vlastnosti těchto protokolů (\texttt{TCP} garanci doručení paketů ve správném pořadí, nebo \texttt{UDP} způsob komunikace (oproti \texttt{TCP} proudové komunikaci). Navíc přidává funkce jako možnost více proudové komunikace v rámci jednoho spojení. Jedná se o \textit{relativně} mladý protokol, definovaný v \cite[RFC 4960]{rfc4960} v roce 2007.
+    \texttt{SCTP} je protokolem transportní vrstvy ISO/OSI modelu, stejně jako protokoly \texttt{TCP} nebo \texttt{UDP}. Přebírá některé volitelné vlastnosti těchto protokolů, například volitelnou obdobu \texttt{TCP} garanci doručení paketů ve správném pořadí, nebo \texttt{UDP} způsob komunikace (oproti \texttt{TCP} proudové komunikaci). Navíc přidává funkce jako multihoming nebo víceproudovou komunikaci v rámci jednoho spojení. Jedná se o \textit{relativně} mladý protokol, definovaný v \cite[RFC 4960]{rfc4960} v roce 2007.
     
-    Stejně jako u \texttt{ICMP} je možné, že implementace \textit{captive portálu} nebude pamatovat na jiné protokoly než \texttt{TCP} a \texttt{UDP}. Právě proto je v rámce této práce implementován rovněž tunel pomocí \texttt{SCTP} protokolu.
+    Stejně jako u \texttt{ICMP} je možné, že implementace \textit{captive portálu} nebude pamatovat na jiné protokoly než \texttt{TCP} a \texttt{UDP}. Právě proto je v rámce této práce implementován rovněž tunel pomocí \texttt{SCTP} protokolu. Jeho vlastnosti navíc umožňují efektivněji pracovat se spojením -- zejména oproti \texttt{TCP} tunelu.
+    
+    \subsection{Víceproudovost}
+    
+    \texttt{SCTP} umožňuje v rámci jednoho spojení (\textit{asociace}) komunikovat pomocí vícero nezávislých datových proudů. Tato vlastnost nachází praktické využití například v \texttt{IP} telefonii, kdy je možné v rámci jednoho spojení přenášet odděleně signalizaci a samotná hlasová data.
+    
+    Pro účely této práce je tato vlastnost užitečná, protože kromě čistšího návrhu protokolu, který nemíchá servisní zprávy a data dohromady, tento přístup částečně řeší problém známý jako \textit{head-of-line blocking}. Ten nastává zejména při zablokování datového proudu (například kvůli ztrátě paketu a čekání na opakované odeslání). Proud dat je tedy blokován první zprávou, která nebyla úspěšně doručena. Čekání na další postup brání prostupu jiných dat, zejména servisních zpráv. Oddělené datové proudy pro servisní zprávy a samotná data tunelu tento problém společně s \ref{subsec:sctp-unordered-delivery} doručením v náhodném pořadí řeší problém \textit{head-of-line blocking}.
+    
+      
+\begin{figure}[h]
+ \centering
 
+  \begin{tikzpicture}[scale=1.3]
+\draw (0,-1.2) arc (270:90:0.2 and 1.2);
+\draw (0,-1.2) arc (90:270:-0.2 and -1.2) node[right,midway]{Strana \texttt{B}};
+\draw (0,-1.2) -- (-7.0,-1.2) node[below,midway]{\texttt{SCTP} asociace};
+\draw (-7.0,-1.2) arc (270:90:0.2 and 1.2) node[left,midway]{Strana \texttt{A}};
+\draw [dashed] (-7.0,-1.2) arc (90:270:-0.2 and -1.2);
+\draw (-7.0,1.2) -- (0,1.2);
+
+
+\draw [dashed] (-0.7,0.6) ellipse (0.1 and 0.20);
+\draw [dashed] (-0.7,0.4) -- node[above]{Proud \texttt{1}} (-6.5,0.4);
+\draw [dashed] (-0.7,0.8) -- (-6.5,0.8);
+\draw [dashed] (-6.5,0.6) ellipse (0.1 and 0.20);
+
+
+\draw [dashed] (-0.7,0.0) ellipse (0.1 and 0.20);
+\draw [dashed] (-0.7,-0.2) -- node[above]{Proud \texttt{2}} (-6.5,-0.2);
+\draw [dashed] (-0.7,0.2) -- (-6.5,0.2);
+\draw [dashed] (-6.5,0.0) ellipse (0.1 and 0.20);
+
+
+\draw [dashed] (-0.7,-0.6) ellipse (0.1 and 0.20);
+\draw [dashed] (-0.7,-0.8) -- node[above]{Proud \texttt{N}} (-6.5,-0.8);
+\draw [dashed] (-0.7,-0.4) -- (-6.5,-0.4);
+\draw [dashed] (-6.5,-0.6) ellipse (0.1 and 0.20);
+
+
+\end{tikzpicture}
+\caption{Vztah proudů spojení a \texttt{SCTP} asociace}
+\label{diag:sctp-streams}
+\end{figure}
+    
+    \subsection{Doručení v náhodném pořadí}
+    \label{subsec:sctp-unordered-delivery}
+    
+    Protokol \texttt{SCTP} respektuje hranice zpráv. Díky tomu programátorovi nabízí možnost nevynucovat doručení zpráv ve stejném pořadí, v jakém byly odeslány. Tato vlastnost je pro implementaci tunelu velice vhodná, protože \textit{nevnucuje} garanci pořadí doručení veškerému provozu a deleguje odpovědnost na protokoly vyšších vrstev.
+    
+    
+    
+    
+  
+    \subsection{Popis jednotlivých typů \texttt{SCTP} zpráv}
+        
+    Díky víceproudovosti transportního protokolu \texttt{SCTP} dochází ke kompletnímu oddělení dat tunelu a servisních zpráv pro řízení tunelu. Jednotlivé servisní zprávy jsou zachyceny v ukázce kódu \ref{code:sctp-types}:
+        
+    \begin{figure}[h]
+	\begin{lstlisting}[caption=Výňatek souboru \texttt{plugins/sctp/packet.h} definující typy \texttt{SCTP} zpráv,language=c,frame=single,numbers=left]
+typedef enum SCTP_PACKET_TYPE
+{
+	SCTP_CONNECTION_REQUEST,
+	SCTP_AUTH_CHALLENGE,
+	SCTP_AUTH_RESPONSE,
+	SCTP_CONNECTION_ACCEPT,
+	SCTP_CONNECTION_REJECT,
+	SCTP_KEEPALIVE
+} SCTP_PACKET_TYPE;
+      \end{lstlisting}
+      \label{code:sctp-types}
+    \end{figure}
+    
+    Počet typů servisních zpráv je oproti ostatním implementovaným tunelům omezen na nejnutnější minimum. Protože se však význam ostatních zpráv nijak nemění, je jejich opětovný popis vynechán s odkazem na popis v podkapitole \ref{subsec:icmp-msg-types} \textit{Popis jednotlivých typů \texttt{ICMP} zpráv}. Velmi podobný je také sekvenční diagram \ref{diag:seq-udp-tcp} komunikace klienta a serveru při pokusu o navázání spojení. V diagramu se nadále nevyskytují zprávy typu \texttt{NATPACKET} a data tunelu jsou přenášena samostatným datovým proudem, díky čemuž není nutný typ zprávy \texttt{DATA}.
+    
+    
+\begin{figure}[h]
+ \centering
+
+  \begin{tikzpicture}[node distance=7.5cm,auto,>=stealth']
+    \node[] (Server) {Server};
+    \node[left = of Server] (Klient) {Klient};
+    \node[below of=Server, node distance=8cm] (server_ground) {};
+    \node[below of=Klient, node distance=8cm] (client_ground) {};
+    %
+    \draw (Klient) -- (client_ground);
+    \draw (Server) -- (server_ground);
+    \draw[->] ($(Klient)!0.15!(client_ground)$) -- node[above,scale=1,midway]{Požadavek o spojení (\texttt{CONNECTION\_REQUEST})} ($(Server)!0.15!(server_ground)$);
+    
+    \draw[<-] ($(Klient)!0.35!(client_ground)$) -- node[above,scale=1,midway]{Výzva k autorizaci (\texttt{AUTH\_REQUEST})} ($(Server)!0.35!(server_ground)$);
+    \draw[->] ($(Klient)!0.40!(client_ground)$) -- node[below,scale=1,midway]{Odpověď na výzvu k autorizaci (\texttt{AUTH\_RESPONSE})} ($(Server)!0.40!(server_ground)$);
+    
+    \draw[<-] ($(Klient)!0.65!(client_ground)$) -- node[above,scale=1,midway]{Přijetí požadavku (\texttt{CONNECTION\_ACCEPT})} ($(Server)!0.65!(server_ground)$);
+    
+  
+    \draw[->] ($(Klient)!0.85!(client_ground)$) -- node[above,scale=1,midway]{Data tunelu (obousměrná komunikace)} ($(Server)!0.85!(server_ground)$);
+    \draw[<-] ($(Klient)!0.90!(client_ground)$) -- 						 ($(Server)!0.90!(server_ground)$);
+    
+    \draw [decorate,decoration={brace,amplitude=10pt},xshift=-4pt,yshift=0pt]
+(.5,-0.5) -- (.5,-5.8) node [align=center,midway,xshift=0.6cm]{Proud \texttt{1}\\(servisní zprávy)};
+
+\draw [decorate,decoration={brace,amplitude=10pt},xshift=-4pt,yshift=0pt]
+ (.5,-6) -- (.5,-7.7) node [align=center,midway,xshift=0.9cm]{Proud \texttt{2}\\(data tunelu)};
+    
+\end{tikzpicture}
+\caption{Sekvenční diagram úspěšného navázání \texttt{SCTP} tunelu}
+\label{diag:seq-sctp}
+\end{figure}
+    
+
+
+
+    
     %porty 443, 80, 3128
     %porty 5060,5061 ? (SIP, SIP encrypt)
     
