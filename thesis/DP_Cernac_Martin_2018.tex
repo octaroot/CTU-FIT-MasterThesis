@@ -420,6 +420,7 @@ I přes rozmanité metody dosažení tunelového spojení bude každý z impleme
 Je zodpovědností jednotlivých pluginů, jak mezi těmito kategoriemi zpráv rozlišovat. 
 
 \subsection{Popis základních servisních zpráv}
+\label{subsec:msg-types}
 
 Každý z implementovaných pluginů se bude navíc v rámci možností řídit následující strukturou servisních zpráv:
 
@@ -547,7 +548,38 @@ Očekávaná délka dat zprávy \texttt{AUTH\_CHALLENGE} tedy představuje 256 b
 \chapter{Implementace}
 \label{chapter:implementace}
 
-Po návrhu struktury softwarového řešení této diplomové práce následuje samotná implementace. Tato kapitola proto popisuje implementaci jednotlivých \textit{pluginů} pro vytvoření síťového tunelu.
+Po návrhu struktury softwarového řešení této diplomové práce následuje samotná implementace. Tato kapitola proto popisuje implementaci řídící části software a jednotlivých \textit{pluginů} pro vytvoření síťového tunelu.
+
+
+\section{Řídící část softwarového řešení}
+
+Hlavní část programu má na starosti nastartování virtuálního síťového řešení (a v konečné fázi jeho korektní uzavření), kontrolu a přípravu prostředí pro jednotlivé pluginy a umožnění distribuce práce mezi jednotlivými pluginy (a jejich případnými kombinacemi). Dále zahrnuje pomocné části kódu, společné pro všechny pluginy (například nakládání se sdíleným tajemstvím pro autentizaci).
+
+Software vykonává celou řadu nízkoúrovňových operací a značně zasahuje do běhu operačního systému (vytváření nových síťových rozhraní). Z těchto důvodů je nutné software spouštět s oprávněním uživatele \texttt{root}.
+
+\subsection{Požadavky na prostředí}
+
+Pro správnou funkci pluginu pro tunelování pomocí protokolu \texttt{SCTP} je nutná podpora tohoto protokolu v rámci jazyka C. Například pro překladač \texttt{gcc} ji lze zapnout přepínačem \texttt{-lsctp}.
+
+Generování pseudonáhodných dat a výpočet zvolené hashovací funkce je závislé na podpoře knihovny \texttt{OpenSSL} (funkce \texttt{RAND\_bytes} a \texttt{SHA256}). Pro překladač \texttt{gcc} ji lze zapnout přepínačem \texttt{-lssl} nebo případně \texttt{-lcrypto}.
+
+K zajištění flexibility více souběžně pracujících komunikačních pluginů je každému pluginu vytvořeno samostatné pracovní vlákno. Pro práci s vlákny byla zvolena knihovna \texttt{OpenMP}, pro překladač \texttt{gcc} ji lze zapnout přepínačem \texttt{-fopenmp}. Knihovna \texttt{OpenMP} byla sice primárně určena pro datový paralelismus na úrovni cyklů, ale od verze \texttt{3.0} (současná verze \texttt{4.5}) podporuje rovněž funkční paralelismus pomocí direktivy \texttt{task}. Navíc nabízí dobře čitelný zápis a je běžně používanou knihovnou pro paralelizaci, jak zachycuje ukázka kódů \ref{code:mux-start}.
+
+    \begin{figure}[h]
+	\begin{lstlisting}[caption=Výňatek souboru \texttt{src/mux.c} znázorňující jednoduchost užití knihovny \texttt{OpenMP} pro správu vláken pluginů,language=c,frame=single,numbers=left]
+plugin plugins[] = {  [...] };
+
+void muxStart(uint32_t endpoint, bool serverMode) {
+    #pragma omp parallel num_threads(PLUGIN_COUNT)
+    #pragma omp single nowait
+    for (int i = 0; i < PLUGIN_COUNT; ++i) {
+	#pragma omp task
+	plugins[i].start(endpoint, serverMode);
+    }
+}
+      \end{lstlisting}
+      \label{code:mux-start}
+    \end{figure}
 
 \section{Plugin pro \texttt{ICMP} tunelování}
 
@@ -602,9 +634,7 @@ Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu
 \label{subsec:icmp-msg-types}
     
     Typ zprávy označuje jeden z typů, zachycených v ukázce kódu \ref{code:icmp-types}:
-    
-
-    
+        
     \begin{figure}[h]
 	\begin{lstlisting}[caption=Výňatek souboru \texttt{plugins/icmp/packet.h} definující typy \texttt{ICMP} zpráv,language=c,frame=single,numbers=left]
 typedef enum ICMP_PACKET_TYPE
@@ -709,6 +739,9 @@ typedef enum ICMP_PACKET_TYPE
 	\caption{Diagram paketu včetně rozložení \texttt{ICMP} zprávy tunelu a hlaviček}
 	\label{diag:icmp-packet-all-headers}
     \end{figure}
+    
+    
+    
     
     
 \section{Plugin pro \texttt{UDP} tunelování}
