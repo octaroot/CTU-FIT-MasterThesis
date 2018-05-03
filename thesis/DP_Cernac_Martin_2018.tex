@@ -723,6 +723,27 @@ typedef enum UDP_PACKET_TYPE
 
     
 \section{Plugin pro \texttt{TCP} tunelování}
+
+    Protokol \texttt{TCP} je stěžejním členem transportní vrstvy ISO/OSI modelu. Poskytuje spolehlivý přenos dat, garantuje doručení dat ve stejném pořadí v jakém byly odeslány a detekci chyb při přenosu. Díky těmto vlastnostem je velice vhodný pro široké spektrum aplikací -- na moderním Internetu se uživatelé nevědomky setkávají s \texttt{TCP} na každém kroku. Mezi nejrozšířenější aplikace \texttt{TCP} patří zejména protokol \texttt{HTTP}, protokoly pro přenos elektronické pošty (\texttt{IMAP}, \texttt{POP3}, \texttt{SMTP}) a další (\texttt{SSH}, \texttt{FTP}, \texttt{telnet}, \ldots).
+    
+    Garance doručení, pořadí a detekce chyb s sebou přináší i některé negativní vlastnosti protokolu \texttt{TCP}. Pro aplikace, které vyžadují minimální latenci a rychlou komunikaci, není \texttt{TCP} vhodnou volbou. Zahájení \texttt{TCP} komunikace a případné opakované odesílání dat při ztrátě paketů nejsou ideální zejména pro aplikace v oblasti telefonie nebo živého přenosu obrazu a zvuku. Počítačové hry umožňující hru více hráčů po Internetu mohou rovněž vyžadovat co nejrychlejší provoz s minimální latencí a současně dokáží správně fungovat i při nedoručení části dat.
+    
+    V takových případech je lepší zvolit jiný, jednodušší protokol transportní vrstvy (typicky \texttt{UDP}). Stejně k problému přistupují i autoři software \textit{OpenVPN}, které primárně podporuje vytváření síťových tunelů pomocí \texttt{UDP}, ale je možné použít i \texttt{TCP}. To však není doporučeno a mělo by být používáno pouze pokud není možné spojení navázat pomocí \texttt{UDP}.
+    
+    \subsection{Potíže s \texttt{TCP} jako prostředkem pro tunelování}
+    \label{subsec:tcp-tunnel-issues}
+    
+    Jedním z důvodů nevhodnosti \texttt{TCP} jako technologie pro tunelování síťového provozu je fakt, že ne všechen tunelovaný provoz vyžaduje vlastnosti, které \texttt{TCP} nabízí. Implementace \texttt{TCP} obsahuje adaptivní mechanismy pro řízení zatížení linky tak, aby nedošlo k přetížení linky, popsané v \cite[RFC 2001]{rfc2001}. Klíčovým prvkem mechanismu je \textbf{exponenciální} zvyšování délky čekání před opakovaným vysláním nedoručeného segmentu dat. Takové chování však není žádoucí například při \texttt{TCP} komunikaci skrze \texttt{TCP} tunel. Pokud dojde ke ztrátě dat na \texttt{TCP} spojení tunelu, \texttt{TCP} dle implementace zvýší délku čekání před dalším opakovaným vysláním a připraví nedoručená data k opakovanému odeslání. Během této doby dochází k zablokování provozu tunelového spojení a \texttt{TCP} spojení aplikace komunikující skrze tunel nedostane včasné potvrzení protistrany -- a rovněž dojde k zvýšení délky čekání před opakovaným vysláním data, která následně budou skrze tunel odeslána.
+    
+    Pokud \texttt{TCP} spojení využívající tunel doposud nezvyšovalo délky vyčkávání, dojde k několika zvýšením a k zařazení několika opakovaných odeslání dat zatímco \texttt{TCP} spojení zajišťující tunel je stále zablokované. Každý pokus o opakované vyslání dat skrze tunel problém zhoršuje. Výsledkem je velmi snadno \uv{zamrzající} spojení napříč tunelem, zapříčiněné mechanismy garantující doručení zpráv a pořadí doručení. Tunelované spojení předpokládá standardní nestabilní linku bez garanci doručení -- v případě \texttt{TCP} tunelu je však opak realitou. Tento důsledek tunelování \texttt{TCP} spojení pomocí \texttt{TCP} tunelu je znám jako \textit{meltdown effect}\cite{tcp-over-tcp}.
+
+    
+    \subsection{Implementace \texttt{TCP} tunelu}
+    
+    Struktura tunelovacího nástroje popsaná v podkapitole \ref{subsec:struktura-sw} \textit{Struktura softwarového řešení} umožňuje při implementaci \textit{pluginů} pro jednotlivé tunelovací mechanismy využít již existující kód. Implementace \textit{pluginu} pro \texttt{TCP} tunelování je proto velmi podobná implementaci \textit{pluginu} pro \texttt{UDP} tunelování.
+    
+    Rozdíly plynou především z rozdílného pojetí komunikace mezi \texttt{UDP} (samostatné zprávy) a \texttt{TCP} (jednotný proud dat). Oproti \texttt{ICMP} tunelování není klíčová identifikace komunikující protistrany, ale délka jednotlivých zpráv v proudu dat. I přes architekturu \texttt{TCP} založenou na konkrétním spojení (oproti \texttt{UDP} bezstavového soketu) zůstaly zachovány \texttt{KEEPALIVE} zprávy, které jsou užitečné zejména při navazování nového spojení -- fáze autentizace. Protože z principu obcházení \textit{captive portálu} je \textit{plugin} navržen pro obsluhu pouze jednoho spojení, mohlo by docházet k blokování dostupného spojení jinými připojujícími se uzly v Internetu. Server tedy ignoruje \texttt{KEEPALIVE} zprávy až do chvíle, kdy se klient úspěšně autentizuje. Z pohledu serveru je klient před úspěšnou autentizací nedostupný, resp. již není na příjmu (ignorování \texttt{KEEPALIVE} zpráv) a bude odpojen, pokud se úspěšně neověří před vypršením maximální délky bez přijetí \texttt{KEEPALIVE} zprávy.
+    
     %porty 443, 80, 3128
     %porty 5060,5061 ? (SIP, SIP encrypt)
     
