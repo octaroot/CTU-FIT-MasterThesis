@@ -975,7 +975,14 @@ typedef enum SCTP_PACKET_TYPE
 \section{Plugin pro \texttt{DNS} tunelování}
 \label{sec:dns-tunnel}
     
-    %TODO
+    Protokol \texttt{DNS} je jedním z hlavních pilířů infrastruktury moderního Internetu. Umožňuje překládat doménová jména na \texttt{IP} adresy a poskytovat další související informace o konkrétní doméně, například pro poštovní servery.
+    
+    Tunelování pomocí \texttt{DNS} staví na odlišném principu, než doposud všechny navržené a implementované pluginy. Největším rozdílem je, že oproti \texttt{TCP}, \texttt{UDP} a \texttt{SCTP} tunelům nespoléhá na navázání spojení se serverem v Internetu, ale podobně jako \texttt{ICMP} se snaží přimět okolní infrastrukturu, aby zprávy předala k cílovému serveru v Internetu a odpověď dopravila zpět. Základním mechanismem \texttt{DNS} tunelování jsou rekurzivní \texttt{DNS} servery.
+    
+    \subsection{Typy \texttt{DNS} serverů}
+    
+    
+    
 
 
 \chapter{Testování}
