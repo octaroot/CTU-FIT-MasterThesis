@@ -79,9 +79,6 @@ void SCTPClientSCTPData(struct sockaddr_in * endpoint)
 		case SCTP_KEEPALIVE:
 			SCTPHandleKeepAliveResponse();
 			break;
-		case SCTP_DATA:
-			SCTPHandleSCTPData(&msg);
-			break;
 	}
 }
 
@@ -92,8 +89,6 @@ void SCTPClientTunnelData(struct sockaddr_in * endpoint)
 
 	if (!msg.size)
 		return;
-
-	msg.packetType = SCTP_DATA;
 
 	SCTPSendData(pluginState.socket, &msg);
 }

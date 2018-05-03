@@ -54,14 +54,6 @@ void SCTPHandleConnectionReject(int socketFD, struct sockaddr_in * endpoint)
 	_SCTPStop();
 }
 
-void SCTPHandleSCTPData(struct SCTPMessage *msg)
-{
-	if (msg->size <= 0)
-		return;
-
-	tunWrite(tunDeviceFD, msg->buffer, msg->size);
-}
-
 void SCTPHandleKeepAliveResponse()
 {
 	pluginState.noReplyCount = 0;

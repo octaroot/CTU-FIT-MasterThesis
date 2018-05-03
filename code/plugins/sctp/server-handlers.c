@@ -119,9 +119,6 @@ void SCTPServerSCTPData(struct sockaddr_in *endpoint)
 		case SCTP_AUTH_RESPONSE:
 			SCTPHandleAuthResponse(pluginState.socket, &sender, &msg);
 			break;
-		case SCTP_DATA:
-			SCTPHandleSCTPData(&msg);
-			break;
 		case SCTP_KEEPALIVE:
 			SCTPHandleKeepAlive(pluginState.socket, &sender, &msg);
 			break;
@@ -135,8 +132,6 @@ void SCTPServerTunnelData(struct sockaddr_in *endpoint)
 
 	if (!msg.size)
 		return;
-
-	msg.packetType = SCTP_DATA;
 
 	SCTPSendData(pluginState.socket, &msg);
 }
