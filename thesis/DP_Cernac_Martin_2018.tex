@@ -10,7 +10,8 @@
 \usepackage{bytefield}
 \usepackage{listings}
 \usepackage{tikz}
-    \usetikzlibrary{calc,positioning,arrows}
+    \usetikzlibrary{calc,positioning,arrows,decorations.pathreplacing}
+    
 \lstset{
 basicstyle=\small\ttfamily,
 columns=flexible,
@@ -394,6 +395,7 @@ Pro implementaci tunelu byl zvolen typ rozhraní \textit{TUN}, které simuluje s
 Virtuální síťové rozhraní navíc poskytuje uživateli volnost užití libovolného \texttt{IP} síťového rozsahu. Pokud by uživatel vyžadoval existenci \textit{SOCKS} proxy, lze ji vytvořit po navázání tunelu například pomocí nástroje \texttt{SSH} jak bylo popsáno v podkapitole \ref{subsec:nonfiltered-ports} \textit{Využití nefiltrovaných portů}.
 
 \section{Struktura softwarového řešení}
+\label{subsec:struktura-sw}
 
 Vzhledem k důrazu na snadnou rozšiřitelnost je softwarové řešení navrženo do dvou částí:
 
@@ -595,7 +597,7 @@ typedef enum ICMP_PACKET_TYPE
     \draw[->] ($(Klient)!0.90!(client_ground)$) -- node[above,scale=1,midway]{Obousměrná komunikace (\texttt{DATA})} ($(Server)!0.90!(server_ground)$);
     \draw[<-] ($(Klient)!0.95!(client_ground)$) -- 						 ($(Server)!0.95!(server_ground)$);
 \end{tikzpicture}
-\caption{Sekvenční diagram navázání \texttt{ICMP} tunelu}
+\caption{Sekvenční diagram úspěšného navázání \texttt{ICMP} tunelu}
 \label{diag:seq-icmp}
 \end{figure}
 
@@ -715,7 +717,7 @@ typedef enum UDP_PACKET_TYPE
     \draw[->] ($(Klient)!0.85!(client_ground)$) -- node[above,scale=1,midway]{Obousměrná komunikace (\texttt{DATA})} ($(Server)!0.85!(server_ground)$);
     \draw[<-] ($(Klient)!0.90!(client_ground)$) -- 						 ($(Server)!0.90!(server_ground)$);
 \end{tikzpicture}
-\caption{Sekvenční diagram navázání \texttt{UDP}/\texttt{TCP} tunelu}
+\caption{Sekvenční diagram úspěšného navázání \texttt{UDP}/\texttt{TCP} tunelu}
 \label{diag:seq-udp-tcp}
 \end{figure}
 
@@ -743,6 +745,12 @@ typedef enum UDP_PACKET_TYPE
     
     %TODO
 
+    
+    
+\section{Plugin pro \texttt{DNS} tunelování}
+\label{sec:dns-tunnel}
+    
+    %TODO
 
 
 \chapter{Testování}
