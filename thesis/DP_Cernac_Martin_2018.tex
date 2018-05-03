@@ -651,36 +651,16 @@ typedef enum ICMP_PACKET_TYPE
       \end{lstlisting}
       \label{code:icmp-types}
     \end{figure}
-
-  \paragraph{\texttt{CONNECTION\_REQUEST}}
-  
-    Tyto zprávy odesílá klient a přijímá server. Pokud by klientovi dorazila zpráva tohoto typu, bude ignorována. Server zprávu přijme a pokud momentálně není k serveru připojen žádný jiný klient, server odpoví zprávou typu \texttt{AUTH\_CHALLENGE}, čímž klienta vyzve k autentizaci. V případě, že při přijetí zprávy \texttt{CONNECTION\_REQUEST} server již navázal spojení s jiným klientem, bude žadateli odeslána zpráva typu \texttt{CONNECTION\_REJECT} a požadavek na navázání tunelu tím pádem zamítnut.
     
-  \paragraph{\texttt{AUTH\_CHALLENGE}}
-  
-    Tento typ zpráv posílá server klientovi. Server příchozí zprávy tohoto typu ignoruje. Klient po přijetí zpracuje výzvu k autorizaci (protokol \textit{Challenge-Response}) a výsledek předá serveru (viz následující odstavec \textbf{\texttt{AUTH\_RESPONSE}}. V závislosti na tom, jestli server uživatele autorizuje bude klientovi odeslána zpráva typu \texttt{CONNECTION\_ACCEPT} a tunelové spojení zahájeno, nebo bude jeho požadavek zamítnut zprávou \texttt{CONNECTION\_REJECT}.
+    Zprávy typu \texttt{CONNECTION\_REQUEST}, \texttt{AUTH\_CHALLENGE}, \texttt{AUTH\_RESPONSE},\\ \texttt{CONNECTION\_ACCEPT}, \texttt{CONNECTION\_REJECT} a \texttt{DATA} jsou implementovány přesně dle specifikace \ref{subsec:msg-types} \textit{Popis základních servisních zpráv}.
     
-  \paragraph{\texttt{AUTH\_RESPONSE}}
-  
-    Zprávy tohoto typu odesílá klient serveru. Klient příchozí zprávy tohoto typu ignoruje. Obsahem zprávy je odpověď \textit{Challenge-Response} protokolu na základě v minulosti přijaté zprávy \texttt{AUTH\_CHALLENGE}. V závislosti na tom, jestli server uživatele autorizuje bude klientovi odeslána zpráva typu \texttt{CONNECTION\_ACCEPT} a tunelové spojení zahájeno, nebo bude jeho požadavek zamítnut zprávou \texttt{CONNECTION\_REJECT}.
+    \paragraph{} Plugin navíc implementuje zprávu typu \texttt{NATPACKET}:
     
-  \paragraph{\texttt{CONNECTION\_ACCEPT}}
-  
-    Touto zprávou server stvrzuje úspěšné navázání spojení s adresovaným klientem. Server příchozí zprávy tohoto typu ignoruje. Po celou dobu spojení odmítá server jakékoliv další pokusy o připojení jiných klientů.
-    
-  \paragraph{\texttt{CONNECTION\_REJECT}}
-    
-    Touto zprávou server oznamuje zamítnutí klientova požadavku na vytvoření tunelového spojení se serverem. Server příchozí zprávy tohoto typu ignoruje. Zprávu klient obdrží pokud se pokusí připojit k již obsazenému serveru, nebo se mu nepodaří autorizovat.
   
   \paragraph{\texttt{NATPACKET}}
-    Tyto zprávy odesílá klient a přijímá server. Pokud by klientovi dorazila zpráva tohoto typu, bude ignorována. Server zprávu přijme a poznamená si \textit{identifikátor} a \textit{sekvenční číslo} zprávy. Tyto údaje následně server použije při odesílání zpráv klientovi. Jedná se o techniku překonání překážek, které způsobuje \texttt{NAT}.
+    Tyto zprávy odesílá klient a přijímá server. Pokud by klientovi dorazila zpráva tohoto typu, bude ignorována. Server zprávu přijme a poznamená si \textit{identifikátor} a \textit{sekvenční číslo} \texttt{ICMP} zprávy. Tyto údaje následně server použije při odesílání zpráv klientovi. Jedná se o techniku překonání překážek, které způsobuje \texttt{NAT}.
     
   
-  \paragraph{\texttt{DATA}}
-  
-    Zprávy tohoto typu nesou data tunelu. Odesílá a přijímá je jak klient, tak server.
-    
-    
     
     Situace, kdy se klient připojuje k volnému server je zachycena na diagramu \ref{diag:seq-icmp}.
     
@@ -808,7 +788,8 @@ typedef enum UDP_PACKET_TYPE
 
     Z výňatku kódu je patrná analogie s výčtem zpráv \ref{subsec:icmp-msg-types} z podkapitoly \textit{Plugin pro \texttt{ICMP} tunelování}. Jediným rozdílem oproti dříve popsaným typům zpráv je absence zpráv typu \texttt{NATPACKET}, protože protistrana (server) je schopen s klientem za \texttt{NAT} komunikovat díky překladu portů přímo. Klíčové jsou tím pádem \texttt{KEEPALIVE} zprávy, které slouží zejména k přesvědčení \texttt{NAT} zařízení o tom, že komunikace ještě neustala. Díky tomu může server komunikovat s klientem i skrze \texttt{NAT}.
     
-    Protože se však význam ostatních zpráv nijak nemění, je jejich opětovný popis vynechán s odkazem na popis v podkapitole \ref{subsec:icmp-msg-types} \textit{Popis jednotlivých typů \texttt{ICMP} zpráv}.
+    Protože se však význam ostatních zpráv typu \texttt{CONNECTION\_REQUEST}, \texttt{AUTH\_CHALLENGE}, \texttt{AUTH\_RESPONSE},\\ \texttt{CONNECTION\_ACCEPT}, \texttt{CONNECTION\_REJECT} a \texttt{DATA} nijak nemění oproti specifikaci \ref{subsec:msg-types} \textit{Popis základních servisních zpráv}, je jejich opětovný popis vynechán ve prospěch odkazu na původní specifikaci.
+     Zprávy 
 
     Velmi podobný je také sekvenční diagram \ref{diag:seq-udp-tcp} komunikace klienta a serveru při pokusu o navázání spojení. V diagramu se nadále nevyskytují zprávy typu \texttt{NATPACKET}.
     
@@ -859,7 +840,7 @@ typedef enum UDP_PACKET_TYPE
     
     Struktura tunelovacího nástroje popsaná v podkapitole \ref{subsec:struktura-sw} \textit{Struktura softwarového řešení} umožňuje při implementaci \textit{pluginů} pro jednotlivé tunelovací mechanismy využít již existující kód. Implementace \textit{pluginu} pro \texttt{TCP} tunelování je proto velmi podobná implementaci \textit{pluginu} pro \texttt{UDP} tunelování.
     
-    Rozdíly plynou především z rozdílného pojetí komunikace mezi \texttt{UDP} (samostatné zprávy) a \texttt{TCP} (jednotný proud dat). Oproti \texttt{ICMP} tunelování není klíčová identifikace komunikující protistrany, ale délka jednotlivých zpráv v proudu dat. I přes architekturu \texttt{TCP} založenou na konkrétním spojení (oproti \texttt{UDP} bezstavového soketu) zůstaly zachovány \texttt{KEEPALIVE} zprávy, které jsou užitečné zejména při navazování nového spojení -- fáze autentizace. Protože z principu obcházení \textit{captive portálu} je \textit{plugin} navržen pro obsluhu pouze jednoho spojení, mohlo by docházet k blokování dostupného spojení jinými připojujícími se uzly v Internetu. Server tedy ignoruje \texttt{KEEPALIVE} zprávy až do chvíle, kdy se klient úspěšně autentizuje. Z pohledu serveru je klient před úspěšnou autentizací nedostupný, resp. již není na příjmu (ignorování \texttt{KEEPALIVE} zpráv) a bude odpojen, pokud se úspěšně neověří před vypršením maximální délky bez přijetí \texttt{KEEPALIVE} zprávy.
+    Rozdíly plynou především z rozdílného pojetí komunikace mezi \texttt{UDP} (samostatné zprávy) a \texttt{TCP} (orientace na samostatná spojení a jednotný proud dat). Oproti \texttt{ICMP} tunelování není klíčová identifikace komunikující protistrany, ale délka jednotlivých zpráv v proudu dat. I přes architekturu \texttt{TCP} založenou na konkrétním spojení (oproti \texttt{UDP} bezstavového soketu) zůstaly zachovány \texttt{KEEPALIVE} zprávy, které jsou užitečné zejména při navazování nového spojení -- fáze autentizace. Protože z principu obcházení \textit{captive portálu} je \textit{plugin} navržen pro obsluhu pouze jednoho spojení, mohlo by docházet k blokování dostupného spojení jinými připojujícími se uzly v Internetu. Server tedy ignoruje \texttt{KEEPALIVE} zprávy až do chvíle, kdy se klient úspěšně autentizuje. Z pohledu serveru je klient před úspěšnou autentizací nedostupný, resp. již není na příjmu (ignorování \texttt{KEEPALIVE} zpráv) a bude odpojen, pokud se úspěšně neověří před vypršením maximální délky bez přijetí \texttt{KEEPALIVE} zprávy.
     
     %porty 443, 80, 3128
     %porty 5060,5061 ? (SIP, SIP encrypt)
@@ -943,7 +924,7 @@ typedef enum SCTP_PACKET_TYPE
       \label{code:sctp-types}
     \end{figure}
     
-    Počet typů servisních zpráv je oproti ostatním implementovaným tunelům omezen na nejnutnější minimum. Protože se však význam ostatních zpráv nijak nemění, je jejich opětovný popis vynechán s odkazem na popis v podkapitole \ref{subsec:icmp-msg-types} \textit{Popis jednotlivých typů \texttt{ICMP} zpráv}. Velmi podobný je také sekvenční diagram \ref{diag:seq-udp-tcp} komunikace klienta a serveru při pokusu o navázání spojení. V diagramu se nadále nevyskytují zprávy typu \texttt{NATPACKET} a data tunelu jsou přenášena samostatným datovým proudem, díky čemuž není nutný typ zprávy \texttt{DATA}.
+    Počet typů servisních zpráv je oproti ostatním implementovaným tunelům omezen na nejnutnější minimum. Jsou implementovány přesně dle specifikace popsané v podkapitole \ref{subsec:msg-types} \textit{Popis základních servisních zpráv}. Protože se však význam ostatních zpráv nijak nemění, je jejich opětovný popis vynechán s odkazem na jejich specifikaci v podkapitole \ref{subsec:msg-types}. Lehce odlišný je však sekvenční diagram \ref{diag:seq-udp-tcp} komunikace klienta a serveru při pokusu o navázání spojení. V diagramu se nadále nevyskytují zprávy typu \texttt{DATA}, protože data tunelu jsou přenášena samostatným datovým proudem.
     
     
 \begin{figure}[h]
