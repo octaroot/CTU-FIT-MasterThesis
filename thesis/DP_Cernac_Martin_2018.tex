@@ -348,23 +348,20 @@ Těchto potíží si je vědom autor projektu \cite[sshuttle]{sshuttle}, jehož 
 Situace s nástroji pro tunelování pomocí \texttt{ICMP} není tak rozmanitá, jako s nástroji pro \texttt{DNS} tunelování. \texttt{ICMP} tunelování nevyužívá sofistikovaných \uv{triků} samotného protokolu pro výměnu informací. Přenášená data nemusí nijak transformovat a jednoduše je přenese jako součást zprávy. Blokování takového tunelování je snazší a nevyžaduje dedikovaný a funkčně značně omezený server, jako v případě \texttt{DNS} tunelu.
 
 
-% iodine, DNSX??, ICMPX a dalsi
-% nektery jsou mrtvy, jiny nejsou sifrovany, nebo se bavi s kymkoliv atp
-% nekde jsem videl i benchmark, od toho by se dalo odpichnout
 
 
 
-% SSH spojeni, MUX (parsuje TCP stream a prenasi jen data po TCP(via SSH tunel)
-% pro muj ucel nepouzitelne, ale zajiamve
-% https://github.com/apenwarr/sshuttle
 
 
-% zminit problem TCP over TCP? nevim, jestli takovou vec chci resit .. ale asi ano, protoze primarne budu delat UDP/53+ICMP, takze si TCP moc neuziju
-% TCP jeste probrat s Alesem, jestli se do toho mam poustet, protoze je to nezajimave,trivialni a pokud mam TCP ven, tak proc se patlat s DNS a ICMP ze?
 
-\chapter{Návrh a implementace}
 
-Stěžejním cílem této diplomové práce je vytvoření protokolu pro obejití Captive portálů s důrazem na co největší prostupnost. Tato kapitola shrnuje návrh takového protokolu a následnou implementaci.
+
+
+
+
+\chapter{Návrh}
+
+Stěžejním cílem této diplomové práce je vytvoření protokolu pro obejití \textit{captive portálů} s důrazem na co největší prostupnost. Tato kapitola shrnuje návrh takového protokolu.
 
 % cilem prace je vyuzit co nejvic technik a delat MUX trafficu
 %uvest definici prostupnosti site - protoze to je to, o co se snazzim
@@ -408,10 +405,63 @@ Vzhledem k důrazu na snadnou rozšiřitelnost je softwarové řešení navržen
 
 Hlavní část programu má rovněž na starost vytvoření prostředí pro jednotlivé pluginy. Každý plugin totiž pracuje ve svém vlastním vlákně a komunikuje s jednotným virtuálním rozhraním. Komunikace probíhá skrze funkce, které mají standardem \texttt{POSIX} garantovánu bezpečnost při paralelním přístupu\footnote{Anglicky vlastnost \textit{thread-safety}}. Hlavní část programu tedy při spuštění zpracuje uživatelské vstupy, vytvoří virtuální síťové rozhraní, spustí pluginy a na konci práce programu pluginy ukončí a rozhraní zruší. \textit{File descriptor} síťového rozhraní je v programu sdílen (pouze pro čtení) všemi pluginy.
 
-Jednotlivé pluginy jsou schopny ověřit možnost navázání spojení skrze \textit{captive portál} a změřit datovou prostupnost tunelu. Každému dostupnému pluginu je věnována jedna z následujících podkapitol, vysvětlující vnitřní činnost pluginu.
+Jednotlivé pluginy jsou schopny ověřit možnost navázání spojení skrze \textit{captive portál} a změřit datovou prostupnost tunelu. Každému vytvořenému pluginu je věnována jedna část kapitoly \ref{chapter:implementace} Implementace, vysvětlující vnitřní činnost pluginu.
 
+\section{Komunikace mezi serverem a klientem}
 
+Vzhledem k předpokládanému užití softwarového řešení (obcházení limitací \textit{captive portálu} pro osobní použití) bude software vytvořen jako jeden \uv{polymorfní} celek, který je schopen plnit funkci jak serveru, tak klienta. Z toho vyplývá i základní softwarový návrh -- komunikace stylu klient -- server, kterou započne klient a server zpočátku pouze reaguje na jeho požadavky a až po úspěšném navázání tunelového spojení (autentizace) je zahájena obousměrná komunikace.
+
+I přes rozmanité metody dosažení tunelového spojení bude každý z implementovaných pluginů komunikovat pomocí dvou základních kategorií zpráv:
+\begin{itemize}
+ \item servisní zprávy pro řízení tunelového spojení,
+ \item datové zprávy, nesoucí samotná data tunelového spojení.
+\end{itemize}
+ 
+Je zodpovědností jednotlivých pluginů, jak mezi těmito kategoriemi zpráv rozlišovat. 
+
+\subsection{Popis základních servisních zpráv}
+
+Každý z implementovaných pluginů se bude navíc v rámci možností řídit následující strukturou servisních zpráv:
+
+  \paragraph{\texttt{CONNECTION\_REQUEST}}
+  
+    Tyto zprávy odesílá klient a přijímá server. Pokud by klientovi dorazila zpráva tohoto typu, bude ignorována. Server zprávu přijme a pokud momentálně není k serveru úspěšně připojen žádný jiný klient, server odpoví zprávou typu \texttt{AUTH\_CHALLENGE}, čímž klienta vyzve k autentizaci. V případě, že při přijetí zprávy \texttt{CONNECTION\_REQUEST} server již spravuje existující spojení s jiným klientem, bude žadateli odeslána zpráva typu \texttt{CONNECTION\_REJECT} a požadavek na navázání tunelu tím pádem zamítnut.
+    
+  \paragraph{\texttt{AUTH\_CHALLENGE}}
+  
+    Tento typ zpráv posílá server klientovi jako jednu možnou odpověď na zprávu typu \texttt{CONNECTION\_REQUEST}. Server případné příchozí zprávy typu \texttt{AUTH\_CHALLENGE} ignoruje. Klient po přijetí zpracuje výzvu k autorizaci (protokol \textit{Challenge-Response}, popsáno v následující podkapitole \ref{sec:challenge-response}) a výsledek předá serveru (viz následující odstavec \textbf{\texttt{AUTH\_RESPONSE}}). V závislosti na tom, jestli server uživatele autorizuje bude klientovi odeslána zpráva typu \texttt{CONNECTION\_ACCEPT} a tunelové spojení zahájeno, nebo bude jeho požadavek zamítnut zprávou \texttt{CONNECTION\_REJECT}.
+    
+    Tato zpráva je doplněna o data, která klient potřebuje k autentizaci. Jedná se o výzvu (\textit{challenge}) serveru, kterou klient musí zpracovat. Délka dat je předem známá na základě volby bezpečnostních prostředků, podrobněji popsaných v následující podkapitole \ref{sec:challenge-response}.
+    
+  \paragraph{\texttt{AUTH\_RESPONSE}}
+  
+    Zprávy tohoto typu odesílá klient serveru. Klient příchozí zprávy tohoto typu ignoruje. Obsahem zprávy je odpověď \textit{Challenge-Response} protokolu na základě předem přijaté zprávy typu \texttt{AUTH\_CHALLENGE}. V závislosti na tom, jestli server uživatele autorizuje bude klientovi odeslána zpráva typu \texttt{CONNECTION\_ACCEPT} a tunelové spojení zahájeno, nebo bude jeho požadavek zamítnut zprávou \texttt{CONNECTION\_REJECT}.
+    
+    Tato zpráva je doplněna o data, která klient předává serveru za účelem autentizace. Jedná se o odpověď (\textit{response}) na výzvu (\textit{challenge}) serveru, kterou klient zpracoval a server po předání vyhodnotí. Délka dat je předem známá na základě volby bezpečnostních prostředků, podrobněji popsaných v následující podkapitole \ref{sec:challenge-response}.
+    
+  \paragraph{\texttt{CONNECTION\_ACCEPT}}
+  
+    Touto zprávou server stvrzuje úspěšné navázání spojení s adresovaným klientem. Server příchozí zprávy tohoto typu ignoruje. Po celou dobu spojení odmítá server jakékoliv další pokusy o připojení jiných klientů.
+    
+  \paragraph{\texttt{CONNECTION\_REJECT}}
+    
+    Touto zprávou server oznamuje zamítnutí klientova požadavku na vytvoření tunelového spojení se serverem. Server příchozí zprávy tohoto typu ignoruje. Zprávu klient obdrží pokud se pokusí připojit k již obsazenému serveru, nebo se mu nepodaří autorizovat.
+    
+
+\subsection{Rozšířené a specializované servisní zprávy}
+    
+Pět výše zmíněných typů servisních zpráv představuje základní sadu zpráv pro komunikaci klienta a serveru, kterou v rámci možností budou dodržovat všechny implementované pluginy. Některé pluginy mohou využívat dalších specializovaných zpráv pro konkrétní účel navázání a spravování komunikace. Tato podkapitola dále shrnuje jejich abstraktní popis. Tyto zprávy nemusí implementovat všechny pluginy, pokud existují jiné technické prostředky pro dosažení jejich funkcionalit.
+
+  \paragraph{\texttt{KEEPALIVE}}
+    
+    Zprávy \texttt{KEEPALIVE} slouží k detekci problémů se spojením klienta a serveru. Zprávy odesílá klient (ohlašuje svou aktivitu serveru) a server na ně stejnou zprávou odpovídá (ujišťuje klienta, že spojení je v pořádku). Do jisté míry pakety \texttt{KEEPALIVE} napodobují nástroj \texttt{ping}. Pokud však opakovaně nedojde k přijetí zprávy \texttt{KEEPALIVE}, klient i server začnou považovat spojení za přerušené nebo ukončené. Server poté začne opět přijímat požadavky pro připojení \texttt{CONNECTION\_REQUEST}.
+  
+  \paragraph{\texttt{DATA}}
+  
+    Zprávy tohoto typu nesou data tunelu. Odesílá a přijímá je jak klient, tak server.
+    
 \section{Ověření nového klienta}
+\label{sec:challenge-response}
 
 Serverová část softwarového řešení před navázáním tunelového spojení vyžaduje autentizaci klienta. I přesto, že tato diplomová práce explicitně neřeší otázky soukromí a bezpečnosti Internetových služeb, považuji alespoň základní úroveň kontroly přístupu za adekvátní. Právě proto je jako součást praktické části diplomové práce implementováno ověřování klientů pomocí protokolu \textit{výzva-odpověď} (známý také jako \textit{Challenge-response protocol}).
 
@@ -419,13 +469,21 @@ Protokol \textit{výzva-odpověď} přímo nespecifikuje konkrétní prostředky
 
 Na základě sdíleného tajemství vytvoří klient otisk (\textit{hash}), který na \textit{výzvu} serveru zašle jako \textit{odpověď}. Server stejnou cestou vytvoří svůj otisk dat a výsledek porovná. Pokud jsou otisky stejné, patrně klient a server znají sdílené tajemství a klientovi je povoleno navázat tunelové spojení.
 
-\textit{Otisk}, nebo-li \textit{hash}, je z dat tajemství generován předvolenou bezpečnou \textit{hashovací funkcí} (výchozí volbou je \textit{SHA256}). Klient zasílá serveru pouze otisk, aby bylo zabráněno odposlechnutí tajemství. Vyzrazení sdíleného tajemství je zabráněno díky jedné ze stěžejních vlastností \textit{hashovací funkce} -- \textit{jednosměrnost}. Díky této vlastnosti je výpočetně extrémně náročné z výstupu (\textit{otisk}) \textit{hashovací funkce} získat vstupní hodnotu (\textit{sdílené tajemství}). Vyzrazení tajemství není však jediným bezpečnostním rizikem při implementaci protokolu \textit{výzvy-odpověď}.
+\textit{Otisk}, nebo-li \textit{hash}, je z dat tajemství generován předvolenou bezpečnou \textit{hashovací funkcí}. Klient zasílá serveru pouze otisk, aby bylo zabráněno odposlechnutí tajemství. Vyzrazení sdíleného tajemství je zabráněno díky jedné ze stěžejních vlastností \textit{hashovací funkce} -- \textit{jednosměrnost}. Díky této vlastnosti je výpočetně extrémně náročné z výstupu (\textit{otisk}) \textit{hashovací funkce} získat vstupní hodnotu (\textit{sdílené tajemství}). Vyzrazení tajemství není však jediným bezpečnostním rizikem při implementaci protokolu \textit{výzvy-odpověď}.
 
 \subsection{Bezpečnostní aspekty}
 
 Útočník, který je schopen odposlouchávat síťový provoz během úspěšné autentizace klienta, může odposlechnutou komunikaci využít k následné vlastní autentizaci. Pro zabránění \textit{útoků přehráním} (známého také jako \textit{Replay attack}) je každý proces autentizace doplněn o unikátní hodnotu (často označovanou jako \textit{sůl}, anglicky \textit{salt}) vázanou na konkrétní požadavek o spojení. Server tuto unikátní hodnotu vygeneruje, zapamatuje si ji a zašle klientovi. Klient následně při vytváření otisku tuto unikátní hodnotu spojí s daty sdíleného tajemství a výsledný otisk tedy závisí nejen na sdíleném tajemství, ale rovněž na unikátní hodnotě požadavku. Díky tomu má každý požadavek jiný \textit{správný} otisk.
 
 Při použití soli je klíčové vygenerování dostatečně náhodné hodnoty. Pokud není zajištěna dostatečná náhodnost dat, může s dostatečnou znalostí protokolu útočník hodnotu soli uhodnout nebo případně dopředu předvídat. Pro generování pseudonáhodných hodnot je v práci použita knihovna \textit{OpenSSL}, konkrétně funkce \texttt{RAND\_bytes()}, která dle specifikace\cite{openssl-randbytes} generuje kryptograficky silná pseudonáhodná čísla.
+
+\subsection{Volba bezpečnostních prostředků}
+
+Jako hashovací funkce byla pro účely softwarového řešení zvolena funkce \texttt{SHA256} z rodiny hashovacích funkcí \texttt{SHA} (\textit{Secure Hash Algorithms}). Popsána byla v roce 2001 a v současné době je považována za bezpečnou hashovací funkci, i přestože je náchylná k \textit{Length extension} útoku, který však pro potřeby této diplomové práce není relevantní. Popularitu a rozšířenost \texttt{SHA256} lze doložit velmi častým užitím ve světě digitálních certifikátů a také jakou nezybtnou část \texttt{SSL/TLS} spojení.
+
+Metoda útoku hrubou silou na unikátní hodnotu každého autentizačního požadavku s přihlédnutím na omezenou délku platnosti požadavku a délku unikátní hodnoty (jednotky až desítky vteřin vs. 256 bitů, tj. $2^{256}$ možných kombinací) nepředstavuje bezpečnostní hrozbu.
+
+Očekávaná délka dat zprávy \texttt{AUTH\_CHALLENGE} tedy představuje 256 bitů (32 bajtů) a očekávaná délka dat odpovědi (\texttt{AUTH\_RESPONSE}) představuje rovněž 32 bajtů.
 
 \begin{figure}[h]
  \centering
@@ -439,22 +497,22 @@ Při použití soli je klíčové vygenerování dostatečně náhodné hodnoty.
     \draw (Klient) -- (client_ground);
     \draw (Server) -- (server_ground);
     \draw[->] ($(Klient)!0.15!(client_ground)$) --
-		node[above,scale=1,midway]{Požadavek o spojení (\texttt{CONNECTION\_REQUEST})}
+		node[above,scale=1,midway]{Požadavek o spojení (\texttt{CONNECTION\_REQUEST}$_{\texttt{0B}}$)}
 		node[below,scale=1,midway]{\texttt{($\emptyset$)}}
 	      ($(Server)!0.15!(server_ground)$);
     
     \draw[<-] ($(Klient)!0.35!(client_ground)$) --
-		node[above,scale=1,midway]{Výzva k autorizaci (\texttt{AUTH\_REQUEST})}
+		node[above,scale=1,midway]{Výzva k autorizaci (\texttt{AUTH\_REQUEST}$_{\texttt{32B}}$)}
 		node[below,scale=1,midway]{\texttt{(unikátní hodnota)}}
 	      ($(Server)!0.35!(server_ground)$);
     
     \draw[->] ($(Klient)!0.55!(client_ground)$) --
-		node[above,scale=1,midway]{Odpověď na výzvu k autorizaci (\texttt{AUTH\_RESPONSE})} 
+		node[above,scale=1,midway]{Odpověď na výzvu k autorizaci (\texttt{AUTH\_RESPONSE}$_{\texttt{32B}}$)} 
 		node[below,scale=1,midway]{\texttt{HASH(unikátní hodnota || sdílené tajemství)}} 
 	      ($(Server)!0.55!(server_ground)$);
     
     \draw[<-] ($(Klient)!0.90!(client_ground)$) --
-		node[above,scale=1,align=center]{Přijetí požadavku (\texttt{CONNECTION\_ACCEPT})\\ \textit{nebo}\\ Odmítnutí požadavku (\texttt{CONNECTION\_REJECT})}
+		node[above,scale=1,align=center]{Přijetí požadavku (\texttt{CONNECTION\_ACCEPT}$_{\texttt{0B}}$)\\ \textit{nebo}\\ Odmítnutí požadavku (\texttt{CONNECTION\_REJECT}$_{\texttt{0B}}$)}
 		node[below,scale=1,midway]{\texttt{($\emptyset$)}}
 	      ($(Server)!0.90!(server_ground)$);
     
@@ -463,6 +521,33 @@ Při použití soli je klíčové vygenerování dostatečně náhodné hodnoty.
 \label{diag:seq-icmp}
 \end{figure}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\chapter{Implementace}
+\label{chapter:implementace}
+
+Po návrhu struktury softwarového řešení této diplomové práce následuje samotná implementace. Tato kapitola proto popisuje implementaci jednotlivých \textit{pluginů} pro vytvoření síťového tunelu.
 
 \section{Plugin pro \texttt{ICMP} tunelování}
 
@@ -560,9 +645,6 @@ typedef enum ICMP_PACKET_TYPE
   \paragraph{\texttt{NATPACKET}}
     Tyto zprávy odesílá klient a přijímá server. Pokud by klientovi dorazila zpráva tohoto typu, bude ignorována. Server zprávu přijme a poznamená si \textit{identifikátor} a \textit{sekvenční číslo} zprávy. Tyto údaje následně server použije při odesílání zpráv klientovi. Jedná se o techniku překonání překážek, které způsobuje \texttt{NAT}.
     
-  \paragraph{\texttt{KEEPALIVE}}
-  
-  Zprávy \texttt{KEEPALIVE} slouží k detekci problémů se spojením klienta a serveru. Zprávy odesílá klient (ohlašuje svou aktivitu serveru) a server na ně stejnou zprávou odpovídá (ujišťuje klienta, že spojení je v pořádku). Do jisté míry pakety \texttt{KEEPALIVE} napodobují nástroj \texttt{ping}. Pokud opakovaně nedojde k přijetí zprávy \texttt{KEEPALIVE}, klient a server považují spojení za přerušené nebo ukončené. Server navíc začne opět přijímat požadavky pro připojení \texttt{CONNECTION\_REQUEST}.
   
   \paragraph{\texttt{DATA}}
   
