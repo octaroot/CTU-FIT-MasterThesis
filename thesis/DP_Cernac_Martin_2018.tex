@@ -842,10 +842,15 @@ typedef enum UDP_PACKET_TYPE
     
     Rozdíly plynou především z rozdílného pojetí komunikace mezi \texttt{UDP} (samostatné zprávy) a \texttt{TCP} (orientace na samostatná spojení a jednotný proud dat). Oproti \texttt{ICMP} tunelování není klíčová identifikace komunikující protistrany, ale délka jednotlivých zpráv v proudu dat. I přes architekturu \texttt{TCP} založenou na konkrétním spojení (oproti \texttt{UDP} bezstavového soketu) zůstaly zachovány \texttt{KEEPALIVE} zprávy, které jsou užitečné zejména při navazování nového spojení -- fáze autentizace. Protože z principu obcházení \textit{captive portálu} je \textit{plugin} navržen pro obsluhu pouze jednoho spojení, mohlo by docházet k blokování dostupného spojení jinými připojujícími se uzly v Internetu. Server tedy ignoruje \texttt{KEEPALIVE} zprávy až do chvíle, kdy se klient úspěšně autentizuje. Z pohledu serveru je klient před úspěšnou autentizací nedostupný, resp. již není na příjmu (ignorování \texttt{KEEPALIVE} zpráv) a bude odpojen, pokud se úspěšně neověří před vypršením maximální délky bez přijetí \texttt{KEEPALIVE} zprávy.
     
-    %porty 443, 80, 3128
-    %porty 5060,5061 ? (SIP, SIP encrypt)
+    Sekvenční diagram \ref{diag:seq-udp-tcp} komunikace klienta a serveru při pokusu o navázání spojení je identický s pluginem pro \texttt{UDP} tunelování.
     
-    %TODO
+    \subsection{Volba portu pro provoz \texttt{TCP} tunelu}
+    
+    S přihlédnutím k nesmírné popularitě a rozšířenosti protokolu \texttt{TCP} se k maskování tunelového provozu nabízí celá řada \texttt{TCP} portů. Volbou může být port \texttt{80}, resp \texttt{443} (\texttt{HTTP}, resp. \texttt{HTTPS}). S provozem cíleným na tyto porty však \textit{captive portál} zpravidla manipuluje a nelze tak dopředu říci, jaká je šance na úspěšné obejití omezení \textit{captive portálu}. Alternativní volbu představuje port \texttt{3128}, který může mít ve firewallu výjimku za účelem provozu \texttt{HTTP} caching proxy (správce \textit{hotspotu} může takovou službu provozovat za účelem šetření přenesených dat směrem z/do Internetu).
+    
+    Možnou volbou je i port \texttt{TCP/22}, jehož užití s sebou však ponese nutnost změny portu \texttt{SSH} služby, který na serveru s velkou pravděpodobností je provozován.
+    
+    Není možné předem s jistotou říci, pro jaký (nebo zda-li vůbec nějaký) port má konkrétní \textit{captive portál} ve firewallu nastavenou výjimku. Volba portu je uživatelsky nastavitelná a záleží tedy na zvážení uživatele software, kolik instancí \texttt{TCP} pluginu pro různé porty hodlá provozovat.
     
     
 \section{Plugin pro \texttt{SCTP} tunelování}
@@ -959,15 +964,11 @@ typedef enum SCTP_PACKET_TYPE
 \caption{Sekvenční diagram úspěšného navázání \texttt{SCTP} tunelu}
 \label{diag:seq-sctp}
 \end{figure}
-    
-
-
 
     
-    %porty 443, 80, 3128
-    %porty 5060,5061 ? (SIP, SIP encrypt)
+    \subsection{Volba portu pro provoz \texttt{SCTP} tunelu}
     
-    %TODO
+    Pointou implementace \texttt{SCTP} pluginu je možná nedbalost správce \textit{firewallu}, či nedokonalost \textit{captive portálu}, která neomezuje provoz protokolu \texttt{SCTP}. Uživatel tedy není limitován snahou o maskování provozu tunelu jako jiné legitimní či neblokované činnosti. Nevelká rozšířenost protokolu \texttt{SCTP} však umožňuje obsadit známé \texttt{TCP} porty na \texttt{SCTP} socketech aniž by došlo k narušení jiných bežících služeb. Opět platí, že konkrétní volbu nelze s jistotou předem předpovědět a je tak na zvážení uživatele, jaké výjimky ve firewallu by mohlo daná síť mít.
 
     
     
