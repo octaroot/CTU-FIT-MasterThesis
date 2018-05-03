@@ -291,12 +291,13 @@ Tunelování pomocí \texttt{ICMP} je technicky možné díky RFC 792\cite{rfc79
 Jak bylo uvedeno na začátku podkapitoly \ref{sec:metody-obchazeni-captive-portalu} \textit{Metody pro obcházení captive portálů}, v konfiguraci firewallu se mohou z různých důvodů vyskytovat výjimky, které lze zneužít k tunelování provozu bez nutnosti maskovat komunikaci jako \texttt{DNS} nebo \texttt{ICMP} provoz. Zpravidla\cite{defcon-captive-article} se jedná o porty 
 
 \begin{itemize}
- \item \texttt{TCP/22} -- pro vzdálenou správu zařízení
- \item \texttt{TCP/3128} -- HTTP proxy servery (například za účelem cache obsahu)
- \item \texttt{UDP/53} -- \texttt{DNS}, diskutováno v podkapitole \ref{subsec:dns-tunel-intro} DNS tunelování
+ \item \texttt{TCP/22} -- pro vzdálenou správu zařízení,
+ \item \texttt{TCP/3128} -- HTTP proxy servery (například za účelem cache obsahu),
+ \item \texttt{UDP/53} -- \texttt{DNS}, diskutováno v podkapitole \ref{subsec:dns-tunel-intro} DNS tunelování.
+ \item \texttt{UDP/5060} -- \texttt{VoIP} telefonie
 \end{itemize}
 
-Důvodem k udělení výjimky pro port TCP/22 bývá nutnost vzdálené správy některých zařízení pomocí protokolu \texttt{SSH}. Samotný protokol \texttt{SSH} lze využít pro tunelování, \textit{port forwarding} nebo přímo jako \texttt{SOCKS} proxy. Klient \texttt{OpenSSH} tyto operace umožňuje provést velmi snadno, například lokální \texttt{SOCKS} proxy na portu 8080 lze spustit příkazem \texttt{ssh -D 8080 uzivatel@domaci-server}.
+Důvodem k udělení výjimky pro port \texttt{TCP/22} bývá nutnost vzdálené správy některých zařízení pomocí protokolu \texttt{SSH}. Samotný protokol \texttt{SSH} lze využít pro tunelování, \textit{port forwarding} nebo přímo jako \texttt{SOCKS} proxy, pokud komunikující aplikace podporuje nastavení proxy. Klient \texttt{OpenSSH}, implementující protokol \texttt{SSH}, tyto operace umožňuje provést velmi snadno, například lokální \texttt{SOCKS} proxy na portu 8080 lze spustit příkazem \texttt{ssh -D 8080 uzivatel@server}
 
 TCP port 3128 bývá na firemních sítích využíván jako cache proxy pro často navštěvované webové stránky, aby se šetřilo síťovým provozem. Neautentizovaný klient se může pokusit takového proxy serveru využít pro obejití omezení \textit{captive portálu} a úspěšně komunikovat se serverem v Internetu.
 
@@ -307,7 +308,7 @@ Tyto praktiky jsou však méně časté než dříve zmíněné \texttt{ICMP} a 
 
 \subsection{Využití nefiltrovaných protokolů}
 
-Stejně jako \texttt{ICMP} tunelování využívá nekompletní sady pravidel blokování provozu na firewallu, lze k tunelování dat skrze \textit{captive portál} využít méně známé protokoly transportní vrstvy. Na transportní vrstvě ISO/OSI modelu figuruje kromě dobře známých protokolů \texttt{TCP} a \texttt{UDP} rovněž protokoly jako \texttt{UDP-Lite}, \texttt{SCTP}, \texttt{DCCP} nebo \texttt{RUDP}. Je možné, že sada restriktivních pravidel na firewallu \textit{captive portálu} bude různými způsoby omezovat provoz \texttt{TCP} a \texttt{UDP}, ale nebude pamatovat na výše zmíněné méně známé protokoly. Některé z vyjmenovaných protokolů jsou vhodné pro tunelování provozu, zejména se jedná o \texttt{SCTP}, kterému bude v této práci věnována detailnější pozornost.
+Stejně jako \texttt{ICMP} tunelování využívá nekompletní sady pravidel blokování provozu na firewallu, lze k tunelování dat skrze \textit{captive portál} využít méně známé protokoly transportní vrstvy. Na transportní vrstvě ISO/OSI modelu figuruje kromě dobře známých protokolů \texttt{TCP} a \texttt{UDP} rovněž protokoly jako \texttt{UDP-Lite}, \texttt{SCTP}, \texttt{DCCP} nebo \texttt{RUDP}. Je možné, že sada restriktivních pravidel na firewallu \textit{captive portálu} bude různými způsoby omezovat provoz \texttt{TCP} a \texttt{UDP}, ale nebude pamatovat na výše zmíněné méně známé protokoly. Některé z vyjmenovaných protokolů jsou vhodné pro tunelování provozu, zejména se jedná o \textit{relativně} mladý\footnote{Specifikace z roku 2007} protokol \texttt{SCTP}, kterému bude v této práci věnována detailnější pozornost.
 
 % alfa-omega - pro pristup ke captive portalu musim byt validnim ucatnikem site
 % tj musi fungovat DHCP (musim mit IP, musim zant GW), musi ``fungovat`` DNS
@@ -319,21 +320,19 @@ Stejně jako \texttt{ICMP} tunelování využívá nekompletní sady pravidel bl
 % web caching proxy 3128.
 % mozna dokonce SSH 22?
 
+\pagebreak
 
 
-\section{Existující software pro obcházení captive portálů}
+\section{Existující software pro obcházení \textit{captive portálů}}
 
 Tato podkapitola krátce shrnuje dostupná řešení pro tunelování dat s využitím rozmanitých protokolů.
 
-\subsection{Tunelování skrze \texttt{DNS}}
+\subsection{Tunelování skrze \texttt{DNS} -- 7. vrstva \texttt{ISO/OSI}}
 
-Idea tunelování síťového provozu pomocí protokolu \texttt{DNS} není nová. Už na přelomu tisíciletí\footnote{soudě dle data první veřejné verzovacího systému nástroje \textit{NSTX}} se objevil nástroj \textit{NSTX} s podtitulkem \textit{tunneling network-packets over DNS}. Od té doby byla zveřejněná řada nástrojů založených na stejných principech a se stejným cílem. Mezi populární\cite{sans-dns-tunels} nástroje se řadí například \textit{iodine}, \textit{OzymanDNS} a \textit{DNSCat}. Různé nástroje nabízejí různé funkce, podporují rozdílné platformy a liší se v konkrétních detailech \texttt{DNS} komunikace (autentizace, šifrování, užité typy \texttt{DNS} zpráv, \ldots). Mnohé aplikace jsou v současnosti funkční, ale dále nevyvíjené ve prospěch jiných nástrojů (například domovská stránka \textit{NSTX} odkazuje zájemce na stránky \textit{iodine}). Tunelování síťového provozu pomocí \texttt{DNS} je populární\cite{sans-dns-tunels} i mezi tvůrci škodlivého software (\textit{malware}), kteří se tak snaží vyhnout detekčním nástrojům. Paradoxně tunelování pomocí \texttt{DNS} lze zpravidla úspěšně detekovat\cite{bakalarka-detekce-tunelu}.
+Idea tunelování síťového provozu pomocí protokolu \texttt{DNS} není nová. Už na přelomu tisíciletí\footnote{soudě dle data první veřejné verzovacího systému nástroje \textit{NSTX}} se objevil nástroj \textit{NSTX} s podtitulkem \textit{tunneling network-packets over DNS}. Od té doby byla zveřejněná řada nástrojů založených na stejných principech a se stejným cílem. Mezi populární\cite{sans-dns-tunels} nástroje se řadí například \textit{iodine}\footnote{Název \textit{iodine} je založen na první třech znacích \textit{iod} -- \textit{IP-over-DNS} a faktu, že jód (anglicky \textit{iodine}) má atomické číslo 53 -- port používaný pro \texttt{DNS} komunikaci}, \textit{OzymanDNS} a \textit{DNSCat}. Různé nástroje nabízejí různé funkce, podporují rozdílné platformy a liší se v konkrétních detailech \texttt{DNS} komunikace (autentizace, šifrování, užité typy \texttt{DNS} zpráv, \ldots). Mnohé aplikace jsou v současnosti funkční, ale dále nevyvíjené ve prospěch jiných nástrojů (například domovská stránka \textit{NSTX} odkazuje zájemce na stránky \textit{iodine}). Tunelování síťového provozu pomocí \texttt{DNS} je populární\cite{sans-dns-tunels} i mezi tvůrci škodlivého software (\textit{malware}), kteří se tak snaží vyhnout detekčním nástrojům. Paradoxně tunelování pomocí \texttt{DNS} lze zpravidla úspěšně detekovat\cite{bakalarka-detekce-tunelu}.
 
-\subsection{Tunelování skrze \texttt{ICMP}}
 
-Situace s nástroji pro tunelování pomocí \texttt{ICMP} není tak rozmanitá, jako s nástroji pro \texttt{DNS} tunelování. \texttt{ICMP} tunelování nevyužívá sofistikovaných \uv{triků} samotného protokolu pro výměnu informací. Přenášená data nemusí nijak transformovat a jednoduše je přenese jako součást zprávy. Blokování takového tunelování je snazší a nevyžaduje dedikovaný a funkčně značně omezený server, jako v případě \texttt{DNS} tunelu.
-
-\subsection{Tunelování skrze protokoly transportní vrstvy}
+\subsection{Tunelování na transportní vrstvě -- 4. vrstva \texttt{ISO/OSI}}
 
 \uv{Skutečného} tunelování lze dosáhnou s řadou protokolů transportní vrstvy ISO/OSI modelu. Příkladem je software \textit{OpenVPN}, který při dostatečně upravené konfiguraci je schopen komunikovat na \texttt{TCP}/\texttt{UDP} portech, které by potenciálně mohly mít výjimky ve firewallu \textit{captive portálu}.
 
@@ -344,6 +343,9 @@ V případě možnosti navázání spojení pomocí \texttt{SSH} skrze \textit{c
 Těchto potíží si je vědom autor projektu \cite[sshuttle]{sshuttle}, jehož cílem je zpracování a agregace \texttt{TCP} provozu před odesláním skrze \texttt{TCP} spojení. Díky tomu dosahuje spojení lepších vlastností, než klasické tunelování skrze \texttt{SSH}. Požadavkem pro úspěšné spojení je však možnost vytvoření \texttt{TCP} spojení, která nemusí být vždy k dispozici.
 
 
+\subsection{Tunelování skrze \texttt{ICMP} -- Internetová vrstva \texttt{TCP/IP}}
+
+Situace s nástroji pro tunelování pomocí \texttt{ICMP} není tak rozmanitá, jako s nástroji pro \texttt{DNS} tunelování. \texttt{ICMP} tunelování nevyužívá sofistikovaných \uv{triků} samotného protokolu pro výměnu informací. Přenášená data nemusí nijak transformovat a jednoduše je přenese jako součást zprávy. Blokování takového tunelování je snazší a nevyžaduje dedikovaný a funkčně značně omezený server, jako v případě \texttt{DNS} tunelu.
 
 
 % iodine, DNSX??, ICMPX a dalsi
