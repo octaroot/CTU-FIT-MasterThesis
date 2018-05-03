@@ -565,11 +565,14 @@ Generování pseudonáhodných dat a výpočet zvolené hashovací funkce je zá
 
 K zajištění flexibility více souběžně pracujících komunikačních pluginů je každému pluginu vytvořeno samostatné pracovní vlákno. Pro práci s vlákny byla zvolena knihovna \texttt{OpenMP}, pro překladač \texttt{gcc} ji lze zapnout přepínačem \texttt{-fopenmp}. Knihovna \texttt{OpenMP} byla sice primárně určena pro datový paralelismus na úrovni cyklů, ale od verze \texttt{3.0} (současná verze \texttt{4.5}) podporuje rovněž funkční paralelismus pomocí direktivy \texttt{task}. Navíc nabízí dobře čitelný zápis a je běžně používanou knihovnou pro paralelizaci, jak zachycuje ukázka kódů \ref{code:mux-start}.
 
+Hlavní část programu rovněž naslouchá na systémové signály typu \texttt{SIGINT} a \texttt{SIGTERM}, díky čemuž je schopna správně ukončit komunikaci, zavřít otevřené sokety a zrušit virtuální rozhraní, pokud se uživatel rozhodne aplikaci ukončit například pomocí \texttt{Ctrl+C}.
+
     \begin{figure}[h]
 	\begin{lstlisting}[caption=Výňatek souboru \texttt{src/mux.c} znázorňující jednoduchost užití knihovny \texttt{OpenMP} pro správu vláken pluginů,language=c,frame=single,numbers=left]
 plugin plugins[] = {  [...] };
 
-void muxStart(uint32_t endpoint, bool serverMode) {
+void muxStart(uint32_t endpoint, bool serverMode)
+{
     #pragma omp parallel num_threads(PLUGIN_COUNT)
     #pragma omp single nowait
     for (int i = 0; i < PLUGIN_COUNT; ++i) {
@@ -580,6 +583,9 @@ void muxStart(uint32_t endpoint, bool serverMode) {
       \end{lstlisting}
       \label{code:mux-start}
     \end{figure}
+    
+Systém spuštění \texttt{PLUGIN\_COUNT} vláken nejprve operačnímu systému sdělí, že následující kód je třeba spustit v \texttt{PLUGIN\_COUNT} pomocí direktivy nařádku 5 -- \texttt{nun\_threads()}, která zajistí spuštění kýženého počtu vláken i přestože neodpovídá dostupným prostředkům (počtu dostupných fyzických jader procesoru). Následující direktiva na řádku 6 (\texttt{single nowait}) zajistí, že smyčka na řádcích 7-10 bude vykonána pouze jedním vláknem a následně se provede spuštění požadovaného počtu pluginů, každý ve vlastním vlákně -- pomocí direktivy \texttt{task}.
+
 
 \section{Plugin pro \texttt{ICMP} tunelování}
 
@@ -723,7 +729,7 @@ typedef enum ICMP_PACKET_TYPE
     
     
     
-    
+    \clearpage
 \section{Plugin pro \texttt{UDP} tunelování}
     
     Tunelování dat skrze \texttt{UDP} tunel je primárním principem technologie \textit{OpenVPN}\footnote{\textit{OpenVPN} samozřejmě podporuje i \texttt{TCP} tunelování}. Jedná se o jednoduchý způsob tunelování dat sítí, kdy jsou data tunelu zapouzdřena do \texttt{UDP} datagramů. Protokol \texttt{UDP} nezajišťuje doručení zpráv v původním pořadí a neobsahuje ani mechanismy pro detekci ztracených nebo duplicitních zpráv. Tato zodpovědnost je ponechána na protokolech vyšších vrstev. Strukturu \texttt{UDP} datagramu znázorňuje diagram \ref{diag:udp-packet}.
@@ -819,7 +825,7 @@ typedef enum UDP_PACKET_TYPE
 \label{diag:seq-udp-tcp}
 \end{figure}
 
-    
+
 \section{Plugin pro \texttt{TCP} tunelování}
 
     Protokol \texttt{TCP} je stěžejním členem transportní vrstvy ISO/OSI modelu. Poskytuje spolehlivý přenos dat, garantuje doručení dat ve stejném pořadí v jakém byly odeslány a detekci chyb při přenosu. Díky těmto vlastnostem je velice vhodný pro široké spektrum aplikací -- na moderním Internetu se uživatelé nevědomky setkávají s \texttt{TCP} na každém kroku. Mezi nejrozšířenější aplikace \texttt{TCP} patří zejména protokol \texttt{HTTP}, protokoly pro přenos elektronické pošty (\texttt{IMAP}, \texttt{POP3}, \texttt{SMTP}) a další (\texttt{SSH}, \texttt{FTP}, \texttt{telnet}, \ldots).
@@ -852,7 +858,41 @@ typedef enum UDP_PACKET_TYPE
     
     Není možné předem s jistotou říci, pro jaký (nebo zda-li vůbec nějaký) port má konkrétní \textit{captive portál} ve firewallu nastavenou výjimku. Volba portu je uživatelsky nastavitelná a záleží tedy na zvážení uživatele software, kolik instancí \texttt{TCP} pluginu pro různé porty hodlá provozovat.
     
+    \subsection{Návrh formátu datové zprávy}
     
+    Z diagramu návrhu zprávy je dobře patrná výrazně větší režie \texttt{TCP} spojení (32 bajtů hlavičky oproti dosavadním 8 bajtům u \texttt{ICMP} a \texttt{UDP}). Protože \texttt{TCP} přistupuje k přenášeným datům jako k proudu dat, není zaručené, že jednotlivé zprávy budou mít vždy tento formát. Každá zpráva začíná jednobajtovým identifikátorem typu zprávy (servisní a její typ, nebo datová) a je následován velikostí zprávy (2 bajty). Velikost umožňuje specifikovat velikost až zprávy až 65535 bajtů, té by však nemělo být nikdy dosaženo, protože do tunelu data proudí z virtuálního síťového rozhraní, které má standardní \texttt{MTU} 1500 bajtů.
+    
+    Velikost dat je přenášena ve dvou bajtech -- nižších 8 bitů a vyšších 8 bitů samostatně pomocí maskování původní nezáporné šestnáctibajtové délky dat. Čtení dat z \texttt{TCP} proudu probíhá ve smyčce, která vždy:
+    \begin{enumerate}
+     \item Přečte jeden bajt (typ zprávy),
+     \item Přečte dva bajty a rekonstruuje velikost data,
+     \item Provede neblokující čtení dokud nepřečte přesně specifikované množství dat.
+    \end{enumerate}
+    
+    
+    
+    \begin{figure}[h]
+    \centering
+	\begin{bytefield}[bitwidth=1em]{32}
+	    \bitheader{0,7,8,15,16,23,24,31}
+	    \\
+	    \colorwordbox[ltrb]{lightgreen}{5}{IP hlavička (20 bajtů)}
+	    \\
+	    \colorwordbox[ltrb]{lightcyan}{8}{TCP hlavička (32 bajtů)}
+	    \\
+	    \colorbitbox[ltbr]{lightyellow}{8}{Typ zprávy} & \colorbitbox[ltbr]{lightyellow}{16}{Velikost dat (2 bajty)} & \bitbox[ltr]{8}{}
+	    \\
+	    \wordbox[lr]{1}{}
+	    \\
+	    \wordbox[lr]{1}{Data tunelu}
+	    \\
+	    \wordbox[lrb]{1}{}
+	\end{bytefield}
+	\caption{Diagram \texttt{TCP} zprávy s vyznačenou hlavičkou dat tunelu, délkou \texttt{TCP} hlavičky a délkou \texttt{IP} hlavičky}
+	\label{diag:tcp-packet-tunel}
+    \end{figure}
+    
+    \clearpage
 \section{Plugin pro \texttt{SCTP} tunelování}
 
     \texttt{SCTP} je protokolem transportní vrstvy ISO/OSI modelu, stejně jako protokoly \texttt{TCP} nebo \texttt{UDP}. Přebírá některé volitelné vlastnosti těchto protokolů, například volitelnou obdobu \texttt{TCP} garanci doručení paketů ve správném pořadí, nebo \texttt{UDP} způsob komunikace (oproti \texttt{TCP} proudové komunikaci). Navíc přidává funkce jako multihoming nebo víceproudovou komunikaci v rámci jednoho spojení. Jedná se o \textit{relativně} mladý protokol, definovaný v \cite[RFC 4960]{rfc4960} v roce 2007.
@@ -970,7 +1010,32 @@ typedef enum SCTP_PACKET_TYPE
     
     Pointou implementace \texttt{SCTP} pluginu je možná nedbalost správce \textit{firewallu}, či nedokonalost \textit{captive portálu}, která neomezuje provoz protokolu \texttt{SCTP}. Uživatel tedy není limitován snahou o maskování provozu tunelu jako jiné legitimní či neblokované činnosti. Nevelká rozšířenost protokolu \texttt{SCTP} však umožňuje obsadit známé \texttt{TCP} porty na \texttt{SCTP} socketech aniž by došlo k narušení jiných bežících služeb. Opět platí, že konkrétní volbu nelze s jistotou předem předpovědět a je tak na zvážení uživatele, jaké výjimky ve firewallu by mohlo daná síť mít.
 
+    \subsection{Návrh formátu datové zprávy}
     
+    Protokol \texttt{SCTP} disponuje hlavičkou o velikosti 32 bajtů, velikostně menší, než \texttt{TCP} (38 bajtů), ale větší než \texttt{ICMP} a \texttt{UDP} (8 bajtů). Zato však disponuje možností odeslání několika zpráv (\textit{chunks}) v jednom paketu (což zahrnuje i \texttt{IP} hlavičku) při zachování hranic zpráv. Protože \texttt{SCTP} umožňuje komunikovat pomocí oddělených a nezávislých datových proudů, není pro datové zprávy nutné specifikovat hlavičku dat tunelu, protože všechny servisní zprávy používají vlastní proud. \uv{Střední} velikost hlavičky je tedy vyvážena výhodami protokolu \texttt{SCTP}.
+    
+    Protistrana tak může data rovnou zapisovat do virtuálního rozhraní a nemusí se zabývat čekáním na více zpráv a jejich následnému skládání (za předpokladu, že díky servisním zprávám již proběhla autentizace).
+    
+    \begin{figure}[h]
+    \centering
+	\begin{bytefield}[bitwidth=1em]{32}
+	    \bitheader{0,7,8,15,16,23,24,31}
+	    \\
+	    \colorwordbox[ltrb]{lightgreen}{5}{IP hlavička (20 bajtů)}
+	    \\
+	    \colorwordbox[ltrb]{lightcyan}{7}{SCTP hlavička (32 bajtů)}
+	    \\
+	    \wordbox[lr]{1}{}
+	    \\
+	    \wordbox[lr]{1}{Kusy (\textit{chunks}) dat tunelu}
+	    \\
+	    \wordbox[lrb]{1}{}
+	\end{bytefield}
+	\caption{Diagram \texttt{SCTP} zprávy nezávislého datového proudu (tedy bez redundantní hlavičky dat tunelu) a s vyznačenou délkou \texttt{SCTP} hlavičky a délkou \texttt{IP} hlavičky}
+	\label{diag:tcp-packet-tunel}
+    \end{figure}
+    
+    \clearpage
     
 \section{Plugin pro \texttt{DNS} tunelování}
 \label{sec:dns-tunnel}
