@@ -764,7 +764,7 @@ Rozdílem oproti tunelování pomocí \texttt{ICMP} je volba portu pro komunikac
 
 Výše zmíněné služby jsou široce rozšířené a je tudíž možné, že pro ně na firewallu \textit{captive portálu} bude existovat výjimka. Například \texttt{IP} telefony typicky nejsou schopny se ověřovat \textit{captive portálu} a právě proto by pro takové zařízení mohla existovat výjimka ve firewallu. Má proto smysl provozovat \texttt{UDP} tunel na takovém portu -- tedy za účelem zvýšení šance nalezení bezpečnostních nedostatků firewallu \textit{captive portálu}. Z výčtu jsem záměrně vynechal některé známé aplikace protokolu \texttt{UDP}, jako například \texttt{DHCP} -- protože má silně lokální charakter a je velmi nepravděpodobné, že by neautentizovaným klientům bylo povoleno komunikovat s \texttt{DHCP} serverem napříč Internetem. Protokol \texttt{DNS} rovněž není vhodným kandidátem, protože pro \texttt{DNS} je v rámci této práce implementována sofistikovanější metoda tunelování dat, blíže popsaná v podkapitole \ref{sec:dns-tunnel} \textit{Plugin pro \texttt{DNS} tunelování}.
 
-Vhodnými kandidáty jsou tedy porty \texttt{123} (\texttt{NTP}) a \texttt{5060} (\texttt{SIP}). Službu \textit{OpenVPN}, která do jisté míry plní podobný účel, lze pohodlně provozovat bok po boku softwarového řešení této diplomové práce. Není proto důvodu zbytečně okupovat výchozí port jiného software.
+Vhodnými kandidáty jsou tedy porty \texttt{123} (\texttt{NTP}) a \texttt{5060} (\texttt{SIP}). Službu \mbox{\textit{OpenVPN}}, která do jisté míry plní podobný účel, lze pohodlně provozovat bok po boku softwarového řešení této diplomové práce. Není proto důvodu zbytečně okupovat výchozí port jiného software.
     
     \subsection{Popis jednotlivých typů \texttt{UDP} zpráv}
         
