@@ -1042,10 +1042,15 @@ typedef enum SCTP_PACKET_TYPE
     
     Protokol \texttt{DNS} je jedním z hlavních pilířů infrastruktury moderního Internetu. Umožňuje překládat doménová jména na \texttt{IP} adresy a poskytovat další související informace o konkrétní doméně, například pro poštovní servery.
     
-    Tunelování pomocí \texttt{DNS} staví na odlišném principu, než doposud všechny navržené a implementované pluginy. Největším rozdílem je, že oproti \texttt{TCP}, \texttt{UDP} a \texttt{SCTP} tunelům nespoléhá na navázání spojení se serverem v Internetu, ale podobně jako \texttt{ICMP} se snaží přimět okolní infrastrukturu, aby zprávy předala k cílovému serveru v Internetu a odpověď dopravila zpět. Základním mechanismem \texttt{DNS} tunelování jsou rekurzivní \texttt{DNS} servery.
+    Tunelování pomocí \texttt{DNS} staví na odlišném principu, než doposud všechny navržené a implementované pluginy. Největším rozdílem je, že oproti \texttt{TCP}, \texttt{UDP} a \texttt{SCTP} tunelům nespoléhá na navázání spojení se serverem v Internetu, ale podobně jako \texttt{ICMP} se snaží přimět okolní infrastrukturu, aby zprávy předala k cílovému serveru v Internetu a odpověď dopravila zpět. Základním mechanismem \texttt{DNS} tunelování jsou \texttt{DNS} servery, které umí zpracovat rekurzivní \texttt{DNS} požadavky.
     
     \subsection{Typy \texttt{DNS} serverů}
     
+    Existují dva typy \texttt{DNS} dotazů -- rekurzivní a iterativní.
+    
+    %TODO obrazek, prevzit
+    
+    % vysvetlit vysvetlit, neimplementujeme, je to pomale, ale zmerime deset ruznych tunelovacich nastorju, abychom ukazali jak pomale to je .. nam jde o prostupnost, tohle nikoho nezajima + velky traffic nas muze odriznout
     
     
 
