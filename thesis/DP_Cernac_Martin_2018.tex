@@ -16,7 +16,8 @@
 basicstyle=\small\ttfamily,
 columns=flexible,
 breaklines=true,
-captionpos=b
+captionpos=b,
+escapeinside={(*}{*)}
 }
 \newcommand{\colorwordbox}[4][]{%
 \rlap{\wordbox[#1]{#3}{\color{#2}\rule{\width}{\height}}}%
@@ -1055,9 +1056,9 @@ typedef enum SCTP_PACKET_TYPE
     
     Pokud jmenný server je ochoten rekurzivně vyhodnocovat dotazy, může klient tento server přimět ke komunikaci s okolním světem. Klient může v tomto případě přesně \textit{nasměrovat} rekurzivní \texttt{DNS} server do části Internetu, kterou klient ovládá (například provozuje svůj vlastní \texttt{DNS} server). V této pozici je tedy klient schopen komunikovat prostřednictvím rekurzivního \texttt{DNS} serveru s jiným svým systémem, dostupným přes síť Internet. Protože klient ovládá cílový \texttt{DNS} server, má tím pádem kontrolu i nad daty, která budou rekurzivním \texttt{DNS} serverem klientovi vrácena jako odpověď na jeho požadavek. Výsledkem je možnost obousměrné komunikace do Internetu pouze prostřednictvím dostupného \texttt{DNS} serveru ochotného zpracovávat rekurzivní dotazy.
 
-    Protože se však jedná o komunikaci skrze prostředníka, je pro \texttt{DNS} tunelování nutné zachovat specifikace \texttt{DNS} protokolu dle \cite[RFC 1035]{rfc1035}. Z toho však plynou nutná omezení pro tunelování síťového provozu -- nemožnost \textit{plně} oboustranné komunikace, protože klientův \texttt{DNS server} v Internetu nemá žádnou možnost, jak dopravit data ke klientovi, pokud nemá žádný klientův \texttt{DNS} dotaz k zodpovězení.
+    % FIXME  TODO -- trochu prodlouzit, at tahle stranka neni tak roztahla
+    \pagebreak
     
-    Tento nedostatek lze vyřešit metodou \textit{polling}, kdy se klient serveru opakovaně zprostředkovaně dotazuje, pro případ, že server má data, která je třeba dopravit ke klientovi. Toto řešení s sebou však nese výrazně sníženou prostupnost tunelového spojení. 
     
 
   \begin{figure}
@@ -1074,9 +1075,80 @@ typedef enum SCTP_PACKET_TYPE
     \label{pic:dns-recursive}
   \end{figure}
 
+
+\vfil
 \clearpage
 
+    \subsection{Překážky \texttt{DNS} tunelování}
 
+    Protože ústřední součástí \texttt{DNS} tunelu je komunikace skrze prostředníka (rekurzivní \texttt{DNS} server), je pro \texttt{DNS} tunelování nutné zachovat specifikace \texttt{DNS} protokolu dle \cite[RFC 1035]{rfc1035} -- například oproti pouhému provozu \texttt{UDP} (resp \texttt{TCP}) pluginu na portu \texttt{UDP/53} (resp. \texttt{TCP/53}). Z toho plynou nutná omezení pro tunelování síťového provozu -- nemožnost \textit{plně} oboustranné komunikace, protože klientem ovládaný \texttt{DNS} server v Internetu nedokáže dopravit data ke klientovi, pokud nemá klientův \texttt{DNS} dotaz k zodpovězení.
+    
+    Tuto překážku lze vyřešit metodou \textit{polling}, kdy se klient opakovaně dotazuje serveru pro případ, že server má data, která je třeba dopravit ke klientovi (jako součást odpovědi). Toto řešení s sebou však nese výrazně sníženou prostupnost tunelového spojení. Klient typicky nemůže \texttt{DNS} serveru pokládat desítky -- nebo dokonce stovky -- dotazů za vteřinu. Mnohé \texttt{DNS} servery používají mechanismy pro limitování počtu požadavků jednoho klienta za určitý čas, jak jsem zjistil ve své bakalářské práci \cite{moje-bakalarka} -- například \texttt{DNSSEC} servery českého sdružení \textit{CZ.NIC, z.s.p.o.}\cite{cznic-dnssec} limitují dotazy na přibližně 10 dotazů za vteřinu.
+    
+    Dalším problémem je \textit{caching} -- ukládání výsledků po specifikovanou dobu s cílem zrychlení odpovědí na dotazy a menší zátěž ostatních \texttt{DNS} serverů, spojená s nižším síťovým provozem. Tato, leč šlechetná, vlastnost je krajně nežádoucí pro tunelování dat pomocí \texttt{DNS}, protože odpovědi typicky nikdy nebudou stejné. Klient se tím pádem musí serveru pokaždé dotazovat na unikátní doménové jméno. Součástí \texttt{DNS} odpovědi sice může být atribut \texttt{TTL} nastaven na hodnotu \texttt{0} (tedy efektivně zakázání uložení do \textit{cache}), nicméně nelze zaručit, že \texttt{DNS} server \textit{captive portálu} bude atribut respektovat.
+    
+    Limitována je i celková velikost požadavku/odpovědi. V původním návrhu protokolu \cite[RFC 1035]{rfc1035} je uvedena maximální velikost \texttt{UDP} zprávy 512 bajtů. Příčinou této limitace je snížení pravděpodobnosti fragmentace paketu po cestě na server a ze serveru zpět. Specifikace \texttt{IPv4} \cite[RFC 791]{rfc791} vyžaduje, aby každý účastník sítě byl schopen přijmout paket minimálně o velikosti 576 bajtů. Jedná se však o více než 30 let staré specifikace a schopnosti zařízení připojených k Internetu typicky nemají problém s velikostí přijímaných paketů větší, než 576 bajtů. Větší data (například pro přenos celé zóny) je nutné přenášet pomocí \texttt{TCP}.
+    
+    Právě proto vzniklo v roce 1999 rozšíření \textit{EDNS} specifikované v \cite[RFC 6891]{rfc6891}, které mimo jiné umožňuje užití větší velikost \texttt{UDP} paketů -- až 4096 bajtů. Díky rozsáhlé podpoře (demonstrace v ukázce kódu \ref{code:dig-dns} je možné větší povolenou velikost paketů využít k lepší prostupnosti tunelu.
+    
+    
+    \begin{figure}[h]
+	\begin{lstlisting}[caption=Část výstupu nástroje \texttt{dig} demonstrující užití \texttt{EDNS} v praxi (velikost \texttt{UDP} paketu 1536 bajtů od DNS serveru \texttt{1.1.1.1} (provozovatel \textit{Cloudflare} a \textit{APNIC}),frame=single,numbers=left]
+$ dig fit.cvut.cz @1.1.1.1
+;; Got answer:
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+(*\bfseries ; EDNS: version: 0, flags:; udp: 1536*)
+;; QUESTION SECTION:
+;fit.cvut.cz.			IN	A
+
+;; ANSWER SECTION:
+fit.cvut.cz.		797	IN	A	147.32.232.248
+
+      \end{lstlisting}
+      \label{code:dig-dns}
+    \end{figure}
+
+    
+    \subsection{Detekce a prevence \texttt{DNS} tunelování}
+    
+    \texttt{DNS} tunelování generuje značně atypický síťový provoz, který je relativně snadné detekovat\cite{bakalarka-detekce-tunelu}. Míra atypičnosti závisí na \uv{střídmosti} softwarového řešení, tunel s nižší prostupností a vyšší latencí lze maskovat lépe, než tunel s maximální prostupností a minimální latencí. Na Internetu lze dohledat články, které správcům radí zahazovat na portu 53\footnote{paradoxně odkazovaná \texttt{itpables} pravidla filtrují provoz na portu 53 pouze pro protokoly \texttt{TCP} a \texttt{UDP} -- \texttt{SCTP} tunel by na základě odkazovaných pravidel firewallem prošel.} \texttt{UDP} data větší, než 512 bajtů a \texttt{TCP} data větší než 1024 bajtů\cite{dns-iptables}.
+    
+    
+    \subsection{Kódování dat tunelu}
+    
+    Na rozdíl od ostatních implementovaných pluginů pro tunelování dat, \texttt{DNS} tunelování vyžaduje \textit{transformaci} přenášených dat. Specifikace \texttt{DNS} \cite[RFC 1035]{rfc1035} totiž v části 3.5 jasně vymezuje maximální délku 63 znaků subdomény, maximálně 255 znaků celkem a povolené znaky doménových jmen -- alfanumerické znaky (a-z, A-Z a 0-9) a pomlčka. V případě odpovědi je však k dispozici typ odpovědi \texttt{NULL}, který dle článku 3.3.10 specifikace \cite[RFC 1035]{rfc1035} smí obsahovat jakákoliv data s maximální délkou 65535 bajtů. Tento typ \texttt{DNS} záznamu však není příliš rozšířený a jeho nadměrné používání, poukazující na možné tunelové spojení, lze snadno strojově detekovat a blokovat.
+    
+    \paragraph{Poznámka k \texttt{IDN}} Specifikace povolených znaků v doménových jménech je poměrně striktní. Mohlo by se zdát, že některá platná doménová jména, jako například \texttt{háčkyčárky.cz} se specifikaci vymykají, nicméně taková doménová jsou (skrytě před uživatelem) fakticky překládána tak, aby původní specifikaci vyhovovaly. Zmíněná doména \texttt{háčkyčárky.cz} je tak fakticky doménou \texttt{xn--hkyrky-ptac70bc.cz} a nenabízí tudíž prostor pro efektivnější kódování dat do doménových jmen.
+    
+    \subsubsection{Kódování dat v názvu domény \texttt{Base32}}
+    
+    I přesto, že specifikace povoluje jak malé, tak velké alfanumerické znaky, fakticky dochází k ignorování velikosti písmen, viz experiment \ref{code:dns-case-insensitive}. Fakticky je tedy pro každou část doménového jména k dispozici 26 znaků, 10 číslic a pomlčka\footnote{Žádná část doménového jména nesmí začínat ani končit pomlčkou}, dohromady 37 různých znaků.
+    
+    % TODO ted sem dej MI-SPI, neco jako idealni kod nebo neco proste, ze nejblizsi ''cely`` kodovani je 2^5 nebo tak neco, musim si to osvezit.
+    
+    Kódování \textit{Base32} je schopno v jednom znaku kódu uchovat 5 bitů informace původních dat. Vyžaduje k tomu alespoň $2^5$ znaků abecedy, což povolený rozsah znaků splňuje.
+    
+    Například, pokud pro přenesení zprávy \textit{All your base are belong to us} na \texttt{DNS} server je možné tuto zprávu zakódovat do podoby\\ 
+        \texttt{ifwgyidzn52xeidcmfzwkidbojssaytfnrxw4zzaorxsa5ltbi.example.com}
+    
+    
+    
+    \begin{figure}[h]
+	\begin{lstlisting}[caption=Demonstrace ignorování velikosti písmen v doménových jménech,frame=single,numbers=left]
+$ dig +short fit.cvut.cz A @8.8.8.8
+147.32.232.248
+
+$ dig +short fIT.CvUt.cZ A @8.8.8.8
+147.32.232.248
+      \end{lstlisting}
+      \label{code:dns-case-insensitive}
+    \end{figure}
+
+    
+    
+    
 
 
     
