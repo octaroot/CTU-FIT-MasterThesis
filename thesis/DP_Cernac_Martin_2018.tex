@@ -1044,11 +1044,42 @@ typedef enum SCTP_PACKET_TYPE
     
     Tunelování pomocí \texttt{DNS} staví na odlišném principu, než doposud všechny navržené a implementované pluginy. Největším rozdílem je, že oproti \texttt{TCP}, \texttt{UDP} a \texttt{SCTP} tunelům nespoléhá na navázání spojení se serverem v Internetu, ale podobně jako \texttt{ICMP} se snaží přimět okolní infrastrukturu, aby zprávy předala k cílovému serveru v Internetu a odpověď dopravila zpět. Základním mechanismem \texttt{DNS} tunelování jsou \texttt{DNS} servery, které umí zpracovat rekurzivní \texttt{DNS} požadavky.
     
-    \subsection{Typy \texttt{DNS} serverů}
+    \subsection{Principy \texttt{DNS} tunelování}
     
-    Existují dva typy \texttt{DNS} dotazů -- rekurzivní a iterativní.
+    Základním principem služby \texttt{DNS} je hierarchická struktura \textit{jmenných serverů}\footnote{Pro potřeby této práce je v textu rovněž použito označení \uv{\texttt{DNS} server}}, které jsou schopny odpovídat na \texttt{DNS} dotazy od klientských překladačů (\textit{resolver}). Pokud jmenný server nezná odpověď na dotaz, může
     
-    %TODO obrazek, prevzit
+    \begin{itemize}
+     \item klienta odkázat na jiný jmenný server (nerekurzivní chování),
+     \item odpověď sám dohledat dotazem na další jmenné servery a vrátit klientovi (rekurzivní chování).
+    \end{itemize}
+    
+    Pokud jmenný server je ochoten rekurzivně vyhodnocovat dotazy, může klient tento server přimět ke komunikaci s okolním světem. Klient může v tomto případě přesně \textit{nasměrovat} rekurzivní \texttt{DNS} server do části Internetu, kterou klient ovládá (například provozuje svůj vlastní \texttt{DNS} server). V této pozici je tedy klient schopen komunikovat prostřednictvím rekurzivního \texttt{DNS} serveru s jiným svým systémem, dostupným přes síť Internet. Protože klient ovládá cílový \texttt{DNS} server, má tím pádem kontrolu i nad daty, která budou rekurzivním \texttt{DNS} serverem klientovi vrácena jako odpověď na jeho požadavek. Výsledkem je možnost obousměrné komunikace do Internetu pouze prostřednictvím dostupného \texttt{DNS} serveru ochotného zpracovávat rekurzivní dotazy.
+
+    Protože se však jedná o komunikaci skrze prostředníka, je pro \texttt{DNS} tunelování nutné zachovat specifikace \texttt{DNS} protokolu dle \cite[RFC 1035]{rfc1035}. Z toho však plynou nutná omezení pro tunelování síťového provozu -- nemožnost \textit{plně} oboustranné komunikace, protože klientův \texttt{DNS server} v Internetu nemá žádnou možnost, jak dopravit data ke klientovi, pokud nemá žádný klientův \texttt{DNS} dotaz k zodpovězení.
+    
+    Tento nedostatek lze vyřešit metodou \textit{polling}, kdy se klient serveru opakovaně zprostředkovaně dotazuje, pro případ, že server má data, která je třeba dopravit ke klientovi. Toto řešení s sebou však nese výrazně sníženou prostupnost tunelového spojení. 
+    
+
+  \begin{figure}
+  \centering
+    \includegraphics[width=\textwidth]{attachments/dns_iterative.png}
+    \caption{Ukázka iterativního (nerekurzivního) \texttt{DNS} dotazu. Klient se \texttt{DNS} serverů dotazuje sám. Buď dostane odpověď, nebo je odkázán na jiný \texttt{DNS} server.}
+    \label{pic:dns-iterative}
+  \end{figure}
+    
+  \begin{figure}
+  \centering
+    \includegraphics[width=\textwidth]{attachments/dns_recursive.png}
+    \caption{Ukázka rekurzivního \texttt{DNS} dotazu. Lokální \texttt{DNS} server prohledá svou \textit{cache} a pokud v ní nenalezne odpověď na klientův dotaz, začne odpověď hledat dotazy na jiné \texttt{DNS} servery.}
+    \label{pic:dns-recursive}
+  \end{figure}
+
+\clearpage
+
+
+
+
+    
     
     % vysvetlit vysvetlit, neimplementujeme, je to pomale, ale zmerime deset ruznych tunelovacich nastorju, abychom ukazali jak pomale to je .. nam jde o prostupnost, tohle nikoho nezajima + velky traffic nas muze odriznout
     
