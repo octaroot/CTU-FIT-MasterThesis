@@ -5,7 +5,6 @@
 #include "mux.h"
 
 #include "../plugins/icmp/icmp.h"
-#include "../plugins/dns/dns.h"
 #include "../plugins/udp/udp.h"
 #include "../plugins/tcp/tcp.h"
 #include "../plugins/sctp/sctp.h"
@@ -15,7 +14,6 @@
 
 plugin plugins[] = {
 		//{_ICMPGetVersion, _ICMPTestAvailability, _ICMPStart, _ICMPStop},
-		//{_DNSGetVersion,  _DNSTestAvailability,  _DNSStart,  _DNSStop},
 		//{_UDPGetVersion,  _UDPTestAvailability,  _UDPStart,  _UDPStop},
 		//{_TCPGetVersion,  _TCPTestAvailability,  _TCPStart,  _TCPStop},
 		{_SCTPGetVersion,  _SCTPTestAvailability,  _SCTPStart,  _SCTPStop},
