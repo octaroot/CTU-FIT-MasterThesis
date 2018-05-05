@@ -38,7 +38,9 @@ int tunOpen()
 
 int tunWrite(int device, const char *buffer, int size)
 {
-	if (write(device, buffer, size) != size)
+	int bytesWritten = write(device, buffer, size);
+
+	if (bytesWritten != size && bytesWritten > 0)
 	{
 		fprintf(stderr, "Unable to write to TUN device: %s\n", strerror(errno));
 		return 1;
