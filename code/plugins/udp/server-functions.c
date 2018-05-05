@@ -7,7 +7,7 @@
 #include "udp.h"
 #include "../../src/auth.h"
 
-struct auth_context * authCtxs[UDP_MAX_AUTH_REQUESTS];
+struct auth_context * UDPauthCtxs[UDP_MAX_AUTH_REQUESTS];
 struct sockaddr_in UDPauthUDPIds[UDP_MAX_AUTH_REQUESTS];
 int UDPauthCtxIdx = 0;
 
@@ -26,19 +26,19 @@ void UDPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, str
 
 	UDPauthCtxIdx = (UDPauthCtxIdx + 1) % UDP_MAX_AUTH_REQUESTS;
 
-	if (authCtxs[UDPauthCtxIdx] != NULL)
+	if (UDPauthCtxs[UDPauthCtxIdx] != NULL)
 	{
-		free(authCtxs[UDPauthCtxIdx]);
+		free(UDPauthCtxs[UDPauthCtxIdx]);
 	}
 
 	memcpy(&(UDPauthUDPIds[UDPauthCtxIdx]), endpoint, sizeof(struct sockaddr_in));
 
-	authCtxs[UDPauthCtxIdx] = malloc(sizeof(struct auth_context));
-	initializeContext(authCtxs[UDPauthCtxIdx]);
+	UDPauthCtxs[UDPauthCtxIdx] = malloc(sizeof(struct auth_context));
+	initializeContext(UDPauthCtxs[UDPauthCtxIdx]);
 
 	msg.packetType = UDP_AUTH_CHALLENGE;
 	msg.size = AUTH_CHALLENGE_LENGTH;
-	memcpy(msg.buffer, authCtxs[UDPauthCtxIdx]->challenge, AUTH_CHALLENGE_LENGTH);
+	memcpy(msg.buffer, UDPauthCtxs[UDPauthCtxIdx]->challenge, AUTH_CHALLENGE_LENGTH);
 
 	UDPSendMsg(socketFD, endpoint, &msg);
 }
@@ -52,9 +52,9 @@ void UDPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct U
 	{
 		for (int i = 0; i < UDP_MAX_AUTH_REQUESTS; ++i)
 		{
-			if (authCtxs[i] != NULL && UDPequalSockaddr(endpoint, &(UDPauthUDPIds[i])))
+			if (UDPauthCtxs[i] != NULL && UDPequalSockaddr(endpoint, &(UDPauthUDPIds[i])))
 			{
-				if (checkResponse(authCtxs[i], (unsigned char *) request->buffer, AUTH_RESPONSE_LENGTH))
+				if (checkResponse(UDPauthCtxs[i], (unsigned char *) request->buffer, AUTH_RESPONSE_LENGTH))
 				{
 					msg.packetType = UDP_CONNECTION_ACCEPT;
 
@@ -67,10 +67,10 @@ void UDPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct U
 					for (i = 0; i < UDP_MAX_AUTH_REQUESTS; ++i)
 					{
 						memset(&(UDPauthUDPIds[i]), 0, sizeof(struct sockaddr_in));
-						if (authCtxs[i])
+						if (UDPauthCtxs[i])
 						{
-							free(authCtxs[i]);
-							authCtxs[i] = NULL;
+							free(UDPauthCtxs[i]);
+							UDPauthCtxs[i] = NULL;
 						}
 					}
 

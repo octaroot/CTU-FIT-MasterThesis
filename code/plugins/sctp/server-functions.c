@@ -7,7 +7,7 @@
 #include "sctp.h"
 #include "../../src/auth.h"
 
-struct auth_context * authCtxs[SCTP_MAX_AUTH_REQUESTS];
+struct auth_context * SCTPauthCtxs[SCTP_MAX_AUTH_REQUESTS];
 int SCTPauthCtxIdx = 0;
 
 void SCTPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, struct SCTPMessage *request)
@@ -25,17 +25,17 @@ void SCTPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, st
 
 	SCTPauthCtxIdx = (SCTPauthCtxIdx + 1) % SCTP_MAX_AUTH_REQUESTS;
 
-	if (authCtxs[SCTPauthCtxIdx] != NULL)
+	if (SCTPauthCtxs[SCTPauthCtxIdx] != NULL)
 	{
-		free(authCtxs[SCTPauthCtxIdx]);
+		free(SCTPauthCtxs[SCTPauthCtxIdx]);
 	}
 
-	authCtxs[SCTPauthCtxIdx] = malloc(sizeof(struct auth_context));
-	initializeContext(authCtxs[SCTPauthCtxIdx]);
+	SCTPauthCtxs[SCTPauthCtxIdx] = malloc(sizeof(struct auth_context));
+	initializeContext(SCTPauthCtxs[SCTPauthCtxIdx]);
 
 	msg.packetType = SCTP_AUTH_CHALLENGE;
 	msg.size = AUTH_CHALLENGE_LENGTH;
-	memcpy(msg.buffer, authCtxs[SCTPauthCtxIdx]->challenge, AUTH_CHALLENGE_LENGTH);
+	memcpy(msg.buffer, SCTPauthCtxs[SCTPauthCtxIdx]->challenge, AUTH_CHALLENGE_LENGTH);
 
 	SCTPSendControl(socketFD, &msg);
 }
@@ -49,9 +49,9 @@ void SCTPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct 
 	{
 		for (int i = 0; i < SCTP_MAX_AUTH_REQUESTS; ++i)
 		{
-			if (authCtxs[i] != NULL)
+			if (SCTPauthCtxs[i] != NULL)
 			{
-				if (checkResponse(authCtxs[i], (unsigned char *) request->buffer, AUTH_RESPONSE_LENGTH))
+				if (checkResponse(SCTPauthCtxs[i], (unsigned char *) request->buffer, AUTH_RESPONSE_LENGTH))
 				{
 					msg.packetType = SCTP_CONNECTION_ACCEPT;
 
@@ -62,10 +62,10 @@ void SCTPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct 
 					// zruseni vsech ostatnich challenge-response pozadavku
 					for (i = 0; i < SCTP_MAX_AUTH_REQUESTS; ++i)
 					{
-						if (authCtxs[i])
+						if (SCTPauthCtxs[i])
 						{
-							free(authCtxs[i]);
-							authCtxs[i] = NULL;
+							free(SCTPauthCtxs[i]);
+							SCTPauthCtxs[i] = NULL;
 						}
 					}
 

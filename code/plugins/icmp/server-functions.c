@@ -10,7 +10,7 @@
 uint16_t NATSequenceNumbers[ICMP_NAT_PACKET_COUNT];
 int NATSequenceNumberIdx = 0;
 
-struct auth_context * authCtxs[ICMP_MAX_AUTH_REQUESTS];
+struct auth_context * ICMPauthCtxs[ICMP_MAX_AUTH_REQUESTS];
 uint16_t authICMPIds[ICMP_MAX_AUTH_REQUESTS];
 int authCtxIdx = 0;
 
@@ -33,18 +33,18 @@ void ICMPHandleConnectionRequest(int socketFD, uint32_t endpoint, struct ICMPEch
 
 	authCtxIdx = (authCtxIdx + 1) % ICMP_MAX_AUTH_REQUESTS;
 
-	if (authCtxs[authCtxIdx] != NULL)
+	if (ICMPauthCtxs[authCtxIdx] != NULL)
 	{
-		free(authCtxs[authCtxIdx]);
+		free(ICMPauthCtxs[authCtxIdx]);
 	}
 
 	authICMPIds[authCtxIdx] = request->id;
-	authCtxs[authCtxIdx] = malloc(sizeof(struct auth_context));
-	initializeContext(authCtxs[authCtxIdx]);
+	ICMPauthCtxs[authCtxIdx] = malloc(sizeof(struct auth_context));
+	initializeContext(ICMPauthCtxs[authCtxIdx]);
 
 	msg.packetType = ICMP_AUTH_CHALLENGE;
 	msg.size = AUTH_CHALLENGE_LENGTH;
-	memcpy(msg.buffer, authCtxs[authCtxIdx]->challenge, AUTH_CHALLENGE_LENGTH);
+	memcpy(msg.buffer, ICMPauthCtxs[authCtxIdx]->challenge, AUTH_CHALLENGE_LENGTH);
 
 	ICMPSequenceNumber = request->seq;
 	ICMPIDNumber = request->id;
@@ -63,9 +63,9 @@ void ICMPHandleAuthResponse(int socketFD, uint32_t endpoint, struct ICMPEchoMess
 	{
 		for (int i = 0; i < ICMP_MAX_AUTH_REQUESTS; ++i)
 		{
-			if (request->id == authICMPIds[i] && authCtxs[i] != NULL)
+			if (request->id == authICMPIds[i] && ICMPauthCtxs[i] != NULL)
 			{
-				if (checkResponse(authCtxs[i], (unsigned char *) request->buffer, AUTH_RESPONSE_LENGTH))
+				if (checkResponse(ICMPauthCtxs[i], (unsigned char *) request->buffer, AUTH_RESPONSE_LENGTH))
 				{
 					msg.packetType = ICMP_CONNECTION_ACCEPT;
 
@@ -81,10 +81,10 @@ void ICMPHandleAuthResponse(int socketFD, uint32_t endpoint, struct ICMPEchoMess
 					memset(authICMPIds, 0, ICMP_MAX_AUTH_REQUESTS);
 					for (i = 0; i < ICMP_MAX_AUTH_REQUESTS; ++i)
 					{
-						if (authCtxs[i])
+						if (ICMPauthCtxs[i])
 						{
-							free(authCtxs[i]);
-							authCtxs[i] = NULL;
+							free(ICMPauthCtxs[i]);
+							ICMPauthCtxs[i] = NULL;
 						}
 					}
 

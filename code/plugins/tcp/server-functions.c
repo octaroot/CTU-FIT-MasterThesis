@@ -7,7 +7,7 @@
 #include "tcp.h"
 #include "../../src/auth.h"
 
-struct auth_context * authCtxs[TCP_MAX_AUTH_REQUESTS];
+struct auth_context * TCPauthCtxs[TCP_MAX_AUTH_REQUESTS];
 int TCPauthCtxIdx = 0;
 
 void TCPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, struct TCPMessage *request)
@@ -25,17 +25,17 @@ void TCPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, str
 
 	TCPauthCtxIdx = (TCPauthCtxIdx + 1) % TCP_MAX_AUTH_REQUESTS;
 
-	if (authCtxs[TCPauthCtxIdx] != NULL)
+	if (TCPauthCtxs[TCPauthCtxIdx] != NULL)
 	{
-		free(authCtxs[TCPauthCtxIdx]);
+		free(TCPauthCtxs[TCPauthCtxIdx]);
 	}
 
-	authCtxs[TCPauthCtxIdx] = malloc(sizeof(struct auth_context));
-	initializeContext(authCtxs[TCPauthCtxIdx]);
+	TCPauthCtxs[TCPauthCtxIdx] = malloc(sizeof(struct auth_context));
+	initializeContext(TCPauthCtxs[TCPauthCtxIdx]);
 
 	msg.packetType = TCP_AUTH_CHALLENGE;
 	msg.size = AUTH_CHALLENGE_LENGTH;
-	memcpy(msg.buffer, authCtxs[TCPauthCtxIdx]->challenge, AUTH_CHALLENGE_LENGTH);
+	memcpy(msg.buffer, TCPauthCtxs[TCPauthCtxIdx]->challenge, AUTH_CHALLENGE_LENGTH);
 
 	TCPSendMsg(socketFD, endpoint, &msg);
 }
@@ -49,9 +49,9 @@ void TCPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct T
 	{
 		for (int i = 0; i < TCP_MAX_AUTH_REQUESTS; ++i)
 		{
-			if (authCtxs[i] != NULL)
+			if (TCPauthCtxs[i] != NULL)
 			{
-				if (checkResponse(authCtxs[i], (unsigned char *) request->buffer, AUTH_RESPONSE_LENGTH))
+				if (checkResponse(TCPauthCtxs[i], (unsigned char *) request->buffer, AUTH_RESPONSE_LENGTH))
 				{
 					msg.packetType = TCP_CONNECTION_ACCEPT;
 
@@ -62,10 +62,10 @@ void TCPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct T
 					// zruseni vsech ostatnich challenge-response pozadavku
 					for (i = 0; i < TCP_MAX_AUTH_REQUESTS; ++i)
 					{
-						if (authCtxs[i])
+						if (TCPauthCtxs[i])
 						{
-							free(authCtxs[i]);
-							authCtxs[i] = NULL;
+							free(TCPauthCtxs[i]);
+							TCPauthCtxs[i] = NULL;
 						}
 					}
 

@@ -12,25 +12,33 @@
 
 #define PLUGIN_COUNT (sizeof(plugins) / sizeof(plugin))
 
+bool stop;
+
 plugin plugins[] = {
-		{_ICMPGetVersion, _ICMPTestAvailability, _ICMPStart, _ICMPStop},
-		{_UDPGetVersion,  _UDPTestAvailability,  _UDPStart,  _UDPStop},
+		//{_ICMPGetVersion, _ICMPTestAvailability, _ICMPStart, _ICMPStop},
+		//{_UDPGetVersion,  _UDPTestAvailability,  _UDPStart,  _UDPStop},
 		{_TCPGetVersion,  _TCPTestAvailability,  _TCPStart,  _TCPStop},
 		{_SCTPGetVersion,  _SCTPTestAvailability,  _SCTPStart,  _SCTPStop},
 };
 
 void muxStart(uint32_t endpoint, bool serverMode)
 {
+	stop = false;
 #pragma omp parallel num_threads(PLUGIN_COUNT)
 #pragma omp single nowait
 	for (int i = 0; i < PLUGIN_COUNT; ++i)
 	{
-#pragma omp task
+#pragma omp task shared(stop)
 		{
-			//debug print
-			log_verbose("[LOG] %d, thread: %d, %s\n", i, omp_get_thread_num(), plugins[i].getVersion());
+			while (!stop)
+			{
+				//debug print
+				log_verbose("[LOG] %d, thread: %d, %s\n", i, omp_get_thread_num(), plugins[i].getVersion());
 
-			plugins[i].start(endpoint, serverMode);
+				plugins[i].start(endpoint, serverMode);
+
+				log_verbose("[LOG] [END] %d, thread: %d, %s\n", i, omp_get_thread_num(), plugins[i].getVersion());
+			}
 		}
 	}
 }
@@ -38,6 +46,8 @@ void muxStart(uint32_t endpoint, bool serverMode)
 
 void muxStop()
 {
+	stop = true;
+
 	for (int i = 0; i < PLUGIN_COUNT; ++i)
 	{
 		plugins[i].stop();
