@@ -240,7 +240,7 @@ V některých případech se \textit{captive portály} chovají velmi invazivně
 
 Mnoho uživatelů Internetu má ve svých prohlížečích nastavenou domovskou stránku na \texttt{www.google.com}. Po připojení se na palubní \texttt{Wi-Fi} síť v letadle a zapnutí prohlížeče byl uživatel okamžitě varován před nedůvěryhodným certifikátem. Vzhledem k tomu, že uživatel sám žádnou stránku nenavštívil (prohlížeč pouze načetl domovskou stránku), je pro uživatele snadné propadnout dojmu, že chyba není způsobena jeho počínáním a proto bude varování ignorovat.
 
-Takové počínání samozřejmě není správné a poučená osoba by se ho měla vyvarovat. Zdaleka ne všechny uživatele Internetu však lze označit jako \textit{poučené} uživatele. Takoví uživatelé nedisponují dostatečnými znalostmi pro porozumění problému, před kterým je prohlížeč varuje a varování budou ignorovat. \textbf{Vytvářet u uživatelů návyky \uv{všechno potvrď a pak se dostaneš na Internet} je neetické} a nemělo by k tomu docházet.
+Takové počínání samozřejmě není správné a poučená osoba by se ho měla vyvarovat. Zdaleka ne všechny uživatele Internetu však lze označit jako \textit{poučené} uživatele. Běžní uživatelé nedisponují dostatečnými znalostmi pro porozumění problému, před kterým je prohlížeč varuje a varování budou ignorovat. \textbf{Vytvářet u uživatelů návyky \uv{všechno potvrď a pak se dostaneš na Internet} je neetické} a nemělo by k tomu docházet.
 
 V případě \textit{captive portálu}, který vyžaduje poskytnutí osobních informací by jejich počet měl být minimální a nakládání s nimi obezřetné. Uživatelé \textit{hotspotu} zpravidla nemají zájem o \textit{newsletter} provozovatele, ani si nepřejí být provozovatelem statisticky zkoumáni. Provozovatel si na takové akce samozřejmě vyhradí nárok v pravidlech používání sítě, které však (zpravidla na mobilních zařízeních) přečte jen malý zlomek uživatelů.
 
@@ -339,7 +339,7 @@ Idea tunelování síťového provozu pomocí protokolu \texttt{DNS} není nová
 
 \paragraph{sshuttle}
 
-V případě možnosti navázání spojení pomocí \texttt{SSH} skrze \textit{captive portál} na uzel v Internetu je přípustné využít \texttt{SSH}-implementovanou \texttt{SOCKS} proxy. Takové řešení připadá v úvahu pokud komunikující aplikace podporuje explicitní nastavení parametrů a typu \texttt{SOCKS} proxy. Protože však protokol \texttt{SSH} aplikační vrstvy ISO/OSI modelu staví na protokolu \texttt{TCP} transportní vrstvy, nejedná se o nejideálnější řešení. Podrobnosti problému jsou detailně popsány v podkapitole \ref{subsec:tcp-tunnel-issues} \textit{Potíže s \texttt{TCP} jako prostředkem pro tunelování}.
+V případě možnosti navázání spojení pomocí \texttt{SSH} skrze \textit{captive portál} na uzel v Internetu je přípustné využít \texttt{SSH}-implementovanou \texttt{SOCKS} proxy. Takové řešení připadá v úvahu pokud komunikující aplikace podporuje explicitní nastavení parametrů a typu \texttt{SOCKS} proxy. Protože však protokol \texttt{SSH} aplikační vrstvy ISO/OSI modelu staví na protokolu \texttt{TCP} transportní vrstvy, nejedná se o ideální řešení. Podrobnosti problému jsou detailně popsány v podkapitole \ref{subsec:tcp-tunnel-issues} \textit{Potíže s \texttt{TCP} jako prostředkem pro tunelování}.
 
 Těchto potíží si je vědom autor projektu \cite[sshuttle]{sshuttle}, jehož cílem je zpracování a agregace \texttt{TCP} provozu před odesláním skrze \texttt{TCP} spojení. Díky tomu dosahuje spojení lepších vlastností, než klasické tunelování skrze \texttt{SSH}. Požadavkem pro úspěšné spojení je však možnost vytvoření \texttt{TCP} spojení, která nemusí být vždy k dispozici.
 
@@ -394,6 +394,14 @@ Pro implementaci tunelu byl zvolen typ rozhraní \textit{TUN}, které simuluje s
 
 Virtuální síťové rozhraní navíc poskytuje uživateli volnost užití libovolného \texttt{IP} síťového rozsahu. Pokud by uživatel vyžadoval existenci \textit{SOCKS} proxy, lze ji vytvořit po navázání tunelu například pomocí nástroje \texttt{SSH} jak bylo popsáno v podkapitole \ref{subsec:nonfiltered-ports} \textit{Využití nefiltrovaných portů}.
 
+
+  \begin{figure}
+  \centering
+    \includegraphics[width=\textwidth]{attachments/communication_schema.png}
+    \caption{Grafické znázornění komunikace skrze \textit{Captive portál}. Klientská komunikace transparentně komunikuje skrze virtuální síťové rozhraní, které spravuje implementovaný software spravující tunel. Data, zapsaná do aplikací do rozhraní, jsou přečtena klientskou instancí implementovaného softwarového řešení, distribuována mezi aktivní pluginy, které různými způsoby obchází \textit{Captive portál}, aby serverové protějšky pluginů data přijaly, předaly serverové části spravující tunelové spojení a ta data následně zapsala do virtuálního síťového rozhraní na straně serveru.}
+    \label{pic:comm-schema}
+  \end{figure}
+
 \section{Struktura softwarového řešení}
 \label{subsec:struktura-sw}
 
@@ -410,7 +418,7 @@ Jednotlivé pluginy jsou schopny ověřit možnost navázání spojení skrze \t
 
 \section{Komunikace mezi serverem a klientem}
 
-Vzhledem k předpokládanému užití softwarového řešení (obcházení limitací \textit{captive portálu} pro osobní použití) bude software vytvořen jako jeden \uv{polymorfní} celek, který je schopen plnit funkci jak serveru, tak klienta. Z toho vyplývá i základní softwarový návrh -- komunikace stylu klient -- server, kterou započne klient a server zpočátku pouze reaguje na jeho požadavky a až po úspěšném navázání tunelového spojení (autentizace) je zahájena obousměrná komunikace.
+Vzhledem k předpokládanému užití softwarového řešení (obcházení limitací \textit{captive portálu} pro osobní použití) bude software vytvořen jako jeden celek, který je schopen plnit funkci jak serveru, tak klienta. Volba plyne z uživatelem specifikovaných přepínačů při spuštění. Z toho vyplývá i základní softwarový návrh komunikace stylu klient -- server, kterou započne klient a server zpočátku pouze reaguje na jeho požadavky a až po úspěšném navázání tunelového spojení (autentizace) je zahájena obousměrná komunikace.
 
 I přes rozmanité metody dosažení tunelového spojení bude každý z implementovaných pluginů komunikovat pomocí dvou základních kategorií zpráv:
 \begin{itemize}
@@ -481,7 +489,7 @@ Při použití soli je klíčové vygenerování dostatečně náhodné hodnoty.
 
 \subsection{Volba bezpečnostních prostředků}
 
-Jako hashovací funkce byla pro účely softwarového řešení zvolena funkce \texttt{SHA256} z rodiny hashovacích funkcí \texttt{SHA} (\textit{Secure Hash Algorithms}). Popsána byla v roce 2001 a v současné době je považována za bezpečnou hashovací funkci, i přestože je náchylná k \textit{Length extension} útoku, který však pro potřeby této diplomové práce není relevantní. Popularitu a rozšířenost \texttt{SHA256} lze doložit velmi častým užitím ve světě digitálních certifikátů a také jakou nezybtnou část \texttt{SSL/TLS} spojení.
+Jako hashovací funkce byla pro účely softwarového řešení zvolena funkce \texttt{SHA256} z rodiny hashovacích funkcí \texttt{SHA} (\textit{Secure Hash Algorithms}). Popsána byla v roce 2001 a v současné době je považována za bezpečnou hashovací funkci, i přestože je náchylná k \textit{Length extension} útoku, který však pro potřeby této diplomové práce není relevantní. Popularitu a rozšířenost \texttt{SHA256} lze doložit velmi častým užitím ve světě digitálních certifikátů a také jakou nezbytnou část \texttt{SSL/TLS} spojení.
 
 Metoda útoku hrubou silou na unikátní hodnotu každého autentizačního požadavku s přihlédnutím na omezenou délku platnosti požadavku a délku unikátní hodnoty (jednotky až desítky vteřin vs. 256 bitů, tj. $2^{256}$ možných kombinací) nepředstavuje bezpečnostní hrozbu.
 
