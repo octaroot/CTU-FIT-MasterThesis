@@ -12,7 +12,7 @@
 #include "client-handlers.h"
 #include "server-handlers.h"
 
-struct TCPPluginState pluginState;
+struct TCPPluginState pluginStateTCP;
 
 bool _TCPTestAvailability(uint32_t endpoint)
 {
@@ -23,10 +23,10 @@ bool _TCPTestAvailability(uint32_t endpoint)
 
 void _TCPCleanup()
 {
-	pluginState.connected = false;
-	pluginState.noReplyCount = 0;
-	TCPSocketClose(pluginState.socket);
-	TCPSocketClose(pluginState.listener);
+	pluginStateTCP.connected = false;
+	pluginStateTCP.noReplyCount = 0;
+	TCPSocketClose(pluginStateTCP.socket);
+	TCPSocketClose(pluginStateTCP.listener);
 }
 
 const char *_TCPGetVersion()
@@ -36,9 +36,9 @@ const char *_TCPGetVersion()
 
 void _TCPStart(uint32_t address, bool serverMode)
 {
-	pluginState.noReplyCount = 0;
-	pluginState.connected = false;
-	pluginState.endpoint = malloc(sizeof(struct sockaddr_in));
+	pluginStateTCP.noReplyCount = 0;
+	pluginStateTCP.connected = false;
+	pluginStateTCP.endpoint = malloc(sizeof(struct sockaddr_in));
 
 
 	TCPHandlers handlers[] = {
@@ -48,9 +48,9 @@ void _TCPStart(uint32_t address, bool serverMode)
 
 	_TCPRunning = true;
 
-	pluginState.listener = TCPSocketOpen();
+	pluginStateTCP.listener = TCPSocketOpen();
 
-	if (!pluginState.listener)
+	if (!pluginStateTCP.listener)
 	{
 		_TCPRunning = false;
 		return;
@@ -72,15 +72,15 @@ void _TCPStart(uint32_t address, bool serverMode)
 	{
 		handler->acceptClient();
 
-		int maxFD = MAX(pluginState.socket, tunDeviceFD);
+		int maxFD = MAX(pluginStateTCP.socket, tunDeviceFD);
 		struct timeval timeout;
 
-		while (_TCPRunning && pluginState.connected)
+		while (_TCPRunning && pluginStateTCP.connected)
 		{
 			fd_set fs;
 
 			FD_ZERO(&fs);
-			FD_SET(pluginState.socket, &fs);
+			FD_SET(pluginStateTCP.socket, &fs);
 			FD_SET(tunDeviceFD, &fs);
 
 			timeout.tv_sec = 1;
@@ -97,18 +97,18 @@ void _TCPStart(uint32_t address, bool serverMode)
 
 			if (lenAvailable == 0)
 			{
-				handler->checkHealth(pluginState.endpoint);
+				handler->checkHealth(pluginStateTCP.endpoint);
 				continue;
 			}
 
-			if (pluginState.auth && FD_ISSET(tunDeviceFD, &fs))
+			if (pluginStateTCP.auth && FD_ISSET(tunDeviceFD, &fs))
 			{
-				handler->tunnelData(pluginState.endpoint);
+				handler->tunnelData(pluginStateTCP.endpoint);
 			}
 
-			if (FD_ISSET(pluginState.socket, &fs))
+			if (FD_ISSET(pluginStateTCP.socket, &fs))
 			{
-				handler->TCPData(pluginState.endpoint);
+				handler->TCPData(pluginStateTCP.endpoint);
 			}
 		}
 	}
@@ -122,7 +122,7 @@ void _TCPStop()
 
 void _TCPStopClient()
 {
-	pluginState.connected = false;
-	pluginState.auth = false;
-	close(pluginState.socket);
+	pluginStateTCP.connected = false;
+	pluginStateTCP.auth = false;
+	close(pluginStateTCP.socket);
 }

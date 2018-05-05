@@ -14,7 +14,7 @@ void SCTPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, st
 {
 	struct SCTPMessage msg;
 
-	if (pluginState.auth)
+	if (pluginStateSCTP.auth)
 	{
 		msg.size = 1;
 		msg.packetType = SCTP_CONNECTION_REJECT;
@@ -45,7 +45,7 @@ void SCTPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct 
 	struct SCTPMessage msg;
 	msg.size = 1;
 
-	if (!pluginState.auth && request->size == AUTH_RESPONSE_LENGTH)
+	if (!pluginStateSCTP.auth && request->size == AUTH_RESPONSE_LENGTH)
 	{
 		for (int i = 0; i < SCTP_MAX_AUTH_REQUESTS; ++i)
 		{
@@ -55,7 +55,7 @@ void SCTPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct 
 				{
 					msg.packetType = SCTP_CONNECTION_ACCEPT;
 
-					pluginState.auth = true;
+					pluginStateSCTP.auth = true;
 
 					SCTPSendControl(socketFD, &msg);
 
@@ -82,11 +82,11 @@ void SCTPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct 
 
 void SCTPHandleKeepAlive(int socketFD, struct sockaddr_in * endpoint, struct SCTPMessage * request)
 {
-	if (!pluginState.connected)
+	if (!pluginStateSCTP.connected)
 		return;
 
-	if (pluginState.auth)
-		pluginState.noReplyCount = 0;
+	if (pluginStateSCTP.auth)
+		pluginStateSCTP.noReplyCount = 0;
 
 	SCTPSendControl(socketFD, request);
 }

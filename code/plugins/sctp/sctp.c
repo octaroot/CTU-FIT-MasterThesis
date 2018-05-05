@@ -12,7 +12,7 @@
 #include "client-handlers.h"
 #include "server-handlers.h"
 
-struct SCTPPluginState pluginState;
+struct SCTPPluginState pluginStateSCTP;
 
 bool _SCTPTestAvailability(uint32_t endpoint)
 {
@@ -23,10 +23,10 @@ bool _SCTPTestAvailability(uint32_t endpoint)
 
 void _SCTPCleanup()
 {
-	pluginState.connected = false;
-	pluginState.noReplyCount = 0;
-	SCTPSocketClose(pluginState.socket);
-	SCTPSocketClose(pluginState.listener);
+	pluginStateSCTP.connected = false;
+	pluginStateSCTP.noReplyCount = 0;
+	SCTPSocketClose(pluginStateSCTP.socket);
+	SCTPSocketClose(pluginStateSCTP.listener);
 }
 
 const char *_SCTPGetVersion()
@@ -36,9 +36,9 @@ const char *_SCTPGetVersion()
 
 void _SCTPStart(uint32_t address, bool serverMode)
 {
-	pluginState.noReplyCount = 0;
-	pluginState.connected = false;
-	pluginState.endpoint = malloc(sizeof(struct sockaddr_in));
+	pluginStateSCTP.noReplyCount = 0;
+	pluginStateSCTP.connected = false;
+	pluginStateSCTP.endpoint = malloc(sizeof(struct sockaddr_in));
 
 
 	SCTPHandlers handlers[] = {
@@ -48,9 +48,9 @@ void _SCTPStart(uint32_t address, bool serverMode)
 
 	_SCTPRunning = true;
 
-	pluginState.listener = SCTPSocketOpen();
+	pluginStateSCTP.listener = SCTPSocketOpen();
 
-	if (!pluginState.listener)
+	if (!pluginStateSCTP.listener)
 	{
 		_SCTPRunning = false;
 		return;
@@ -72,15 +72,15 @@ void _SCTPStart(uint32_t address, bool serverMode)
 	{
 		handler->acceptClient();
 
-		int maxFD = MAX(pluginState.socket, tunDeviceFD);
+		int maxFD = MAX(pluginStateSCTP.socket, tunDeviceFD);
 		struct timeval timeout;
 
-		while (_SCTPRunning && pluginState.connected)
+		while (_SCTPRunning && pluginStateSCTP.connected)
 		{
 			fd_set fs;
 
 			FD_ZERO(&fs);
-			FD_SET(pluginState.socket, &fs);
+			FD_SET(pluginStateSCTP.socket, &fs);
 			FD_SET(tunDeviceFD, &fs);
 
 			timeout.tv_sec = 1;
@@ -97,18 +97,18 @@ void _SCTPStart(uint32_t address, bool serverMode)
 
 			if (lenAvailable == 0)
 			{
-				handler->checkHealth(pluginState.endpoint);
+				handler->checkHealth(pluginStateSCTP.endpoint);
 				continue;
 			}
 
-			if (pluginState.auth && FD_ISSET(tunDeviceFD, &fs))
+			if (pluginStateSCTP.auth && FD_ISSET(tunDeviceFD, &fs))
 			{
-				handler->tunnelData(pluginState.endpoint);
+				handler->tunnelData(pluginStateSCTP.endpoint);
 			}
 
-			if (FD_ISSET(pluginState.socket, &fs))
+			if (FD_ISSET(pluginStateSCTP.socket, &fs))
 			{
-				handler->SCTPData(pluginState.endpoint);
+				handler->SCTPData(pluginStateSCTP.endpoint);
 			}
 		}
 	}
@@ -122,7 +122,7 @@ void _SCTPStop()
 
 void _SCTPStopClient()
 {
-	pluginState.connected = false;
-	pluginState.auth = false;
-	close(pluginState.socket);
+	pluginStateSCTP.connected = false;
+	pluginStateSCTP.auth = false;
+	close(pluginStateSCTP.socket);
 }

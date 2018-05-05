@@ -17,10 +17,10 @@ void ICMPClientInitialize(uint32_t endpoint)
 
 void ICMPClientCheckHealth(uint32_t endpoint)
 {
-	if (!pluginState.connected)
+	if (!pluginStateICMP.connected)
 		return;
 
-	if (pluginState.noReplyCount++ > ICMP_KEEPALIVE_TIMEOUT)
+	if (pluginStateICMP.noReplyCount++ > ICMP_KEEPALIVE_TIMEOUT)
 	{
 		// timed out, close connection
 		_ICMPStop();
@@ -38,7 +38,7 @@ void ICMPClientICMPData(uint32_t endpoint)
 	if (ICMPReceiveEcho(_ICMPSocketFD, &sender, &msg))
 		return;
 
-	if (pluginState.connected && pluginState.endpoint && sender != pluginState.endpoint)
+	if (pluginStateICMP.connected && pluginStateICMP.endpoint && sender != pluginStateICMP.endpoint)
 		return;
 
 	if (msg.type != ICMP_ECHO_REPLY)

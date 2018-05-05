@@ -11,7 +11,7 @@
 #include "client-handlers.h"
 #include "server-handlers.h"
 
-struct UDPPluginState pluginState;
+struct UDPPluginState pluginStateUDP;
 
 bool _UDPTestAvailability(uint32_t endpoint)
 {
@@ -22,9 +22,9 @@ bool _UDPTestAvailability(uint32_t endpoint)
 
 void _UDPCleanup()
 {
-	pluginState.connected = false;
-	pluginState.noReplyCount = 0;
-	UDPSocketClose(pluginState.socket);
+	pluginStateUDP.connected = false;
+	pluginStateUDP.noReplyCount = 0;
+	UDPSocketClose(pluginStateUDP.socket);
 }
 
 const char *_UDPGetVersion()
@@ -34,9 +34,9 @@ const char *_UDPGetVersion()
 
 void _UDPStart(uint32_t address, bool serverMode)
 {
-	pluginState.noReplyCount = 0;
-	pluginState.connected = false;
-	pluginState.endpoint = malloc(sizeof(struct sockaddr_in));
+	pluginStateUDP.noReplyCount = 0;
+	pluginStateUDP.connected = false;
+	pluginStateUDP.endpoint = malloc(sizeof(struct sockaddr_in));
 
 
 	UDPHandlers handlers[] = {
@@ -46,9 +46,9 @@ void _UDPStart(uint32_t address, bool serverMode)
 
 	_UDPRunning = true;
 
-	pluginState.socket = UDPSocketOpen();
+	pluginStateUDP.socket = UDPSocketOpen();
 
-	if (!pluginState.socket)
+	if (!pluginStateUDP.socket)
 	{
 		_UDPRunning = false;
 		return;
@@ -66,7 +66,7 @@ void _UDPStart(uint32_t address, bool serverMode)
 
 	handler->initialize(&endpoint);
 
-	int maxFD = MAX(pluginState.socket, tunDeviceFD);
+	int maxFD = MAX(pluginStateUDP.socket, tunDeviceFD);
 	struct timeval timeout;
 
 	while (_UDPRunning)
@@ -74,7 +74,7 @@ void _UDPStart(uint32_t address, bool serverMode)
 		fd_set fs;
 
 		FD_ZERO(&fs);
-		FD_SET(pluginState.socket, &fs);
+		FD_SET(pluginStateUDP.socket, &fs);
 		FD_SET(tunDeviceFD, &fs);
 
 		timeout.tv_sec = 1;
@@ -95,18 +95,18 @@ void _UDPStart(uint32_t address, bool serverMode)
 
 		if (lenAvailable == 0)
 		{
-			handler->checkHealth(pluginState.endpoint);
+			handler->checkHealth(pluginStateUDP.endpoint);
 			continue;
 		}
 
-		if (pluginState.connected && FD_ISSET(tunDeviceFD, &fs))
+		if (pluginStateUDP.connected && FD_ISSET(tunDeviceFD, &fs))
 		{
-			handler->tunnelData(pluginState.endpoint);
+			handler->tunnelData(pluginStateUDP.endpoint);
 		}
 
-		if (FD_ISSET(pluginState.socket, &fs))
+		if (FD_ISSET(pluginStateUDP.socket, &fs))
 		{
-			handler->UDPData(pluginState.endpoint);
+			handler->UDPData(pluginStateUDP.endpoint);
 		}
 	}
 

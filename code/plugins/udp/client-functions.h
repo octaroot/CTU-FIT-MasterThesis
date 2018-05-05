@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include "packet.h"
 
-extern struct UDPPluginState pluginState;
+extern struct UDPPluginState pluginStateUDP;
 
 void UDPSendConnectionRequest(int socketFD, struct sockaddr_in * endpoint);
 

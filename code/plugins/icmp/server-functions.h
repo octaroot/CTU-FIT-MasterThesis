@@ -9,7 +9,7 @@ extern uint16_t ICMPSequenceNumber, ICMPIDNumber;
 
 extern int _ICMPSocketFD;
 
-extern struct ICMPPluginState pluginState;
+extern struct ICMPPluginState pluginStateICMP;
 
 void ICMPHandleConnectionRequest(int socketFD, uint32_t endpoint, struct ICMPEchoMessage *request);
 

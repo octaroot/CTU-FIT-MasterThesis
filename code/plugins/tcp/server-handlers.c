@@ -21,13 +21,13 @@ void TCPServerInitialize(struct sockaddr_in *endpoint)
 	sock.sin_port = endpoint->sin_port;
 	sock.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	if (bind(pluginState.listener, (struct sockaddr*)(&sock), sizeof(sock)) < 0)
+	if (bind(pluginStateTCP.listener, (struct sockaddr*)(&sock), sizeof(sock)) < 0)
 	{
 		fprintf(stderr, "Unable to bind TCP socket to port %d\n", ntohs(endpoint->sin_port));
 		_TCPStop();
 	}
 
-	if (listen(pluginState.listener, 10) < 0)
+	if (listen(pluginStateTCP.listener, 10) < 0)
 	{
 		fprintf(stderr, "Unable to listen on TCP socket: %s\n", strerror(errno));
 		_TCPStop();
@@ -43,12 +43,12 @@ void TCPServerAcceptClient()
 		fd_set fs;
 
 		FD_ZERO(&fs);
-		FD_SET(pluginState.listener, &fs);
+		FD_SET(pluginStateTCP.listener, &fs);
 
 		timeout.tv_sec = 1;
 		timeout.tv_usec = 0;
 
-		int lenAvailable = select(pluginState.listener + 1, &fs, NULL, NULL, &timeout);
+		int lenAvailable = select(pluginStateTCP.listener + 1, &fs, NULL, NULL, &timeout);
 
 		if (lenAvailable < 0)
 		{
@@ -66,15 +66,15 @@ void TCPServerAcceptClient()
 		if (lenAvailable > 0)
 		{
 			socklen_t endpointLen;
-			memset(&pluginState.endpoint, 0, sizeof(pluginState.endpoint));
-			if ((pluginState.socket = accept(pluginState.listener, (struct sockaddr*)pluginState.endpoint, &endpointLen)) < 0) {
+			memset(&pluginStateTCP.endpoint, 0, sizeof(pluginStateTCP.endpoint));
+			if ((pluginStateTCP.socket = accept(pluginStateTCP.listener, (struct sockaddr*)pluginStateTCP.endpoint, &endpointLen)) < 0) {
 				fprintf(stderr, "Unable to accept a TCP client: %s\n", strerror(errno));
 				_TCPStop();
 			}
 
-			pluginState.noReplyCount = 0;
-			pluginState.auth = false;
-			pluginState.connected = true;
+			pluginStateTCP.noReplyCount = 0;
+			pluginStateTCP.auth = false;
+			pluginStateTCP.connected = true;
 			return;
 		}
 	}
@@ -83,12 +83,12 @@ void TCPServerAcceptClient()
 
 void TCPServerCheckHealth(struct sockaddr_in *endpoint)
 {
-	if (pluginState.noReplyCount++ > TCP_KEEPALIVE_TIMEOUT)
+	if (pluginStateTCP.noReplyCount++ > TCP_KEEPALIVE_TIMEOUT)
 	{
 		// timed out, close connection
-		pluginState.connected = false;
-		pluginState.auth = false;
-		close(pluginState.socket);
+		pluginStateTCP.connected = false;
+		pluginStateTCP.auth = false;
+		close(pluginStateTCP.socket);
 		return;
 	}
 }
@@ -98,10 +98,10 @@ void TCPServerTCPData(struct sockaddr_in *endpoint)
 	TCPMessage msg;
 	struct sockaddr_in sender;
 
-	if (TCPReceiveMsg(pluginState.socket, &sender, &msg))
+	if (TCPReceiveMsg(pluginStateTCP.socket, &sender, &msg))
 		return;
 
-	if (!pluginState.connected)
+	if (!pluginStateTCP.connected)
 		return;
 
 	if (!msg.size)
@@ -110,16 +110,16 @@ void TCPServerTCPData(struct sockaddr_in *endpoint)
 	switch (msg.packetType)
 	{
 		case TCP_CONNECTION_REQUEST:
-			TCPHandleConnectionRequest(pluginState.socket, &sender, &msg);
+			TCPHandleConnectionRequest(pluginStateTCP.socket, &sender, &msg);
 			break;
 		case TCP_AUTH_RESPONSE:
-			TCPHandleAuthResponse(pluginState.socket, &sender, &msg);
+			TCPHandleAuthResponse(pluginStateTCP.socket, &sender, &msg);
 			break;
 		case TCP_DATA:
 			TCPHandleTCPData(&msg);
 			break;
 		case TCP_KEEPALIVE:
-			TCPHandleKeepAlive(pluginState.socket, &sender, &msg);
+			TCPHandleKeepAlive(pluginStateTCP.socket, &sender, &msg);
 			break;
 	}
 }
@@ -134,5 +134,5 @@ void TCPServerTunnelData(struct sockaddr_in *endpoint)
 
 	msg.packetType = TCP_DATA;
 
-	TCPSendMsg(pluginState.socket, pluginState.endpoint, &msg);
+	TCPSendMsg(pluginStateTCP.socket, pluginStateTCP.endpoint, &msg);
 }

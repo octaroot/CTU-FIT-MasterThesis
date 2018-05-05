@@ -42,8 +42,8 @@ void ICMPSendKeepAlive(int socketFD, uint32_t endpoint)
 
 void ICMPHandleConnectionAccept(int socketFD, uint32_t endpoint)
 {
-	pluginState.connected = true;
-	pluginState.endpoint = endpoint;
+	pluginStateICMP.connected = true;
+	pluginStateICMP.endpoint = endpoint;
 	for (int i = 0; i < ICMP_NAT_PACKET_COUNT; ++i)
 	{
 		ICMPSendNATPacket(socketFD, endpoint);
@@ -72,7 +72,7 @@ void ICMPHandleAuthChallenge(int socketFD, uint32_t endpoint, struct ICMPEchoMes
 
 void ICMPHandleConnectionReject(int socketFD, uint32_t endpoint)
 {
-	pluginState.connected = false;
+	pluginStateICMP.connected = false;
 	_ICMPStop();
 }
 
@@ -86,5 +86,5 @@ void ICMPHandleICMPData(struct ICMPEchoMessage *msg)
 
 void ICMPHandleKeepAliveResponse(int socketFD, uint32_t endpoint)
 {
-	pluginState.noReplyCount = 0;
+	pluginStateICMP.noReplyCount = 0;
 }

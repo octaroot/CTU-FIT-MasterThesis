@@ -20,7 +20,7 @@ void ICMPHandleConnectionRequest(int socketFD, uint32_t endpoint, struct ICMPEch
 	msg.type = ICMP_ECHO_REPLY;
 	msg.seq = request->seq;
 
-	if (pluginState.connected)
+	if (pluginStateICMP.connected)
 	{
 		msg.size = 1;
 		msg.packetType = ICMP_CONNECTION_REJECT;
@@ -59,7 +59,7 @@ void ICMPHandleAuthResponse(int socketFD, uint32_t endpoint, struct ICMPEchoMess
 	msg.type = ICMP_ECHO_REPLY;
 	msg.seq = request->seq;
 
-	if (!pluginState.connected && request->size == AUTH_RESPONSE_LENGTH)
+	if (!pluginStateICMP.connected && request->size == AUTH_RESPONSE_LENGTH)
 	{
 		for (int i = 0; i < ICMP_MAX_AUTH_REQUESTS; ++i)
 		{
@@ -72,8 +72,8 @@ void ICMPHandleAuthResponse(int socketFD, uint32_t endpoint, struct ICMPEchoMess
 					ICMPSequenceNumber = request->seq;
 					ICMPIDNumber = request->id;
 
-					pluginState.connected = true;
-					pluginState.endpoint = endpoint;
+					pluginStateICMP.connected = true;
+					pluginStateICMP.endpoint = endpoint;
 
 					ICMPSendEcho(socketFD, endpoint, &msg);
 
@@ -103,7 +103,7 @@ void ICMPHandleAuthResponse(int socketFD, uint32_t endpoint, struct ICMPEchoMess
 
 void ICMPHandleNATPacket(int socketFD, uint32_t endpoint, struct ICMPEchoMessage * request)
 {
-	if (!pluginState.connected || pluginState.endpoint != endpoint)
+	if (!pluginStateICMP.connected || pluginStateICMP.endpoint != endpoint)
 		return;
 
 	NATSequenceNumbers[NATSequenceNumberIdx++] = request->seq;
@@ -112,10 +112,10 @@ void ICMPHandleNATPacket(int socketFD, uint32_t endpoint, struct ICMPEchoMessage
 
 void ICMPHandleKeepAlive(int socketFD, uint32_t endpoint, struct ICMPEchoMessage * request)
 {
-	if (!pluginState.connected || pluginState.endpoint != endpoint)
+	if (!pluginStateICMP.connected || pluginStateICMP.endpoint != endpoint)
 		return;
 
-	pluginState.noReplyCount = 0;
+	pluginStateICMP.noReplyCount = 0;
 
 	request->type = ICMP_ECHO_REPLY;
 

@@ -22,12 +22,12 @@ void TCPSendKeepAlive(int socketFD, struct sockaddr_in * endpoint)
 	msg.size = 1;
 	msg.packetType = TCP_KEEPALIVE;
 
-	TCPSendMsg(socketFD, pluginState.endpoint, &msg);
+	TCPSendMsg(socketFD, pluginStateTCP.endpoint, &msg);
 }
 
 void TCPHandleConnectionAccept(struct sockaddr_in * endpoint)
 {
-	pluginState.auth = true;
+	pluginStateTCP.auth = true;
 }
 
 void TCPHandleAuthChallenge(int socketFD, struct sockaddr_in * endpoint, struct TCPMessage *origMsg)
@@ -45,12 +45,12 @@ void TCPHandleAuthChallenge(int socketFD, struct sockaddr_in * endpoint, struct 
 	msg.size = AUTH_RESPONSE_LENGTH;
 	msg.packetType = TCP_AUTH_RESPONSE;
 
-	TCPSendMsg(socketFD, pluginState.endpoint, &msg);
+	TCPSendMsg(socketFD, pluginStateTCP.endpoint, &msg);
 }
 
 void TCPHandleConnectionReject(int socketFD, struct sockaddr_in * endpoint)
 {
-	pluginState.connected = false;
+	pluginStateTCP.connected = false;
 	_TCPStop();
 }
 
@@ -64,5 +64,5 @@ void TCPHandleTCPData(struct TCPMessage *msg)
 
 void TCPHandleKeepAliveResponse()
 {
-	pluginState.noReplyCount = 0;
+	pluginStateTCP.noReplyCount = 0;
 }

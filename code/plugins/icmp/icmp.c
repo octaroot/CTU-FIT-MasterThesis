@@ -12,7 +12,7 @@
 
 int _ICMPSocketFD;
 
-struct ICMPPluginState pluginState;
+struct ICMPPluginState pluginStateICMP;
 
 bool _ICMPTestAvailability(uint32_t endpoint)
 {
@@ -23,8 +23,8 @@ bool _ICMPTestAvailability(uint32_t endpoint)
 
 void _ICMPCleanup()
 {
-	pluginState.connected = false;
-	pluginState.noReplyCount = 0;
+	pluginStateICMP.connected = false;
+	pluginStateICMP.noReplyCount = 0;
 	ICMPSocketClose(_ICMPSocketFD);
 }
 
@@ -35,8 +35,8 @@ const char *_ICMPGetVersion()
 
 void _ICMPStart(uint32_t endpoint, bool serverMode)
 {
-	pluginState.noReplyCount = 0;
-	pluginState.connected = false;
+	pluginStateICMP.noReplyCount = 0;
+	pluginStateICMP.connected = false;
 	ICMPHandlers handlers[] = {
 			{ICMPClientInitialize, ICMPClientCheckHealth, ICMPClientICMPData, ICMPClientTunnelData},
 			{ICMPServerInitialize, ICMPServerCheckHealth, ICMPServerICMPData, ICMPServerTunnelData},
@@ -85,17 +85,17 @@ void _ICMPStart(uint32_t endpoint, bool serverMode)
 
 		if (lenAvailable == 0)
 		{
-			handler->checkHealth(pluginState.endpoint);
+			handler->checkHealth(pluginStateICMP.endpoint);
 		}
 
-		if (pluginState.connected && FD_ISSET(tunDeviceFD, &fs))
+		if (pluginStateICMP.connected && FD_ISSET(tunDeviceFD, &fs))
 		{
-			handler->tunnelData(pluginState.endpoint);
+			handler->tunnelData(pluginStateICMP.endpoint);
 		}
 
 		if (FD_ISSET(_ICMPSocketFD, &fs))
 		{
-			handler->ICMPData(pluginState.endpoint);
+			handler->ICMPData(pluginStateICMP.endpoint);
 		}
 	}
 

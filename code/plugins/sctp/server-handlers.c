@@ -21,16 +21,16 @@ void SCTPServerInitialize(struct sockaddr_in *endpoint)
 	sock.sin_port = endpoint->sin_port;
 	sock.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	if (bind(pluginState.listener, (struct sockaddr*)(&sock), sizeof(sock)) < 0)
+	if (bind(pluginStateSCTP.listener, (struct sockaddr*)(&sock), sizeof(sock)) < 0)
 	{
 		fprintf(stderr, "Unable to bind SCTP socket to port %d\n", ntohs(endpoint->sin_port));
 		_SCTPStop();
 	}
-	SCTPSetEvents(pluginState.listener);
+	SCTPSetEvents(pluginStateSCTP.listener);
 
-	SCTPSetInitMsg(pluginState.listener);
+	SCTPSetInitMsg(pluginStateSCTP.listener);
 
-	if (listen(pluginState.listener, 10) < 0)
+	if (listen(pluginStateSCTP.listener, 10) < 0)
 	{
 		fprintf(stderr, "Unable to listen on SCTP socket: %s\n", strerror(errno));
 		_SCTPStop();
@@ -46,12 +46,12 @@ void SCTPServerAcceptClient()
 		fd_set fs;
 
 		FD_ZERO(&fs);
-		FD_SET(pluginState.listener, &fs);
+		FD_SET(pluginStateSCTP.listener, &fs);
 
 		timeout.tv_sec = 1;
 		timeout.tv_usec = 0;
 
-		int lenAvailable = select(pluginState.listener + 1, &fs, NULL, NULL, &timeout);
+		int lenAvailable = select(pluginStateSCTP.listener + 1, &fs, NULL, NULL, &timeout);
 
 		if (lenAvailable < 0)
 		{
@@ -69,15 +69,15 @@ void SCTPServerAcceptClient()
 		if (lenAvailable > 0)
 		{
 			socklen_t endpointLen;
-			memset(&pluginState.endpoint, 0, sizeof(pluginState.endpoint));
-			if ((pluginState.socket = accept(pluginState.listener, (struct sockaddr*)pluginState.endpoint, &endpointLen)) < 0) {
+			memset(&pluginStateSCTP.endpoint, 0, sizeof(pluginStateSCTP.endpoint));
+			if ((pluginStateSCTP.socket = accept(pluginStateSCTP.listener, (struct sockaddr*)pluginStateSCTP.endpoint, &endpointLen)) < 0) {
 				fprintf(stderr, "Unable to accept a SCTP client: %s\n", strerror(errno));
 				_SCTPStop();
 			}
 
-			pluginState.noReplyCount = 0;
-			pluginState.auth = false;
-			pluginState.connected = true;
+			pluginStateSCTP.noReplyCount = 0;
+			pluginStateSCTP.auth = false;
+			pluginStateSCTP.connected = true;
 			return;
 		}
 	}
@@ -86,12 +86,12 @@ void SCTPServerAcceptClient()
 
 void SCTPServerCheckHealth(struct sockaddr_in *endpoint)
 {
-	if (pluginState.noReplyCount++ > SCTP_KEEPALIVE_TIMEOUT)
+	if (pluginStateSCTP.noReplyCount++ > SCTP_KEEPALIVE_TIMEOUT)
 	{
 		// timed out, close connection
-		pluginState.connected = false;
-		pluginState.auth = false;
-		close(pluginState.socket);
+		pluginStateSCTP.connected = false;
+		pluginStateSCTP.auth = false;
+		close(pluginStateSCTP.socket);
 		return;
 	}
 }
@@ -101,10 +101,10 @@ void SCTPServerSCTPData(struct sockaddr_in *endpoint)
 	SCTPMessage msg;
 	struct sockaddr_in sender;
 
-	if (SCTPReceiveMsg(pluginState.socket, &msg))
+	if (SCTPReceiveMsg(pluginStateSCTP.socket, &msg))
 		return;
 
-	if (!pluginState.connected)
+	if (!pluginStateSCTP.connected)
 		return;
 
 	if (!msg.size)
@@ -114,13 +114,13 @@ void SCTPServerSCTPData(struct sockaddr_in *endpoint)
 	switch (msg.packetType)
 	{
 		case SCTP_CONNECTION_REQUEST:
-			SCTPHandleConnectionRequest(pluginState.socket, &sender, &msg);
+			SCTPHandleConnectionRequest(pluginStateSCTP.socket, &sender, &msg);
 			break;
 		case SCTP_AUTH_RESPONSE:
-			SCTPHandleAuthResponse(pluginState.socket, &sender, &msg);
+			SCTPHandleAuthResponse(pluginStateSCTP.socket, &sender, &msg);
 			break;
 		case SCTP_KEEPALIVE:
-			SCTPHandleKeepAlive(pluginState.socket, &sender, &msg);
+			SCTPHandleKeepAlive(pluginStateSCTP.socket, &sender, &msg);
 			break;
 	}
 }
@@ -133,5 +133,5 @@ void SCTPServerTunnelData(struct sockaddr_in *endpoint)
 	if (!msg.size)
 		return;
 
-	SCTPSendData(pluginState.socket, &msg);
+	SCTPSendData(pluginStateSCTP.socket, &msg);
 }

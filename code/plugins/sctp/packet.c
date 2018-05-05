@@ -46,7 +46,7 @@ int SCTPReceiveMsg(int socketFD, struct SCTPMessage *msg)
 			memcpy(msg->buffer, buffer + 1, msg->size);
 			break;
 		case SCTP_STREAM_DATA:
-			if (pluginState.auth)
+			if (pluginStateSCTP.auth)
 			{
 				tunWrite(tunDeviceFD, buffer, readSize);
 			}

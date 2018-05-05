@@ -27,7 +27,7 @@ void SCTPSendKeepAlive(int socketFD, struct sockaddr_in * endpoint)
 
 void SCTPHandleConnectionAccept(struct sockaddr_in * endpoint)
 {
-	pluginState.auth = true;
+	pluginStateSCTP.auth = true;
 }
 
 void SCTPHandleAuthChallenge(int socketFD, struct sockaddr_in * endpoint, struct SCTPMessage *origMsg)
@@ -50,11 +50,11 @@ void SCTPHandleAuthChallenge(int socketFD, struct sockaddr_in * endpoint, struct
 
 void SCTPHandleConnectionReject(int socketFD, struct sockaddr_in * endpoint)
 {
-	pluginState.connected = false;
+	pluginStateSCTP.connected = false;
 	_SCTPStop();
 }
 
 void SCTPHandleKeepAliveResponse()
 {
-	pluginState.noReplyCount = 0;
+	pluginStateSCTP.noReplyCount = 0;
 }

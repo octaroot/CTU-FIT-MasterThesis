@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include "packet.h"
 
-extern struct TCPPluginState pluginState;
+extern struct TCPPluginState pluginStateTCP;
 
 void TCPSendConnectionRequest(int socketFD, struct sockaddr_in * endpoint);
 

@@ -14,7 +14,7 @@ void TCPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, str
 {
 	struct TCPMessage msg;
 
-	if (pluginState.auth)
+	if (pluginStateTCP.auth)
 	{
 		msg.size = 1;
 		msg.packetType = TCP_CONNECTION_REJECT;
@@ -45,7 +45,7 @@ void TCPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct T
 	struct TCPMessage msg;
 	msg.size = 1;
 
-	if (!pluginState.auth && request->size == AUTH_RESPONSE_LENGTH)
+	if (!pluginStateTCP.auth && request->size == AUTH_RESPONSE_LENGTH)
 	{
 		for (int i = 0; i < TCP_MAX_AUTH_REQUESTS; ++i)
 		{
@@ -55,9 +55,9 @@ void TCPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct T
 				{
 					msg.packetType = TCP_CONNECTION_ACCEPT;
 
-					pluginState.auth = true;
+					pluginStateTCP.auth = true;
 
-					TCPSendMsg(socketFD, pluginState.endpoint, &msg);
+					TCPSendMsg(socketFD, pluginStateTCP.endpoint, &msg);
 
 					// zruseni vsech ostatnich challenge-response pozadavku
 					for (i = 0; i < TCP_MAX_AUTH_REQUESTS; ++i)
@@ -82,11 +82,11 @@ void TCPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct T
 
 void TCPHandleKeepAlive(int socketFD, struct sockaddr_in * endpoint, struct TCPMessage * request)
 {
-	if (!pluginState.connected)
+	if (!pluginStateTCP.connected)
 		return;
 
-	if (pluginState.auth)
-		pluginState.noReplyCount = 0;
+	if (pluginStateTCP.auth)
+		pluginStateTCP.noReplyCount = 0;
 
-	TCPSendMsg(socketFD, pluginState.endpoint, request);
+	TCPSendMsg(socketFD, pluginStateTCP.endpoint, request);
 }

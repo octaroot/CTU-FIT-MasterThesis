@@ -14,13 +14,13 @@ void ICMPServerInitialize(uint32_t endpoint)
 
 void ICMPServerCheckHealth(uint32_t endpoint)
 {
-	if (!pluginState.connected)
+	if (!pluginStateICMP.connected)
 		return;
 
-	if (pluginState.noReplyCount++ > ICMP_KEEPALIVE_TIMEOUT)
+	if (pluginStateICMP.noReplyCount++ > ICMP_KEEPALIVE_TIMEOUT)
 	{
 		// timed out, close connection
-		pluginState.connected = false;
+		pluginStateICMP.connected = false;
 		return;
 	}
 }
@@ -33,7 +33,7 @@ void ICMPServerICMPData(uint32_t endpoint)
 	if (ICMPReceiveEcho(_ICMPSocketFD, &sender, &msg))
 		return;
 
-	if (pluginState.connected && sender != pluginState.endpoint)
+	if (pluginStateICMP.connected && sender != pluginStateICMP.endpoint)
 		return;
 
 	if (msg.type != ICMP_ECHO_REQUEST)
@@ -75,5 +75,5 @@ void ICMPServerTunnelData(uint32_t endpoint)
 	msg.seq = NATSequenceNumbers[NATSequenceNumberIdx++];
 	NATSequenceNumberIdx %= ICMP_NAT_PACKET_COUNT;
 
-	ICMPSendEcho(_ICMPSocketFD, pluginState.endpoint, &msg);
+	ICMPSendEcho(_ICMPSocketFD, pluginStateICMP.endpoint, &msg);
 }

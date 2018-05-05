@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include "packet.h"
 
-extern struct SCTPPluginState pluginState;
+extern struct SCTPPluginState pluginStateSCTP;
 
 void SCTPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, struct SCTPMessage *request);
 
