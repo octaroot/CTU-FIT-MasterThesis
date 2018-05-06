@@ -1125,6 +1125,7 @@ fit.cvut.cz.		797	IN	A	147.32.232.248
     
     
     \subsection{Kódování dat tunelu}
+    \label{sec:dns-encoding}
     
     Na rozdíl od ostatních implementovaných pluginů pro tunelování dat, \texttt{DNS} tunelování vyžaduje \textit{transformaci} přenášených dat. Specifikace \texttt{DNS} \cite[RFC 1035]{rfc1035} totiž v části 3.5 jasně vymezuje maximální délku 63 znaků subdomény, maximálně 255 znaků celkem a povolené znaky doménových jmen -- alfanumerické znaky (a-z, A-Z a 0-9) a pomlčka. V případě odpovědi je však k dispozici typ odpovědi \texttt{NULL}, který dle článku 3.3.10 specifikace \cite[RFC 1035]{rfc1035} smí obsahovat jakákoliv data s maximální délkou 65535 bajtů. Tento typ \texttt{DNS} záznamu však není příliš rozšířený a jeho nadměrné používání, poukazující na možné tunelové spojení, lze snadno strojově detekovat a blokovat.
     
@@ -1134,13 +1135,11 @@ fit.cvut.cz.		797	IN	A	147.32.232.248
     
     I přesto, že specifikace povoluje jak malé, tak velké alfanumerické znaky, fakticky dochází k ignorování velikosti písmen, viz experiment \ref{code:dns-case-insensitive}. Fakticky je tedy pro každou část doménového jména k dispozici 26 znaků, 10 číslic a pomlčka\footnote{Žádná část doménového jména nesmí začínat ani končit pomlčkou}, dohromady 37 různých znaků.
     
-    % TODO ted sem dej MI-SPI, neco jako idealni kod nebo neco proste, ze nejblizsi ''cely`` kodovani je 2^5 nebo tak neco, musim si to osvezit.
-    
     Kódování \textit{Base32} je schopno v jednom znaku kódu uchovat 5 bitů informace původních dat. Vyžaduje k tomu alespoň $2^5$ znaků abecedy, což povolený rozsah znaků splňuje.
     
     Například, pokud pro přenesení zprávy \textit{All your base are belong to us} na \texttt{DNS} server je možné tuto zprávu zakódovat do podoby\\ 
-        \texttt{ifwgyidzn52xeidcmfzwkidbojssaytfnrxw4zzaorxsa5ltbi.example.com}
-    
+        \texttt{ifwgyidzn52xeidcmfzwkidbojssaytfnrxw4zzaorxsa5ltbi.example.com} \\
+    přičemž subdoména je složena z tajné zprávy. Touto cestou lze přenášet informace ze sítě omezené \textit{captive portálem}.
     
     
     \begin{figure}[h]
@@ -1156,8 +1155,27 @@ $ dig +short fIT.CvUt.cZ A @8.8.8.8
 
     
     
+    \subsubsection{Porušení specifikace omezující znaky domény}
     
-
+    Na konferenci \textit{Shakacon}\cite{shakacon-heyoka} v roce 2009 prezentovali autoři \texttt{DNS} tunelovacího nástroje \textit{Heyoka} své nálezy z oblasti podpory doménových jmen porušujících specifikace napříč různými \texttt{DNS} servery. Autoři zjistili, že některé \texttt{DNS} servery jsou schopny zpracovat i doménová jména, která obsahují nejen \texttt{ASCII} znaky mimo specifikace, ale rovněž netisknutelné znaky. Díky tomu byli schopni za jistých podmínek dosáhnout výrazně lepších vlastností tunelového spojení. Nedodržením specifikace se však autoři vystavují riziku komunikace prostřednictvím \texttt{DNS} serveru, který nebude \texttt{DNS} dotazům rozumět a tunelové spojení se nepodaří navázat. Vytvořené softwarové řešení je autory označeno jako \textit{Proof of concept}, tedy jako \textit{demonstrace principů}.
+    
+    \subsubsection{Přenos dat v \texttt{TXT} záznamu}
+    
+    Pro přenos dat z \texttt{DNS} serveru zpět ke klientovi lze využít \texttt{TXT} záznamy. Takový záznam může obsahovat řetězec délky až 255 bajtů. Je však přípustné, aby \texttt{TXT} záznam obsahoval takový řetězců více a tím pádem je možné pomocí \texttt{TXT} záznamu přenést v rámci jedné odpovědi více, než 255 bajtů. Odkazovaná aplikace \textit{Heyoka}\cite{shakacon-heyoka} pro zvýšení prostupnosti rovněž experimentuje s binárními daty v rámci \texttt{TXT} záznamů, což ovšem opět vnáší problém kompatibility \texttt{DNS} serverů zpracovávajících \texttt{DNS} odpověď.
+    
+    Pro zachování vymezené sady znaků dle \textit{RFC} je možné opět použít kódování \texttt{Base32}, schopné do jednoho znaku odpovědi uložit 5 bitů informace. \texttt{TXT} záznamy však dbají na velikost písmen a díky tomu je pro kódování k dispozici abeceda složená z malých a velkých znaků abecedy (52 znaků), číslice (10 znaků) a některé speciální znaky, jako například znak \texttt{+} (plus), nebo \texttt{-} (minus). Tímto způsobem lze dosáhnout abecedy o 64 různých znacích. Proto je možné k zakódování informace do \texttt{TXT} záznamu možné zvolit kódování \texttt{Base64}, které do jednoho znaku odpovědi zakóduje 6 bitů informace.
+    
+    Například, pokud pro přenesení zprávy \textit{All your base are belong to us} z \texttt{DNS} serveru jako odpověď v rámci záznamu \texttt{TXT} je možné tuto zprávu zakódovat do podoby \texttt{QWxsIHlvdXIgYmFzZSBhcmUgYmVsb25nIHRvIHVz}, která obsahuje pouze 40 znaků, namísto 50 v případě užití \texttt{Base32}.
+    
+    
+    \subsubsection{Použití jiných typů \texttt{DNS} záznamů}
+    
+    Mimo záznam typu \texttt{TXT} a experimentální typ \texttt{NULL}, popsaný v podkapitole \ref{sec:dns-encoding}\textit{Kódování dat tunelu}, je možné data ze serveru ke klientovi přenášet i pomocí jiných typů záznamů. Jedná se o běžněji používané \texttt{DNS} záznamy, na které se však váží různá omezení a nejsou proto ideálními kandidáty pro přenos dat. Jedná se zejména o typy \texttt{A}, \texttt{AAAA}, \texttt{CNAME}, \texttt{NS} a \texttt{MX}. Výhodou užití těchto \texttt{DNS} záznamů je nižší riziko detekce tunelu.
+    
+    
+    \subsection{Implementace pluginu pro \texttt{DNS} tunelování}
+    
+    Vzhledem k rozsáhlé nabídce dostupných nástrojů pro tunelování \texttt{DNS} -- od nástrojů pro tunelování po nástroje pro tichou exfiltraci dat -- není v rámci této diplomové práce implementován plugin pro \texttt{DNS} tunelování. Namísto toho jsou vybrané dostupné nástroje analyzovány a srovnány s ostatními technikami obcházení \textit{captive portálu}.
 
     
     
@@ -1168,7 +1186,137 @@ $ dig +short fIT.CvUt.cZ A @8.8.8.8
 
 \chapter{Testování}
 
-Doplňte vhodný text.
+Tato kapitola je věnována testování implementovaných pluginů, srovnání s jiným dostupným software a porovnání vlastností vytvořených síťových tunelů.
+
+\section{Základní testovací prostředí}
+
+Jako klientská část pro testování implementovaného software a ostatních srovnávaných programů byl použit virtualizovaný operační systém \textit{Ubuntu 17.10 x64} serverové verze s 8GB paměti, 4 jádry procesoru. Přístup do sítě byl záměrně omezen na hodnotu 10 Mbit/s, aby byl minimalizován efekt \uv{úzkého hrdla} v částech síťové infrastruktury, které nelze z pozice uživatele ovlivnit. Distribuce \textit{Ubuntu} byla zvolena pro široký výběr a snadnou instalaci systémových balíčků, nutných k sestavení a spuštění softwarového řešení. Serverová verze distribuce \textit{Ubuntu} byla zvolena pro minimalizaci podílu částí operačního systému na síťovém provozu (například systém automatických aktualizací, nebo jiná aktivita vyvinutá uživatelem).
+
+\section{Testování reálného provozu}
+
+Testování skrze reálnou síť bylo provedeno s pomocí kontejnerové služby provozované společností \textit{DigitalOcean}. S pomocí této služby byla vytvořena serverová strana tunelu, umístěná ve Frankfurtském datacentru společnosti \textit{\mbox{DigitalOcean}}. Jako testovací kontejner byl zvolen serverový obraz Linuxové distribuce \textit{Ubuntu}, konkrétně \textit{Ubuntu 16.04.4 x64}. Kontejner měl k dispozici dedikované 4GB pamětí a 2 jádra \textit{vCPU}. Kontejner disponoval připojením do gigabitové sítě.
+
+\subsection{Příprava kontejneru pro testování}
+
+Pro sestavení softwarového řešení ze zdrojových kódů bylo třeba ve vytvořeném kontejneru doinstalovat některé závislosti projektu. Jednalo se o balíčky:
+\begin{itemize}
+ \item \texttt{build-essential} -- základní nástroje pro překlad zdrojových kódů
+ \item \texttt{libssl-dev} -- vývojová verze knihovny \textit{OpenSSL}
+ \item \texttt{libsctp-dev} -- vývojové prostředí pro protokol \texttt{SCTP}
+ \item \texttt{iperf} -- nástroj pro testování síťové prostupnosti
+\end{itemize}
+
+
+\subsection{Testování simulovaného stahování souboru pomocí \texttt{HTTP}}
+
+Tento test se skládal z testování simulace činnosti reálného uživatele -- stahování dat pomocí protokolu \texttt{HTTP}, protože se jedná o jeden z nejtypičtějších scénářů uživatele Internetu. Za tímto účelem byl na serverové straně tunelu vytvořen binární soubor o velikosti 16MB s pomocí příkazu zachyceného v ukázce kódu \ref{code:dd}.
+
+
+    \begin{figure}[h]
+	\begin{lstlisting}[label=code:dd,caption=Vytvoření souboru binárních dat za účelem testování přenosu pomocí \texttt{HTTP},frame=single,numbers=left]
+$ dd if=/dev/random of=random.16 bs=1M count=16
+16+0 records in
+16+0 records out
+16777216 bytes (17 MB, 16 MiB) copied, 0,0254478 s, 659 MB/s
+      \end{lstlisting}
+    \end{figure}
+
+    K testování (stahování dat) byl použit příkaz \texttt{wget}, dostupný v distribuci \textit{Ubuntu} pomocí stejnojmenného balíčku. Otestovány byly samostatně všechny implementované pluginy pro tunelování. Všechny uvedené hodnoty jsou průměrem deseti nezávislých měření. Jako kontrolní měření bylo provedeno stažení dat bez využití tunelu. Ukázka výstupu nástroje \texttt{wget} je zachycena v ukázce kódu \ref{code:wget}. Jako \texttt{HTTP} server byl použit modul jazyka \textit{Python} s názvem \textit{SimpleHTTPServer}, spustěn pomocí příkazu \texttt{python -m SimpleHTTPServer}. Server neprováděl žádnou kompresi přenášených dat.
+    
+    \begin{table}[h]
+	\centering
+	\begin{tabular}{|l||l|l|}
+	\hline
+	Plugin  & Délka přenosu & Průměrná rychlost přenosu \\ \hline \hline
+	\texttt{ICMP}    & 15,2 vteřin   & 1,05 MB/s                 \\ \hline
+	\texttt{TCP}     & 91,8 vteřin   & 179,2 KB/s                \\ \hline
+	\texttt{UDP}     & 15,1 vteřin   & 1,06 MB/s                 \\ \hline
+	\texttt{SCTP}    & 26,7 vteřin   & 631 KB/s                  \\ \hline
+	(žádný) & 14,4 vteřin   & 1,12 MB/s                 \\ \hline
+	\end{tabular}
+	\caption{Tabulka zachycující naměřenou dobu přenosu dat pomocí protokolu \texttt{HTTP} s využitím různých tunelů}
+	\label{tab:http-download}
+    \end{table}
+       
+       
+       Z tabulky \ref{tab:http-download} plyne, že ideální tunelové spojení pro přenos dat pomocí \texttt{HTTP} je tunel na bázi \texttt{UDP} nebo \texttt{ICMP}. Naměřené hodnoty reflektují pluginu pro \texttt{TCP} tunelování reflektují problém popsaný v podkapitole \ref{subsec:tcp-tunnel-issues} \textit{Potíže s \texttt{TCP} jako prostředkem pro tunelování}. Protokol \texttt{HTTP} pro komunikaci totiž využívá \texttt{TCP}, což v kombinaci s \texttt{TCP} tunelem neposkytuje optimální výkon. Délka přenosu dat s využitím \texttt{SCTP} tunelu se nachází ve středu spektra mezi nejvíce a nejméně vhodnými technikami tunelování pro \texttt{HTTP} přenosy. To je způsobeno relaxováním podmínek přenosu -- implementovaný plugin pro datový proud nevyžaduje dodržení seřazení zpráv, ale (z principu \texttt{SCTP}) vyžaduje potvrzení doručení zpráv -- oproti rychlejším \texttt{UDP} a \texttt{ICMP} tunelům. Protože stahovaná data jsou přenášena protokolem, který vynucuje potvrzování doručení zpráva zachování pořadí, dochází k propadu prostupnosti. Ta je mimo jiné způsobena \texttt{TCP} mechanismy pro řízení zahlcení linky, které pro správné dynamické přizpůsobení \textit{potřebují} ztrátovost paketů, která však v tunelech pomocí \texttt{SCTP} a \texttt{TCP} nenastává.
+       
+       %TODO - tabulka prenosu nekolika DNS tunelu, nebo neceho
+    
+    
+    \begin{figure}[h]
+	\begin{lstlisting}[label=code:wget,caption=Ukázkový výstup příkazu \texttt{wget},frame=single,numbers=left, linewidth=1.1\textwidth]
+--2018-04-06 17:13:35--  http://192.168.99.2:8000/random.16
+Connecting to 192.168.99.2:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 16777216 (16M) [application/octet-stream]
+Saving to: "/dev/null"
+
+     0K .......... .......... .......... .......... ..........  0% 1,01K 17s
+    50K .......... .......... .......... .......... ..........  0% 1,07M 16s
+   100K .......... .......... .......... .......... ..........  0% 1,04M 15s
+   150K .......... .......... .......... .......... ..........  1% 1,07M 15s
+   200K .......... .......... .......... .......... ..........  1% 1,07M 15s
+   250K .......... .......... .......... .......... ..........  1% 1,04M 15s
+
+[...]
+
+ 16200K .......... .......... .......... .......... .......... 99% 1,07M 0s
+ 16250K .......... .......... .......... .......... .......... 99% 1,04M 0s
+ 16300K .......... .......... .......... .......... .......... 99% 1,07M 0s
+ 16350K .......... .......... .......... ....                         100% 1,04M=15s
+
+2018-04-06 17:13:50 (1,05 MB/s) - ‘/dev/null’ saved [16777216/16777216]
+      \end{lstlisting}
+    \end{figure}
+
+\subsection{Testování provozu pomocí nástroje \texttt{iperf3}}
+
+Nástroj \textit{iperf} slouží k testování síťové prostupnosti. K testování byla použita nejnovější stabilní verze \texttt{iperf 3.1.3}. Délka testování byla ponechána na výchozí hodnotě 10 vteřin. Testování proběhlo pomocí protokolu \texttt{TCP}.
+
+Nástroj \texttt{iperf3} funguje na základě zahlcení sítě daty pro přenos. Na velký nátlak dat nejlépe reaguje tunel pomocí \texttt{UDP}. V porovnání s testem stahování dat pomocí \texttt{HTTP} si v \texttt{iperf3} testu vede lépe implementace \texttt{SCTP} tunelu, kdy je -- dle záznamů síťového provozu aplikací \textit{Wireshark} -- efektivněji využíván princip \textit{kousků} (anglicky \textit{chunks}) dat, sdílející hlavičku paketu. Naopak horší vlastnosti při zahlcení vykazuje \texttt{ICMP} tunel, kdy při odesílání \texttt{ICMP} zpráv soket začal hlásit chyby typu \textit{No buffer space available}.
+
+    \begin{table}[h]
+	\centering
+	\begin{tabular}{|l||l|l|}
+	\hline
+	Plugin   & Průměrná rychlost přenosu \\ \hline \hline
+	\texttt{ICMP}      & 959,5 KB/s                 \\ \hline
+	\texttt{TCP}       & 29,2 KB/s                \\ \hline
+	\texttt{UDP}       & 1,01 MB/s                 \\ \hline
+	\texttt{SCTP}       & 851 KB/s                  \\ \hline
+	(žádný)   & 1,12 MB/s                 \\ \hline
+	\end{tabular}
+	\caption{Tabulka zachycující naměřenou dobu přenosu dat pomocí nástroje \texttt{iperf3} s využitím různých tunelů}
+	\label{tab:iperf-download}
+    \end{table}
+  
+  
+    \begin{figure}[h]
+	\begin{lstlisting}[label=code:iperf,caption=Ukázkový výstup nástroje \texttt{iperf3},frame=single,numbers=left, linewidth=1.1\textwidth]
+  iperf3 -c 192.168.99.2
+Connecting to host 192.168.99.2, port 5201
+[  4] local 192.168.99.1 port 39950 connected to 192.168.99.2 port 5201
+[ ID] Interval           Transfer     Bandwidth       Retr  Cwnd
+[  4]   0.00-1.00   sec  1.23 MBytes  10.3 Mbits/sec    0   77.8 KBytes       
+[  4]   1.00-2.00   sec  1.12 MBytes  9.38 Mbits/sec    0    126 KBytes       
+[  4]   2.00-3.00   sec  1.37 MBytes  11.5 Mbits/sec    0    180 KBytes       
+[  4]   3.00-4.00   sec  1.37 MBytes  11.5 Mbits/sec    0    233 KBytes       
+[  4]   4.00-5.00   sec  1.37 MBytes  11.5 Mbits/sec    0    288 KBytes       
+[  4]   5.00-6.00   sec  1.30 MBytes  10.9 Mbits/sec    0    342 KBytes       
+[  4]   6.00-7.00   sec  1.37 MBytes  11.5 Mbits/sec    0    396 KBytes       
+[  4]   7.00-8.00   sec  1.37 MBytes  11.5 Mbits/sec    0    451 KBytes       
+[  4]   8.00-9.00   sec  1.37 MBytes  11.5 Mbits/sec    0    505 KBytes       
+[  4]   9.00-10.00  sec  1.30 MBytes  10.9 Mbits/sec    0    559 KBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bandwidth       Retr
+[  4]   0.00-10.00  sec  13.2 MBytes  11.0 Mbits/sec    0             sender
+[  4]   0.00-10.00  sec  12.7 MBytes  10.67 Mbits/sec                  receiver
+
+iperf Done.
+      \end{lstlisting}
+    \end{figure}
+
 
 
 \begin{conclusion}
