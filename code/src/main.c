@@ -11,19 +11,21 @@
 #include "mux.h"
 #include "resolve.h"
 #include "keyfile.h"
+#include "plugin-parser.h"
 
 int tunDeviceFD;
 
 static void printHelp(char *programName)
 {
 	fprintf(stderr, "%s v%s\n", programName, PROGRAM_VERSION);
-	fprintf(stderr, "  -v               print program version and exit\n");
-	fprintf(stderr, "  -k               keyfile filename (required for auth)\n");
-	fprintf(stderr, "  -l               list compiled plugins and exit\n");
-	fprintf(stderr, "  -h               print help and exit\n");
-	fprintf(stderr, "  -t <server>      test connectivity to server and exit\n");
-	fprintf(stderr, "  -s               run in server mode\n");
-	fprintf(stderr, "  -c <server>      run in client mode, connect to server ip/hostname\n");
+	fprintf(stderr, "  -v                     print program version and exit\n");
+	fprintf(stderr, "  -k                     keyfile filename (required for auth)\n");
+	fprintf(stderr, "  -l                     list compiled plugins and exit\n");
+	fprintf(stderr, "  -h                     print help and exit\n");
+	fprintf(stderr, "  -t <server>            test connectivity to server and exit\n");
+	fprintf(stderr, "  -p [<name[:port]>,...] use plugin on port, use comma to specify more plugins\n");
+	fprintf(stderr, "  -s                     run in server mode\n");
+	fprintf(stderr, "  -c <server>            run in client mode, connect to server ip/hostname\n");
 	exit(EXIT_SUCCESS);
 }
 
@@ -52,7 +54,10 @@ int main(int argc, char **argv)
 	char *serverName = "localhost";
 	uint32_t endpoint;
 
-	while ((parameter = getopt(argc, argv, "lvht:sc:k:")) != -1)
+	struct pluginOptions plugins[MAX_PLUGINS];
+	char * requiredPlugins = NULL;
+
+	while ((parameter = getopt(argc, argv, "lvht:sc:k:p:")) != -1)
 	{
 		switch (parameter)
 		{
@@ -79,6 +84,9 @@ int main(int argc, char **argv)
 				clientMode = true;
 				serverName = optarg;
 				break;
+			case 'p':
+				requiredPlugins = optarg;
+				break;
 			default:
 				fprintf(stderr, "Unknown or missing operand. Refer to program help (-h)\n");
 				exit(EXIT_FAILURE);
@@ -92,6 +100,20 @@ int main(int argc, char **argv)
 		{
 			fprintf(stderr, "Unknown operand \"%s\". Refer to program help (-h)\n", argv[i]);
 		}
+		exit(EXIT_FAILURE);
+	}
+
+	if (requiredPlugins == NULL)
+	{
+		fprintf(stderr, "You need to specify at least one plugin, e.g. -p tcp:80\n");
+		exit(EXIT_FAILURE);
+	}
+
+	int parsedPlugins = parsePluginOptions(requiredPlugins, plugins);
+
+	if (parsedPlugins < 1)
+	{
+		fprintf(stderr, "You need to specify at least one plugin, e.g. -p tcp:80\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -146,7 +168,8 @@ int main(int argc, char **argv)
 		printf("Connecting to server %s ...\n", serverName);
 	}
 
-	muxStart(endpoint, serverMode);
+	muxStart(serverMode, endpoint, plugins, parsedPlugins);
+	//muxStart(endpoint, serverMode);
 
 	tunClose(tunDeviceFD);
 	keyfileClose();
