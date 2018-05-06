@@ -15,34 +15,6 @@
 
 extern int tunDeviceFD;
 
-bool _SCTPRunning;
-
-void _SCTPCleanup();
-
-bool _SCTPTestAvailability(uint32_t address);
-
-const char *_SCTPGetVersion();
-
-void _SCTPStart(uint32_t address, bool serverMode);
-
-void _SCTPStop();
-
-void _SCTPStopClient();
-
-typedef struct SCTPHandlers
-{
-	void (*initialize)(struct sockaddr_in * endpoint);
-
-	void (*acceptClient)();
-
-	void (*checkHealth)(struct sockaddr_in * endpoint);
-
-	void (*SCTPData)(struct sockaddr_in * endpoint);
-
-	void (*tunnelData)(struct sockaddr_in * endpoint);
-
-} SCTPHandlers;
-
 typedef struct SCTPPluginState
 {
 	bool connected;
@@ -53,5 +25,35 @@ typedef struct SCTPPluginState
 	int noReplyCount;
 
 } SCTPPluginState;
+
+
+bool _SCTPRunning;
+
+void _SCTPCleanup(struct SCTPPluginState* pluginStateSCTP);
+
+bool _SCTPTestAvailability(uint32_t address);
+
+const char *_SCTPGetVersion();
+
+void _SCTPStart(uint32_t address, bool serverMode);
+
+void _SCTPStop();
+
+void _SCTPStopClient(struct SCTPPluginState* pluginStateSCTP);
+
+
+typedef struct SCTPHandlers
+{
+	void (*initialize)(struct sockaddr_in * endpoint, struct SCTPPluginState* pluginStateSCTP);
+
+	void (*acceptClient)(struct SCTPPluginState* pluginStateSCTP);
+
+	void (*checkHealth)(struct SCTPPluginState* pluginStateSCTP);
+
+	void (*SCTPData)(struct SCTPPluginState* pluginStateSCTP);
+
+	void (*tunnelData)(struct SCTPPluginState* pluginStateSCTP);
+
+} SCTPHandlers;
 
 #endif //CODE_SCTP_H

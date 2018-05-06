@@ -11,18 +11,18 @@
 #include "sctp.h"
 #include "client-functions.h"
 
-int SCTPReceiveMsg(int socketFD, struct SCTPMessage *msg)
+int SCTPReceiveMsg(struct SCTPPluginState * pluginState, struct SCTPMessage *msg)
 {
 	int flags = 0;
 	struct sctp_sndrcvinfo sndrcvinfo = {0};
 	unsigned char buffer[SCTP_SOCKET_MTU];
 
-	int readSize = sctp_recvmsg(socketFD, buffer, sizeof(buffer),  (struct sockaddr *) NULL, 0, &sndrcvinfo, &flags);
+	int readSize = sctp_recvmsg(pluginState->socket, buffer, sizeof(buffer),  (struct sockaddr *) NULL, 0, &sndrcvinfo, &flags);
 
 	if (readSize < 0)
 	{
 		fprintf(stderr, "Unable to receive an SCTP packet: %s (%d) (flags %x)\n", strerror(errno), errno, flags);
-		_SCTPStopClient();
+		_SCTPStopClient(pluginState);
 		return 1;
 	}
 
@@ -46,7 +46,7 @@ int SCTPReceiveMsg(int socketFD, struct SCTPMessage *msg)
 			memcpy(msg->buffer, buffer + 1, msg->size);
 			break;
 		case SCTP_STREAM_DATA:
-			if (pluginStateSCTP.auth)
+			if (pluginState->auth)
 			{
 				tunWrite(tunDeviceFD, buffer, readSize);
 			}
@@ -64,33 +64,33 @@ void SCTPSocketClose(int socketFD)
 		close(socketFD);
 }
 
-int SCTPSendControl(int socketFD, struct SCTPMessage *msg)
+int SCTPSendControl(struct SCTPPluginState * pluginState, struct SCTPMessage *msg)
 {
 	char buffer[SCTP_SOCKET_MTU];
 
 	buffer[0] = msg->packetType;
 	memcpy(buffer + 1, msg->buffer, msg->size);
 
-	int sentSize = sctp_sendmsg(socketFD, buffer, msg->size + 1, NULL, 0, 0, 0, SCTP_STREAM_CONTROL, 0, 0);
+	int sentSize = sctp_sendmsg(pluginState->socket, buffer, msg->size + 1, NULL, 0, 0, 0, SCTP_STREAM_CONTROL, 0, 0);
 
 	if (sentSize < 0)
 	{
 		fprintf(stderr, "Unable to send an SCTP packet: %s\n", strerror(errno));
-		_SCTPStopClient();
+		_SCTPStopClient(pluginState);
 		return 1;
 	}
 
 	return 0;
 }
 
-int SCTPSendData(int socketFD, struct SCTPMessage *msg)
+int SCTPSendData(struct SCTPPluginState * pluginState, struct SCTPMessage *msg)
 {
-	int sentSize = sctp_sendmsg(socketFD, msg->buffer, msg->size, NULL, 0, 0, SCTP_UNORDERED, SCTP_STREAM_DATA, 0, 0);
+	int sentSize = sctp_sendmsg(pluginState->socket, msg->buffer, msg->size, NULL, 0, 0, SCTP_UNORDERED, SCTP_STREAM_DATA, 0, 0);
 
 	if (sentSize < 0)
 	{
 		fprintf(stderr, "Unable to send an SCTP packet: %s\n", strerror(errno));
-		_SCTPStopClient();
+		_SCTPStopClient(pluginState);
 		return 1;
 	}
 

@@ -6,14 +6,14 @@
 
 extern int tunDeviceFD;
 
-void SCTPClientInitialize(struct sockaddr_in * endpoint);
+void SCTPClientInitialize(struct sockaddr_in * endpoint, struct SCTPPluginState * pluginStateSCTP);
 
-void SCTPClientAcceptClient();
+void SCTPClientAcceptClient(struct SCTPPluginState * pluginStateSCTP);
 
-void SCTPClientCheckHealth(struct sockaddr_in * endpoint);
+void SCTPClientCheckHealth(struct SCTPPluginState * pluginStateSCTP);
 
-void SCTPClientSCTPData(struct sockaddr_in * endpoint);
+void SCTPClientSCTPData(struct SCTPPluginState * pluginStateSCTP);
 
-void SCTPClientTunnelData(struct sockaddr_in * endpoint);
+void SCTPClientTunnelData(struct SCTPPluginState * pluginStateSCTP);
 
 #endif //CODE_CLIENT_HANDLERS_H

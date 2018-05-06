@@ -9,57 +9,56 @@
 #include "sctp.h"
 
 
-void SCTPClientInitialize(struct sockaddr_in * endpoint)
+void SCTPClientInitialize(struct sockaddr_in * endpoint, struct SCTPPluginState * pluginStateSCTP)
 {
-	memcpy(pluginStateSCTP.endpoint, endpoint, sizeof(struct sockaddr_in));
+	memcpy(pluginStateSCTP->endpoint, endpoint, sizeof(struct sockaddr_in));
 
 
-	if (connect(pluginStateSCTP.listener, (struct sockaddr*) endpoint, sizeof(*endpoint)) < 0) {
+	if (connect(pluginStateSCTP->listener, (struct sockaddr*) endpoint, sizeof(*endpoint)) < 0) {
 		fprintf(stderr,"Unable to connect to server (SCTP): %s\n", strerror(errno));
 		_SCTPStop();
 		return;
 	}
 
-	SCTPSetEvents(pluginStateSCTP.listener);
+	SCTPSetEvents(pluginStateSCTP->listener);
 
-	pluginStateSCTP.socket = pluginStateSCTP.listener;
+	pluginStateSCTP->socket = pluginStateSCTP->listener;
 
-	SCTPSetInitMsg(pluginStateSCTP.socket);
-	//SCTPSetEvents(pluginStateSCTP.socket);
+	SCTPSetInitMsg(pluginStateSCTP->socket);
+	//SCTPSetEvents(pluginStateSCTP->socket);
 
-	SCTPSendConnectionRequest(pluginStateSCTP.socket, pluginStateSCTP.endpoint);
+	SCTPSendConnectionRequest(pluginStateSCTP);
 }
 
-void SCTPClientAcceptClient()
+void SCTPClientAcceptClient(struct SCTPPluginState * pluginStateSCTP)
 {
-	pluginStateSCTP.connected = true;
+	pluginStateSCTP->connected = true;
 }
 
-void SCTPClientCheckHealth(struct sockaddr_in * endpoint)
+void SCTPClientCheckHealth(struct SCTPPluginState * pluginStateSCTP)
 {
-	if (!pluginStateSCTP.connected)
+	if (!pluginStateSCTP->connected)
 		return;
 
-	if (pluginStateSCTP.noReplyCount++ > SCTP_KEEPALIVE_TIMEOUT)
+	if (pluginStateSCTP->noReplyCount++ > SCTP_KEEPALIVE_TIMEOUT)
 	{
 		// timed out, close connection
 		_SCTPStop();
 		return;
 	}
 
-	SCTPSendKeepAlive(pluginStateSCTP.socket, pluginStateSCTP.endpoint);
+	SCTPSendKeepAlive(pluginStateSCTP);
 }
 
-void SCTPClientSCTPData(struct sockaddr_in * endpoint)
+void SCTPClientSCTPData(struct SCTPPluginState * pluginStateSCTP)
 {
 	SCTPMessage msg;
-	struct sockaddr_in sender;
 
-	if (SCTPReceiveMsg(pluginStateSCTP.socket, &msg))
+	if (SCTPReceiveMsg(pluginStateSCTP, &msg))
 		return;
 
 
-	if (!pluginStateSCTP.connected)
+	if (!pluginStateSCTP->connected)
 		return;
 
 	if (!msg.size)
@@ -68,21 +67,21 @@ void SCTPClientSCTPData(struct sockaddr_in * endpoint)
 	switch (msg.packetType)
 	{
 		case SCTP_AUTH_CHALLENGE:
-			SCTPHandleAuthChallenge(pluginStateSCTP.socket, &sender, &msg);
+			SCTPHandleAuthChallenge(pluginStateSCTP, &msg);
 			break;
 		case SCTP_CONNECTION_ACCEPT:
-			SCTPHandleConnectionAccept(&sender);
+			SCTPHandleConnectionAccept(pluginStateSCTP);
 			break;
 		case SCTP_CONNECTION_REJECT:
-			SCTPHandleConnectionReject(pluginStateSCTP.socket, &sender);
+			SCTPHandleConnectionReject(pluginStateSCTP);
 			break;
 		case SCTP_KEEPALIVE:
-			SCTPHandleKeepAliveResponse();
+			SCTPHandleKeepAliveResponse(pluginStateSCTP);
 			break;
 	}
 }
 
-void SCTPClientTunnelData(struct sockaddr_in * endpoint)
+void SCTPClientTunnelData(struct SCTPPluginState * pluginStateSCTP)
 {
 	SCTPMessage msg;
 	tunRead(tunDeviceFD, (char*)&(msg.buffer), &(msg.size));
@@ -90,5 +89,5 @@ void SCTPClientTunnelData(struct sockaddr_in * endpoint)
 	if (!msg.size)
 		return;
 
-	SCTPSendData(pluginStateSCTP.socket, &msg);
+	SCTPSendData(pluginStateSCTP, &msg);
 }

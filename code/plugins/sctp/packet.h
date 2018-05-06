@@ -7,6 +7,7 @@
 #include <netinet/sctp.h>
 
 #include "../../src/tun-device.h"
+#include "sctp.h"
 
 #define SCTP_SOCKET_MTU  (4096 + sizeof(struct SCTPPacketHeader))
 
@@ -41,11 +42,11 @@ void SCTPSetInitMsg(int socketFD);
 
 void SCTPSetEvents(int socketFD);
 
-int SCTPSendControl(int socketFD, struct SCTPMessage *msg);
+int SCTPSendControl(struct SCTPPluginState * pluginState, struct SCTPMessage *msg);
 
-int SCTPSendData(int socketFD, struct SCTPMessage *msg);
+int SCTPSendData(struct SCTPPluginState * pluginState, struct SCTPMessage *msg);
 
-int SCTPReceiveMsg(int socketFD, struct SCTPMessage *msg);
+int SCTPReceiveMsg(struct SCTPPluginState * pluginState, struct SCTPMessage *msg);
 
 void SCTPSocketClose(int socketFD);
 

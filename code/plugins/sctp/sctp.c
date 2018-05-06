@@ -12,21 +12,20 @@
 #include "client-handlers.h"
 #include "server-handlers.h"
 
-struct SCTPPluginState pluginStateSCTP;
-
 bool _SCTPTestAvailability(uint32_t endpoint)
 {
+	struct SCTPPluginState pluginStateSCTP;
 	//TODO
 
-	_SCTPCleanup();
+	_SCTPCleanup(&pluginStateSCTP);
 }
 
-void _SCTPCleanup()
+void _SCTPCleanup(struct SCTPPluginState* pluginStateSCTP)
 {
-	pluginStateSCTP.connected = false;
-	pluginStateSCTP.noReplyCount = 0;
-	SCTPSocketClose(pluginStateSCTP.socket);
-	SCTPSocketClose(pluginStateSCTP.listener);
+	pluginStateSCTP->connected = false;
+	pluginStateSCTP->noReplyCount = 0;
+	SCTPSocketClose(pluginStateSCTP->socket);
+	SCTPSocketClose(pluginStateSCTP->listener);
 }
 
 const char *_SCTPGetVersion()
@@ -36,6 +35,8 @@ const char *_SCTPGetVersion()
 
 void _SCTPStart(uint32_t address, bool serverMode)
 {
+	struct SCTPPluginState pluginStateSCTP;
+	
 	pluginStateSCTP.noReplyCount = 0;
 	pluginStateSCTP.connected = false;
 	pluginStateSCTP.endpoint = malloc(sizeof(struct sockaddr_in));
@@ -66,11 +67,11 @@ void _SCTPStart(uint32_t address, bool serverMode)
 	endpoint.sin_addr.s_addr = htonl(address);
 	endpoint.sin_port = htons(5060);
 
-	handler->initialize(&endpoint);
+	handler->initialize(&endpoint, &pluginStateSCTP);
 
 	while (_SCTPRunning)
 	{
-		handler->acceptClient();
+		handler->acceptClient(&pluginStateSCTP);
 
 		int maxFD = MAX(pluginStateSCTP.socket, tunDeviceFD);
 		struct timeval timeout;
@@ -90,29 +91,29 @@ void _SCTPStart(uint32_t address, bool serverMode)
 
 			if (lenAvailable < 0)
 			{
-				_SCTPStopClient();
+				_SCTPStopClient(&pluginStateSCTP);
 				_SCTPStop();
 				break;
 			}
 
 			if (lenAvailable == 0)
 			{
-				handler->checkHealth(pluginStateSCTP.endpoint);
+				handler->checkHealth(&pluginStateSCTP);
 				continue;
 			}
 
 			if (pluginStateSCTP.auth && FD_ISSET(tunDeviceFD, &fs))
 			{
-				handler->tunnelData(pluginStateSCTP.endpoint);
+				handler->tunnelData(&pluginStateSCTP);
 			}
 
 			if (FD_ISSET(pluginStateSCTP.socket, &fs))
 			{
-				handler->SCTPData(pluginStateSCTP.endpoint);
+				handler->SCTPData(&pluginStateSCTP);
 			}
 		}
 	}
-	_SCTPCleanup();
+	_SCTPCleanup(&pluginStateSCTP);
 }
 
 void _SCTPStop()
@@ -120,9 +121,9 @@ void _SCTPStop()
 	_SCTPRunning = false;
 }
 
-void _SCTPStopClient()
+void _SCTPStopClient(struct SCTPPluginState* pluginStateSCTP)
 {
-	pluginStateSCTP.connected = false;
-	pluginStateSCTP.auth = false;
-	close(pluginStateSCTP.socket);
+	pluginStateSCTP->connected = false;
+	pluginStateSCTP->auth = false;
+	close(pluginStateSCTP->socket);
 }

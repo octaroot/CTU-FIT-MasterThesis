@@ -5,13 +5,9 @@
 #include <stdbool.h>
 #include "packet.h"
 
-extern struct SCTPPluginState pluginStateSCTP;
+void SCTPHandleConnectionRequest(struct SCTPPluginState* pluginStateSCTP);
 
-void SCTPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, struct SCTPMessage *request);
+void SCTPHandleKeepAlive(struct SCTPPluginState* pluginStateSCTP, struct SCTPMessage * request);
 
-void SCTPHandleSCTPData(struct SCTPMessage *msg);
-
-void SCTPHandleKeepAlive(int socketFD, struct sockaddr_in * endpoint, struct SCTPMessage * request);
-
-void SCTPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct SCTPMessage * request);
+void SCTPHandleAuthResponse(struct SCTPPluginState* pluginStateSCTP, struct SCTPMessage * request);
 #endif //CODE_SERVER_FUNCTIONS_H

@@ -7,30 +7,30 @@
 #include "../../src/auth.h"
 #include "sctp.h"
 
-void SCTPSendConnectionRequest(int socketFD, struct sockaddr_in * endpoint)
+void SCTPSendConnectionRequest(struct SCTPPluginState * pluginStateSCTP)
 {
 	struct SCTPMessage msg;
 	msg.size = 1;
 	msg.packetType = SCTP_CONNECTION_REQUEST;
 
-	SCTPSendControl(socketFD, &msg);
+	SCTPSendControl(pluginStateSCTP, &msg);
 }
 
-void SCTPSendKeepAlive(int socketFD, struct sockaddr_in * endpoint)
+void SCTPSendKeepAlive(struct SCTPPluginState * pluginStateSCTP)
 {
 	struct SCTPMessage msg;
 	msg.size = 1;
 	msg.packetType = SCTP_KEEPALIVE;
 
-	SCTPSendControl(socketFD, &msg);
+	SCTPSendControl(pluginStateSCTP, &msg);
 }
 
-void SCTPHandleConnectionAccept(struct sockaddr_in * endpoint)
+void SCTPHandleConnectionAccept(struct SCTPPluginState * pluginStateSCTP)
 {
-	pluginStateSCTP.auth = true;
+	pluginStateSCTP->auth = true;
 }
 
-void SCTPHandleAuthChallenge(int socketFD, struct sockaddr_in * endpoint, struct SCTPMessage *origMsg)
+void SCTPHandleAuthChallenge(struct SCTPPluginState * pluginStateSCTP, struct SCTPMessage *origMsg)
 {
 	if (origMsg->size != AUTH_CHALLENGE_LENGTH)
 		return;
@@ -45,16 +45,16 @@ void SCTPHandleAuthChallenge(int socketFD, struct sockaddr_in * endpoint, struct
 	msg.size = AUTH_RESPONSE_LENGTH;
 	msg.packetType = SCTP_AUTH_RESPONSE;
 
-	SCTPSendControl(socketFD, &msg);
+	SCTPSendControl(pluginStateSCTP, &msg);
 }
 
-void SCTPHandleConnectionReject(int socketFD, struct sockaddr_in * endpoint)
+void SCTPHandleConnectionReject(struct SCTPPluginState * pluginStateSCTP)
 {
-	pluginStateSCTP.connected = false;
+	pluginStateSCTP->connected = false;
 	_SCTPStop();
 }
 
-void SCTPHandleKeepAliveResponse()
+void SCTPHandleKeepAliveResponse(struct SCTPPluginState * pluginStateSCTP)
 {
-	pluginStateSCTP.noReplyCount = 0;
+	pluginStateSCTP->noReplyCount = 0;
 }

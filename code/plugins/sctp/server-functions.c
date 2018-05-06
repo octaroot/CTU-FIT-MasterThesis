@@ -10,16 +10,16 @@
 struct auth_context * SCTPauthCtxs[SCTP_MAX_AUTH_REQUESTS];
 int SCTPauthCtxIdx = 0;
 
-void SCTPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, struct SCTPMessage *request)
+void SCTPHandleConnectionRequest(struct SCTPPluginState* pluginStateSCTP)
 {
 	struct SCTPMessage msg;
 
-	if (pluginStateSCTP.auth)
+	if (pluginStateSCTP->auth)
 	{
 		msg.size = 1;
 		msg.packetType = SCTP_CONNECTION_REJECT;
 
-		SCTPSendControl(socketFD, &msg);
+		SCTPSendControl(pluginStateSCTP, &msg);
 		return;
 	}
 
@@ -37,15 +37,15 @@ void SCTPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, st
 	msg.size = AUTH_CHALLENGE_LENGTH;
 	memcpy(msg.buffer, SCTPauthCtxs[SCTPauthCtxIdx]->challenge, AUTH_CHALLENGE_LENGTH);
 
-	SCTPSendControl(socketFD, &msg);
+	SCTPSendControl(pluginStateSCTP, &msg);
 }
 
-void SCTPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct SCTPMessage * request)
+void SCTPHandleAuthResponse(struct SCTPPluginState* pluginStateSCTP, struct SCTPMessage * request)
 {
 	struct SCTPMessage msg;
 	msg.size = 1;
 
-	if (!pluginStateSCTP.auth && request->size == AUTH_RESPONSE_LENGTH)
+	if (!pluginStateSCTP->auth && request->size == AUTH_RESPONSE_LENGTH)
 	{
 		for (int i = 0; i < SCTP_MAX_AUTH_REQUESTS; ++i)
 		{
@@ -55,9 +55,9 @@ void SCTPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct 
 				{
 					msg.packetType = SCTP_CONNECTION_ACCEPT;
 
-					pluginStateSCTP.auth = true;
+					pluginStateSCTP->auth = true;
 
-					SCTPSendControl(socketFD, &msg);
+					SCTPSendControl(pluginStateSCTP, &msg);
 
 					// zruseni vsech ostatnich challenge-response pozadavku
 					for (i = 0; i < SCTP_MAX_AUTH_REQUESTS; ++i)
@@ -77,16 +77,16 @@ void SCTPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct 
 
 	msg.packetType = SCTP_CONNECTION_REJECT;
 
-	SCTPSendControl(socketFD, &msg);
+	SCTPSendControl(pluginStateSCTP, &msg);
 }
 
-void SCTPHandleKeepAlive(int socketFD, struct sockaddr_in * endpoint, struct SCTPMessage * request)
+void SCTPHandleKeepAlive(struct SCTPPluginState* pluginStateSCTP, struct SCTPMessage * request)
 {
-	if (!pluginStateSCTP.connected)
+	if (!pluginStateSCTP->connected)
 		return;
 
-	if (pluginStateSCTP.auth)
-		pluginStateSCTP.noReplyCount = 0;
+	if (pluginStateSCTP->auth)
+		pluginStateSCTP->noReplyCount = 0;
 
-	SCTPSendControl(socketFD, request);
+	SCTPSendControl(pluginStateSCTP, request);
 }
