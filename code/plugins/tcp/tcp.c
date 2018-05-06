@@ -33,7 +33,12 @@ const char *_TCPGetVersion()
 	return TCP_PLUGIN_VERSION;
 }
 
-void _TCPStart(uint32_t address, bool serverMode)
+const char *_TCPGetName()
+{
+	return TCP_PLUGIN_NAME;
+}
+
+void _TCPStart(uint32_t address, int port,  bool serverMode)
 {
 	struct TCPPluginState pluginStateTCP;
 
@@ -65,7 +70,7 @@ void _TCPStart(uint32_t address, bool serverMode)
 
 	endpoint.sin_family = AF_INET;
 	endpoint.sin_addr.s_addr = htonl(address);
-	endpoint.sin_port = htons(5060);
+	endpoint.sin_port = htons(port);
 
 	handler->initialize(&endpoint, &pluginStateTCP);
 

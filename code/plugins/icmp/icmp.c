@@ -33,7 +33,12 @@ const char *_ICMPGetVersion()
 	return ICMP_PLUGIN_VERSION;
 }
 
-void _ICMPStart(uint32_t endpoint, bool serverMode)
+const char *_ICMPGetName()
+{
+	return ICMP_PLUGIN_NAME;
+}
+
+void _ICMPStart(uint32_t endpoint, int port, bool serverMode)
 {
 	pluginStateICMP.noReplyCount = 0;
 	pluginStateICMP.connected = false;

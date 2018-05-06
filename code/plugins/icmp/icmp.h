@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #define ICMP_PLUGIN_VERSION "1.0.0-icmp"
+#define ICMP_PLUGIN_NAME "icmp"
 #define ICMP_NAT_PACKET_COUNT	10
 #define ICMP_KEEPALIVE_TIMEOUT	10
 #define ICMP_MAX_AUTH_REQUESTS	10
@@ -20,7 +21,9 @@ bool _ICMPTestAvailability(uint32_t endpoint);
 
 const char *_ICMPGetVersion();
 
-void _ICMPStart(uint32_t endpoint, bool serverMode);
+const char *_ICMPGetName();
+
+void _ICMPStart(uint32_t endpoint, int port, bool serverMode);
 
 void _ICMPStop();
 

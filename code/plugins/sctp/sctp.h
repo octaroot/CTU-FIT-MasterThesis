@@ -7,6 +7,7 @@
 #include <netinet/sctp.h>
 
 #define SCTP_PLUGIN_VERSION "1.0.0-sctp"
+#define SCTP_PLUGIN_NAME "sctp"
 #define SCTP_KEEPALIVE_TIMEOUT	10
 #define SCTP_MAX_AUTH_REQUESTS	10
 
@@ -35,7 +36,9 @@ bool _SCTPTestAvailability(uint32_t address);
 
 const char *_SCTPGetVersion();
 
-void _SCTPStart(uint32_t address, bool serverMode);
+const char *_SCTPGetName();
+
+void _SCTPStart(uint32_t address, int port, bool serverMode);
 
 void _SCTPStop();
 

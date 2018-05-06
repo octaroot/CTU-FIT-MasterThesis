@@ -33,7 +33,12 @@ const char *_SCTPGetVersion()
 	return SCTP_PLUGIN_VERSION;
 }
 
-void _SCTPStart(uint32_t address, bool serverMode)
+const char *_SCTPGetName()
+{
+	return SCTP_PLUGIN_NAME;
+}
+
+void _SCTPStart(uint32_t address, int port,  bool serverMode)
 {
 	struct SCTPPluginState pluginStateSCTP;
 	
@@ -65,7 +70,7 @@ void _SCTPStart(uint32_t address, bool serverMode)
 
 	endpoint.sin_family = AF_INET;
 	endpoint.sin_addr.s_addr = htonl(address);
-	endpoint.sin_port = htons(5060);
+	endpoint.sin_port = htons(port);
 
 	handler->initialize(&endpoint, &pluginStateSCTP);
 

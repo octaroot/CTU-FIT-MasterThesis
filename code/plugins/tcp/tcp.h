@@ -7,6 +7,7 @@
 #include <netinet/tcp.h>
 
 #define TCP_PLUGIN_VERSION "1.0.0-tcp"
+#define TCP_PLUGIN_NAME "tcp"
 #define TCP_KEEPALIVE_TIMEOUT	10
 #define TCP_MAX_AUTH_REQUESTS	10
 
@@ -32,7 +33,9 @@ bool _TCPTestAvailability(uint32_t address);
 
 const char *_TCPGetVersion();
 
-void _TCPStart(uint32_t address, bool serverMode);
+const char *_TCPGetName();
+
+void _TCPStart(uint32_t address, int port,  bool serverMode);
 
 void _TCPStop();
 

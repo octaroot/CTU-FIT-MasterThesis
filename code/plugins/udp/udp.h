@@ -8,6 +8,7 @@
 
 
 #define UDP_PLUGIN_VERSION "1.0.0-udp"
+#define UDP_PLUGIN_NAME "udp"
 #define UDP_KEEPALIVE_TIMEOUT    10
 #define UDP_MAX_AUTH_REQUESTS    10
 
@@ -46,7 +47,9 @@ bool _UDPTestAvailability(uint32_t address);
 
 const char *_UDPGetVersion();
 
-void _UDPStart(uint32_t address, bool serverMode);
+const char *_UDPGetName();
+
+void _UDPStart(uint32_t address, int port, bool serverMode);
 
 void _UDPStop();
 
