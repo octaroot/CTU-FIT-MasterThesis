@@ -7,7 +7,7 @@
 #include "../../src/tun-device.h"
 
 
-void UDPServerInitialize(struct sockaddr_in *endpoint)
+void UDPServerInitialize(struct sockaddr_in *endpoint, struct UDPPluginState * pluginState)
 {
 	struct sockaddr_in sock;
 
@@ -19,35 +19,35 @@ void UDPServerInitialize(struct sockaddr_in *endpoint)
 	sock.sin_port = endpoint->sin_port;
 	sock.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	if (bind(pluginStateUDP.socket, (struct sockaddr*)(&sock), sizeof(sock)) < 0)
+	if (bind(pluginState->socket, (struct sockaddr*)(&sock), sizeof(sock)) < 0)
 	{
 		fprintf(stderr, "Unable to bind UDP socket to port %d\n", ntohs(endpoint->sin_port));
 		_UDPStop();
 	}
 }
 
-void UDPServerCheckHealth(struct sockaddr_in *endpoint)
+void UDPServerCheckHealth(struct UDPPluginState * pluginState)
 {
-	if (!pluginStateUDP.connected)
+	if (!pluginState->connected)
 		return;
 
-	if (pluginStateUDP.noReplyCount++ > UDP_KEEPALIVE_TIMEOUT)
+	if (pluginState->noReplyCount++ > UDP_KEEPALIVE_TIMEOUT)
 	{
 		// timed out, close connection
-		pluginStateUDP.connected = false;
+		pluginState->connected = false;
 		return;
 	}
 }
 
-void UDPServerUDPData(struct sockaddr_in *endpoint)
+void UDPServerUDPData(struct UDPPluginState * pluginState)
 {
 	UDPMessage msg;
 	struct sockaddr_in sender;
 
-	if (UDPReceiveMsg(pluginStateUDP.socket, &sender, &msg))
+	if (UDPReceiveMsg(pluginState->socket, &sender, &msg))
 		return;
 
-	if (pluginStateUDP.connected && !UDPequalSockaddr(&sender, pluginStateUDP.endpoint))
+	if (pluginState->connected && !UDPequalSockaddr(&sender, pluginState->endpoint))
 		return;
 
 	//add port check ??
@@ -58,21 +58,21 @@ void UDPServerUDPData(struct sockaddr_in *endpoint)
 	switch (msg.packetType)
 	{
 		case UDP_CONNECTION_REQUEST:
-			UDPHandleConnectionRequest(pluginStateUDP.socket, &sender, &msg);
+			UDPHandleConnectionRequest(pluginState, &sender, &msg);
 			break;
 		case UDP_AUTH_RESPONSE:
-			UDPHandleAuthResponse(pluginStateUDP.socket, &sender, &msg);
+			UDPHandleAuthResponse(pluginState, &sender, &msg);
 			break;
 		case UDP_DATA:
 			UDPHandleUDPData(&msg);
 			break;
 		case UDP_KEEPALIVE:
-			UDPHandleKeepAlive(pluginStateUDP.socket, &sender, &msg);
+			UDPHandleKeepAlive(pluginState, &sender, &msg);
 			break;
 	}
 }
 
-void UDPServerTunnelData(struct sockaddr_in *endpoint)
+void UDPServerTunnelData(struct UDPPluginState * pluginState)
 {
 	UDPMessage msg;
 	tunRead(tunDeviceFD, (char *) &(msg.buffer), &(msg.size));
@@ -82,5 +82,5 @@ void UDPServerTunnelData(struct sockaddr_in *endpoint)
 
 	msg.packetType = UDP_DATA;
 
-	UDPSendMsg(pluginStateUDP.socket, pluginStateUDP.endpoint, &msg);
+	UDPSendMsg(pluginState->socket, pluginState->endpoint, &msg);
 }

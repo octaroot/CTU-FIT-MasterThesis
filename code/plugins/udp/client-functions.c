@@ -7,30 +7,30 @@
 #include "../../src/auth.h"
 #include "udp.h"
 
-void UDPSendConnectionRequest(int socketFD, struct sockaddr_in * endpoint)
+void UDPSendConnectionRequest(struct UDPPluginState * pluginState)
 {
 	struct UDPMessage msg;
 	msg.size = 1;
 	msg.packetType = UDP_CONNECTION_REQUEST;
 
-	UDPSendMsg(socketFD, endpoint, &msg);
+	UDPSendMsg(pluginState->socket, pluginState->endpoint, &msg);
 }
 
-void UDPSendKeepAlive(int socketFD, struct sockaddr_in * endpoint)
+void UDPSendKeepAlive(struct UDPPluginState * pluginState)
 {
 	struct UDPMessage msg;
 	msg.size = 1;
 	msg.packetType = UDP_KEEPALIVE;
 
-	UDPSendMsg(socketFD, pluginStateUDP.endpoint, &msg);
+	UDPSendMsg(pluginState->socket, pluginState->endpoint, &msg);
 }
 
-void UDPHandleConnectionAccept(struct sockaddr_in * endpoint)
+void UDPHandleConnectionAccept(struct UDPPluginState * pluginState)
 {
-	pluginStateUDP.connected = true;
+	pluginState->connected = true;
 }
 
-void UDPHandleAuthChallenge(int socketFD, struct sockaddr_in * endpoint, struct UDPMessage *origMsg)
+void UDPHandleAuthChallenge(struct UDPPluginState * pluginState, struct UDPMessage *origMsg)
 {
 	if (origMsg->size != AUTH_CHALLENGE_LENGTH)
 		return;
@@ -45,12 +45,12 @@ void UDPHandleAuthChallenge(int socketFD, struct sockaddr_in * endpoint, struct 
 	msg.size = AUTH_RESPONSE_LENGTH;
 	msg.packetType = UDP_AUTH_RESPONSE;
 
-	UDPSendMsg(socketFD, pluginStateUDP.endpoint, &msg);
+	UDPSendMsg(pluginState->socket, pluginState->endpoint, &msg);
 }
 
-void UDPHandleConnectionReject(int socketFD, struct sockaddr_in * endpoint)
+void UDPHandleConnectionReject(struct UDPPluginState * pluginState)
 {
-	pluginStateUDP.connected = false;
+	pluginState->connected = false;
 	_UDPStop();
 }
 
@@ -62,7 +62,7 @@ void UDPHandleUDPData(struct UDPMessage *msg)
 	tunWrite(tunDeviceFD, msg->buffer, msg->size);
 }
 
-void UDPHandleKeepAliveResponse()
+void UDPHandleKeepAliveResponse(struct UDPPluginState * pluginState)
 {
-	pluginStateUDP.noReplyCount = 0;
+	pluginState->noReplyCount = 0;
 }

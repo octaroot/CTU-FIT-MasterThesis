@@ -5,20 +5,18 @@
 #include <stdbool.h>
 #include "packet.h"
 
-extern struct UDPPluginState pluginStateUDP;
+void UDPSendConnectionRequest(struct UDPPluginState * pluginState);
 
-void UDPSendConnectionRequest(int socketFD, struct sockaddr_in * endpoint);
+void UDPSendKeepAlive(struct UDPPluginState * pluginState);
 
-void UDPSendKeepAlive(int socketFD, struct sockaddr_in * endpoint);
+void UDPHandleConnectionAccept(struct UDPPluginState * pluginState);
 
-void UDPHandleConnectionAccept(struct sockaddr_in * endpoint);
+void UDPHandleAuthChallenge(struct UDPPluginState * pluginState, struct UDPMessage *origMsg);
 
-void UDPHandleAuthChallenge(int socketFD, struct sockaddr_in * endpoint, struct UDPMessage *origMsg);
-
-void UDPHandleConnectionReject(int socketFD, struct sockaddr_in * endpoint);
+void UDPHandleConnectionReject(struct UDPPluginState * pluginState);
 
 void UDPHandleUDPData(struct UDPMessage *msg);
 
-void UDPHandleKeepAliveResponse();
+void UDPHandleKeepAliveResponse(struct UDPPluginState * pluginState);
 
 #endif //CODE_CLIENT_FUNCTIONS_H

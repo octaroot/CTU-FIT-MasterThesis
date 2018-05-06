@@ -8,39 +8,37 @@
 #include "udp.h"
 
 
-void UDPClientInitialize(struct sockaddr_in * endpoint)
+void UDPClientInitialize(struct sockaddr_in * endpoint, struct UDPPluginState * pluginState)
 {
-	memcpy(pluginStateUDP.endpoint, endpoint, sizeof(struct sockaddr_in));
-	UDPSendConnectionRequest(pluginStateUDP.socket, pluginStateUDP.endpoint);
+	memcpy(pluginState->endpoint, endpoint, sizeof(struct sockaddr_in));
+	UDPSendConnectionRequest(pluginState);
 }
 
-void UDPClientCheckHealth(struct sockaddr_in * endpoint)
+void UDPClientCheckHealth(struct UDPPluginState * pluginState)
 {
-	if (!pluginStateUDP.connected)
+	if (!pluginState->connected)
 		return;
 
-	if (pluginStateUDP.noReplyCount++ > UDP_KEEPALIVE_TIMEOUT)
+	if (pluginState->noReplyCount++ > UDP_KEEPALIVE_TIMEOUT)
 	{
 		// timed out, close connection
 		_UDPStop();
 		return;
 	}
 
-	UDPSendKeepAlive(pluginStateUDP.socket, pluginStateUDP.endpoint);
+	UDPSendKeepAlive(pluginState);
 }
 
-void UDPClientUDPData(struct sockaddr_in * endpoint)
+void UDPClientUDPData(struct UDPPluginState * pluginState)
 {
 	UDPMessage msg;
 	struct sockaddr_in sender;
 
-	if (UDPReceiveMsg(pluginStateUDP.socket, &sender, &msg))
+	if (UDPReceiveMsg(pluginState->socket, &sender, &msg))
 		return;
 
-	if (pluginStateUDP.connected && !UDPequalSockaddr(&sender, pluginStateUDP.endpoint))
+	if (pluginState->connected && !UDPequalSockaddr(&sender, pluginState->endpoint))
 		return;
-
-	//TODO: add port check??
 
 	if (!msg.size)
 		return;
@@ -48,16 +46,16 @@ void UDPClientUDPData(struct sockaddr_in * endpoint)
 	switch (msg.packetType)
 	{
 		case UDP_AUTH_CHALLENGE:
-			UDPHandleAuthChallenge(pluginStateUDP.socket, &sender, &msg);
+			UDPHandleAuthChallenge(pluginState, &msg);
 			break;
 		case UDP_CONNECTION_ACCEPT:
-			UDPHandleConnectionAccept(&sender);
+			UDPHandleConnectionAccept(pluginState);
 			break;
 		case UDP_CONNECTION_REJECT:
-			UDPHandleConnectionReject(pluginStateUDP.socket, &sender);
+			UDPHandleConnectionReject(pluginState);
 			break;
 		case UDP_KEEPALIVE:
-			UDPHandleKeepAliveResponse();
+			UDPHandleKeepAliveResponse(pluginState);
 			break;
 		case UDP_DATA:
 			UDPHandleUDPData(&msg);
@@ -65,7 +63,7 @@ void UDPClientUDPData(struct sockaddr_in * endpoint)
 	}
 }
 
-void UDPClientTunnelData(struct sockaddr_in * endpoint)
+void UDPClientTunnelData(struct UDPPluginState * pluginState)
 {
 	UDPMessage msg;
 	tunRead(tunDeviceFD, (char*)&(msg.buffer), &(msg.size));
@@ -75,5 +73,5 @@ void UDPClientTunnelData(struct sockaddr_in * endpoint)
 
 	msg.packetType = UDP_DATA;
 
-	UDPSendMsg(pluginStateUDP.socket, pluginStateUDP.endpoint, &msg);
+	UDPSendMsg(pluginState->socket, pluginState->endpoint, &msg);
 }

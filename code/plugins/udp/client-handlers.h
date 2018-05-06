@@ -4,14 +4,12 @@
 #include <stdint.h>
 #include "packet.h"
 
-extern int tunDeviceFD;
+void UDPClientInitialize(struct sockaddr_in * endpoint, struct UDPPluginState * pluginState);
 
-void UDPClientInitialize(struct sockaddr_in * endpoint);
+void UDPClientCheckHealth(struct UDPPluginState * pluginState);
 
-void UDPClientCheckHealth(struct sockaddr_in * endpoint);
+void UDPClientUDPData(struct UDPPluginState * pluginState);
 
-void UDPClientUDPData(struct sockaddr_in * endpoint);
-
-void UDPClientTunnelData(struct sockaddr_in * endpoint);
+void UDPClientTunnelData(struct UDPPluginState * pluginState);
 
 #endif //CODE_CLIENT_HANDLERS_H

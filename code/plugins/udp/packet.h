@@ -7,6 +7,7 @@
 #include <netinet/udp.h>
 
 #include "../../src/tun-device.h"
+#include "udp.h"
 
 #define UDP_SOCKET_MTU  (TUN_DEVICE_MTU + sizeof(struct UDPPacketHeader))
 

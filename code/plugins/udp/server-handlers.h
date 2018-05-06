@@ -4,12 +4,12 @@
 #include <stdint.h>
 #include "udp.h"
 
-void UDPServerInitialize(struct sockaddr_in * endpoint);
+void UDPServerInitialize(struct sockaddr_in * endpoint, struct UDPPluginState * pluginState);
 
-void UDPServerCheckHealth(struct sockaddr_in * endpoint);
+void UDPServerCheckHealth(struct UDPPluginState * pluginState);
 
-void UDPServerUDPData(struct sockaddr_in * endpoint);
+void UDPServerUDPData(struct UDPPluginState * pluginState);
 
-void UDPServerTunnelData(struct sockaddr_in * endpoint);
+void UDPServerTunnelData(struct UDPPluginState * pluginState);
 
 #endif //CODE_SERVER_HANDLERS_H

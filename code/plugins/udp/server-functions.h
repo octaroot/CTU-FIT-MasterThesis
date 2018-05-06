@@ -4,14 +4,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "packet.h"
+#include "udp.h"
 
-extern struct UDPPluginState pluginStateUDP;
-
-void UDPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, struct UDPMessage *request);
+void UDPHandleConnectionRequest(struct UDPPluginState * pluginState, struct sockaddr_in * endpoint, struct UDPMessage *request);
 
 void UDPHandleUDPData(struct UDPMessage *msg);
 
-void UDPHandleKeepAlive(int socketFD, struct sockaddr_in * endpoint, struct UDPMessage * request);
+void UDPHandleKeepAlive(struct UDPPluginState * pluginState, struct sockaddr_in * endpoint, struct UDPMessage * request);
 
-void UDPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct UDPMessage * request);
+void UDPHandleAuthResponse(struct UDPPluginState * pluginState, struct sockaddr_in * endpoint, struct UDPMessage * request);
 #endif //CODE_SERVER_FUNCTIONS_H

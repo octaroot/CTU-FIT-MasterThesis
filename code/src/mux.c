@@ -16,9 +16,9 @@ bool stop;
 
 plugin plugins[] = {
 		//{_ICMPGetVersion, _ICMPTestAvailability, _ICMPStart, _ICMPStop},
-		//{_UDPGetVersion,  _UDPTestAvailability,  _UDPStart,  _UDPStop},
-		{_TCPGetVersion,  _TCPTestAvailability,  _TCPStart,  _TCPStop},
-		{_SCTPGetVersion,  _SCTPTestAvailability,  _SCTPStart,  _SCTPStop},
+		{_UDPGetVersion,  _UDPTestAvailability,  _UDPStart,  _UDPStop},
+		//{_TCPGetVersion,  _TCPTestAvailability,  _TCPStart,  _TCPStop},
+		//{_SCTPGetVersion,  _SCTPTestAvailability,  _SCTPStart,  _SCTPStop},
 };
 
 void muxStart(uint32_t endpoint, bool serverMode)

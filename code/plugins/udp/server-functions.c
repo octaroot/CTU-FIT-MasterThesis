@@ -11,16 +11,16 @@ struct auth_context * UDPauthCtxs[UDP_MAX_AUTH_REQUESTS];
 struct sockaddr_in UDPauthUDPIds[UDP_MAX_AUTH_REQUESTS];
 int UDPauthCtxIdx = 0;
 
-void UDPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, struct UDPMessage *request)
+void UDPHandleConnectionRequest(struct UDPPluginState * pluginState, struct sockaddr_in * endpoint, struct UDPMessage *request)
 {
 	struct UDPMessage msg;
 
-	if (pluginStateUDP.connected)
+	if (pluginState->connected)
 	{
 		msg.size = 1;
 		msg.packetType = UDP_CONNECTION_REJECT;
 
-		UDPSendMsg(socketFD, endpoint, &msg);
+		UDPSendMsg(pluginState->socket, endpoint, &msg);
 		return;
 	}
 
@@ -40,15 +40,15 @@ void UDPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, str
 	msg.size = AUTH_CHALLENGE_LENGTH;
 	memcpy(msg.buffer, UDPauthCtxs[UDPauthCtxIdx]->challenge, AUTH_CHALLENGE_LENGTH);
 
-	UDPSendMsg(socketFD, endpoint, &msg);
+	UDPSendMsg(pluginState->socket, endpoint, &msg);
 }
 
-void UDPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct UDPMessage * request)
+void UDPHandleAuthResponse(struct UDPPluginState * pluginState, struct sockaddr_in * endpoint, struct UDPMessage * request)
 {
 	struct UDPMessage msg;
 	msg.size = 1;
 
-	if (!pluginStateUDP.connected && request->size == AUTH_RESPONSE_LENGTH)
+	if (!pluginState->connected && request->size == AUTH_RESPONSE_LENGTH)
 	{
 		for (int i = 0; i < UDP_MAX_AUTH_REQUESTS; ++i)
 		{
@@ -58,10 +58,10 @@ void UDPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct U
 				{
 					msg.packetType = UDP_CONNECTION_ACCEPT;
 
-					pluginStateUDP.connected = true;
-					memcpy(pluginStateUDP.endpoint, endpoint, sizeof(struct sockaddr_in));
+					pluginState->connected = true;
+					memcpy(pluginState->endpoint, endpoint, sizeof(struct sockaddr_in));
 
-					UDPSendMsg(socketFD, pluginStateUDP.endpoint, &msg);
+					UDPSendMsg(pluginState->socket, pluginState->endpoint, &msg);
 
 					// zruseni vsech ostatnich challenge-response pozadavku
 					for (i = 0; i < UDP_MAX_AUTH_REQUESTS; ++i)
@@ -82,15 +82,15 @@ void UDPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct U
 
 	msg.packetType = UDP_CONNECTION_REJECT;
 
-	UDPSendMsg(socketFD, endpoint, &msg);
+	UDPSendMsg(pluginState->socket, endpoint, &msg);
 }
 
-void UDPHandleKeepAlive(int socketFD, struct sockaddr_in * endpoint, struct UDPMessage * request)
+void UDPHandleKeepAlive(struct UDPPluginState * pluginState, struct sockaddr_in * endpoint, struct UDPMessage * request)
 {
-	if (!pluginStateUDP.connected || !UDPequalSockaddr(endpoint, pluginStateUDP.endpoint))
+	if (!pluginState->connected || !UDPequalSockaddr(endpoint, pluginState->endpoint))
 		return;
 
-	pluginStateUDP.noReplyCount = 0;
+	pluginState->noReplyCount = 0;
 
-	UDPSendMsg(socketFD, pluginStateUDP.endpoint, request);
+	UDPSendMsg(pluginState->socket, pluginState->endpoint, request);
 }
