@@ -15,32 +15,6 @@ extern int tunDeviceFD;
 
 bool _TCPRunning;
 
-void _TCPCleanup();
-
-bool _TCPTestAvailability(uint32_t address);
-
-const char *_TCPGetVersion();
-
-void _TCPStart(uint32_t address, bool serverMode);
-
-void _TCPStop();
-
-void _TCPStopClient();
-
-typedef struct TCPHandlers
-{
-	void (*initialize)(struct sockaddr_in * endpoint);
-
-	void (*acceptClient)();
-
-	void (*checkHealth)(struct sockaddr_in * endpoint);
-
-	void (*TCPData)(struct sockaddr_in * endpoint);
-
-	void (*tunnelData)(struct sockaddr_in * endpoint);
-
-} TCPHandlers;
-
 typedef struct TCPPluginState
 {
 	bool connected;
@@ -51,5 +25,31 @@ typedef struct TCPPluginState
 	int noReplyCount;
 
 } TCPPluginState;
+
+void _TCPCleanup(struct TCPPluginState * pluginStateTCP);
+
+bool _TCPTestAvailability(uint32_t address);
+
+const char *_TCPGetVersion();
+
+void _TCPStart(uint32_t address, bool serverMode);
+
+void _TCPStop();
+
+void _TCPStopClient(struct TCPPluginState * pluginStateTCP);
+
+typedef struct TCPHandlers
+{
+	void (*initialize)(struct sockaddr_in * endpoint, struct TCPPluginState * pluginStateTCP);
+
+	void (*acceptClient)(struct TCPPluginState * pluginStateTCP);
+
+	void (*checkHealth)(struct TCPPluginState * pluginStateTCP);
+
+	void (*TCPData)(struct TCPPluginState * pluginStateTCP);
+
+	void (*tunnelData)(struct TCPPluginState * pluginStateTCP);
+
+} TCPHandlers;
 
 #endif //CODE_TCP_H

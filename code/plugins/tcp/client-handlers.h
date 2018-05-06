@@ -4,16 +4,14 @@
 #include <stdint.h>
 #include "packet.h"
 
-extern int tunDeviceFD;
+void TCPClientInitialize(struct sockaddr_in * endpoint, struct TCPPluginState * pluginStateTCP);
 
-void TCPClientInitialize(struct sockaddr_in * endpoint);
+void TCPClientAcceptClient(struct TCPPluginState * pluginStateTCP);
 
-void TCPClientAcceptClient();
+void TCPClientCheckHealth(struct TCPPluginState * pluginStateTCP);
 
-void TCPClientCheckHealth(struct sockaddr_in * endpoint);
+void TCPClientTCPData(struct TCPPluginState * pluginStateTCP);
 
-void TCPClientTCPData(struct sockaddr_in * endpoint);
-
-void TCPClientTunnelData(struct sockaddr_in * endpoint);
+void TCPClientTunnelData(struct TCPPluginState * pluginStateTCP);
 
 #endif //CODE_CLIENT_HANDLERS_H

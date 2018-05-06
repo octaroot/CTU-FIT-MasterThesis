@@ -10,7 +10,7 @@
 #include "packet.h"
 #include "tcp.h"
 
-int TCPReceiveMsg(int socketFD, struct sockaddr_in *from, struct TCPMessage *msg)
+int TCPReceiveMsg(struct TCPPluginState * pluginStateTCP, struct TCPMessage *msg)
 {
 	TCPPacketHeader customHeader;
 
@@ -18,16 +18,16 @@ int TCPReceiveMsg(int socketFD, struct sockaddr_in *from, struct TCPMessage *msg
 
 	unsigned int readSize;
 
-	readSize = read(socketFD, headerBuffer, 3);
+	readSize = read(pluginStateTCP->socket, headerBuffer, 3);
 	if (readSize < 0)
 	{
-		_TCPStopClient();
+		_TCPStopClient(pluginStateTCP);
 		return 1;
 	}
 	else if (readSize != 3)
 	{
 		fprintf(stderr, "Received malformed TCP packet: Unable to read packet header: %s (%d)\n", strerror(errno), errno);
-		_TCPStopClient();
+		_TCPStopClient(pluginStateTCP);
 		return 1;
 	}
 
@@ -52,10 +52,10 @@ int TCPReceiveMsg(int socketFD, struct sockaddr_in *from, struct TCPMessage *msg
 	readSize = 0;
 	while (readSize != customHeader.length)
 	{
-		int result = read(socketFD, msg->buffer, customHeader.length - readSize);
+		int result = read(pluginStateTCP->socket, msg->buffer, customHeader.length - readSize);
 		if (result < 0)
 		{
-			_TCPStopClient();
+			_TCPStopClient(pluginStateTCP);
 			fprintf(stderr, "Unable to read from TCP socket: %s (%d)\n", strerror(errno), errno);
 			return 1;
 		}
@@ -63,7 +63,7 @@ int TCPReceiveMsg(int socketFD, struct sockaddr_in *from, struct TCPMessage *msg
 		//fprintf(stderr, "Read %d bytes out of required %d, still waiting for %d\n", readSize, customHeader.length, customHeader.length - readSize);
 		if (readSize < 0)
 		{
-			_TCPStopClient();
+			_TCPStopClient(pluginStateTCP);
 		}
 	}
 
@@ -76,7 +76,7 @@ void TCPSocketClose(int socketFD)
 		close(socketFD);
 }
 
-int TCPSendMsg(int socketFD, struct sockaddr_in *to, struct TCPMessage *msg)
+int TCPSendMsg(struct TCPPluginState * pluginStateTCP, struct TCPMessage *msg)
 {
 	char buffer[TCP_SOCKET_MTU];
 	buffer[0] = msg->packetType;
@@ -85,12 +85,12 @@ int TCPSendMsg(int socketFD, struct sockaddr_in *to, struct TCPMessage *msg)
 
 	memcpy(buffer + 3, msg->buffer, msg->size);
 
-	int sentSize = write(socketFD, buffer, msg->size + 3);
+	int sentSize = write(pluginStateTCP->socket, buffer, msg->size + 3);
 
 	if (sentSize < 0)
 	{
 		fprintf(stderr, "Unable to send an TCP packet: %s\n", strerror(errno));
-		_TCPStopClient();
+		_TCPStopClient(pluginStateTCP);
 		return 1;
 	}
 

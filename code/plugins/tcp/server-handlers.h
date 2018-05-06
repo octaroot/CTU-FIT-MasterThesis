@@ -4,14 +4,14 @@
 #include <stdint.h>
 #include "tcp.h"
 
-void TCPServerInitialize(struct sockaddr_in * endpoint);
+void TCPServerInitialize(struct sockaddr_in * endpoint, struct TCPPluginState * pluginStateTCP);
 
-void TCPServerAcceptClient();
+void TCPServerAcceptClient(struct TCPPluginState * pluginStateTCP);
 
-void TCPServerCheckHealth(struct sockaddr_in * endpoint);
+void TCPServerCheckHealth(struct TCPPluginState * pluginStateTCP);
 
-void TCPServerTCPData(struct sockaddr_in * endpoint);
+void TCPServerTCPData(struct TCPPluginState * pluginStateTCP);
 
-void TCPServerTunnelData(struct sockaddr_in * endpoint);
+void TCPServerTunnelData(struct TCPPluginState * pluginStateTCP);
 
 #endif //CODE_SERVER_HANDLERS_H

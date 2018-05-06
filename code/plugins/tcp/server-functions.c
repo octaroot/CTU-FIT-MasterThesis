@@ -10,16 +10,16 @@
 struct auth_context * TCPauthCtxs[TCP_MAX_AUTH_REQUESTS];
 int TCPauthCtxIdx = 0;
 
-void TCPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, struct TCPMessage *request)
+void TCPHandleConnectionRequest(struct TCPPluginState * pluginStateTCP, struct TCPMessage *request)
 {
 	struct TCPMessage msg;
 
-	if (pluginStateTCP.auth)
+	if (pluginStateTCP->auth)
 	{
 		msg.size = 1;
 		msg.packetType = TCP_CONNECTION_REJECT;
 
-		TCPSendMsg(socketFD, endpoint, &msg);
+		TCPSendMsg(pluginStateTCP, &msg);
 		return;
 	}
 
@@ -37,15 +37,15 @@ void TCPHandleConnectionRequest(int socketFD, struct sockaddr_in * endpoint, str
 	msg.size = AUTH_CHALLENGE_LENGTH;
 	memcpy(msg.buffer, TCPauthCtxs[TCPauthCtxIdx]->challenge, AUTH_CHALLENGE_LENGTH);
 
-	TCPSendMsg(socketFD, endpoint, &msg);
+	TCPSendMsg(pluginStateTCP, &msg);
 }
 
-void TCPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct TCPMessage * request)
+void TCPHandleAuthResponse(struct TCPPluginState * pluginStateTCP, struct TCPMessage * request)
 {
 	struct TCPMessage msg;
 	msg.size = 1;
 
-	if (!pluginStateTCP.auth && request->size == AUTH_RESPONSE_LENGTH)
+	if (!pluginStateTCP->auth && request->size == AUTH_RESPONSE_LENGTH)
 	{
 		for (int i = 0; i < TCP_MAX_AUTH_REQUESTS; ++i)
 		{
@@ -55,9 +55,9 @@ void TCPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct T
 				{
 					msg.packetType = TCP_CONNECTION_ACCEPT;
 
-					pluginStateTCP.auth = true;
+					pluginStateTCP->auth = true;
 
-					TCPSendMsg(socketFD, pluginStateTCP.endpoint, &msg);
+					TCPSendMsg(pluginStateTCP, &msg);
 
 					// zruseni vsech ostatnich challenge-response pozadavku
 					for (i = 0; i < TCP_MAX_AUTH_REQUESTS; ++i)
@@ -77,16 +77,16 @@ void TCPHandleAuthResponse(int socketFD, struct sockaddr_in * endpoint, struct T
 
 	msg.packetType = TCP_CONNECTION_REJECT;
 
-	TCPSendMsg(socketFD, endpoint, &msg);
+	TCPSendMsg(pluginStateTCP, &msg);
 }
 
-void TCPHandleKeepAlive(int socketFD, struct sockaddr_in * endpoint, struct TCPMessage * request)
+void TCPHandleKeepAlive(struct TCPPluginState * pluginStateTCP, struct TCPMessage * request)
 {
-	if (!pluginStateTCP.connected)
+	if (!pluginStateTCP->connected)
 		return;
 
-	if (pluginStateTCP.auth)
-		pluginStateTCP.noReplyCount = 0;
+	if (pluginStateTCP->auth)
+		pluginStateTCP->noReplyCount = 0;
 
-	TCPSendMsg(socketFD, pluginStateTCP.endpoint, request);
+	TCPSendMsg(pluginStateTCP, request);
 }

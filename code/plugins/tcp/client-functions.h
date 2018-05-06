@@ -5,20 +5,18 @@
 #include <stdbool.h>
 #include "packet.h"
 
-extern struct TCPPluginState pluginStateTCP;
+void TCPSendConnectionRequest(struct TCPPluginState * pluginStateTCP);
 
-void TCPSendConnectionRequest(int socketFD, struct sockaddr_in * endpoint);
+void TCPSendKeepAlive(struct TCPPluginState * pluginStateTCP);
 
-void TCPSendKeepAlive(int socketFD, struct sockaddr_in * endpoint);
+void TCPHandleConnectionAccept(struct TCPPluginState * pluginStateTCP);
 
-void TCPHandleConnectionAccept(struct sockaddr_in * endpoint);
+void TCPHandleAuthChallenge(struct TCPPluginState * pluginStateTCP, struct TCPMessage *origMsg);
 
-void TCPHandleAuthChallenge(int socketFD, struct sockaddr_in * endpoint, struct TCPMessage *origMsg);
-
-void TCPHandleConnectionReject(int socketFD, struct sockaddr_in * endpoint);
+void TCPHandleConnectionReject(struct TCPPluginState * pluginStateTCP);
 
 void TCPHandleTCPData(struct TCPMessage *msg);
 
-void TCPHandleKeepAliveResponse();
+void TCPHandleKeepAliveResponse(struct TCPPluginState * pluginStateTCP);
 
 #endif //CODE_CLIENT_FUNCTIONS_H

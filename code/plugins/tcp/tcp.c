@@ -12,21 +12,20 @@
 #include "client-handlers.h"
 #include "server-handlers.h"
 
-struct TCPPluginState pluginStateTCP;
-
 bool _TCPTestAvailability(uint32_t endpoint)
 {
+	struct TCPPluginState pluginStateTCP;
 	//TODO
 
-	_TCPCleanup();
+	_TCPCleanup(&pluginStateTCP);
 }
 
-void _TCPCleanup()
+void _TCPCleanup(struct TCPPluginState * pluginStateTCP)
 {
-	pluginStateTCP.connected = false;
-	pluginStateTCP.noReplyCount = 0;
-	TCPSocketClose(pluginStateTCP.socket);
-	TCPSocketClose(pluginStateTCP.listener);
+	pluginStateTCP->connected = false;
+	pluginStateTCP->noReplyCount = 0;
+	TCPSocketClose(pluginStateTCP->socket);
+	TCPSocketClose(pluginStateTCP->listener);
 }
 
 const char *_TCPGetVersion()
@@ -36,6 +35,8 @@ const char *_TCPGetVersion()
 
 void _TCPStart(uint32_t address, bool serverMode)
 {
+	struct TCPPluginState pluginStateTCP;
+
 	pluginStateTCP.noReplyCount = 0;
 	pluginStateTCP.connected = false;
 	pluginStateTCP.endpoint = malloc(sizeof(struct sockaddr_in));
@@ -66,11 +67,11 @@ void _TCPStart(uint32_t address, bool serverMode)
 	endpoint.sin_addr.s_addr = htonl(address);
 	endpoint.sin_port = htons(5060);
 
-	handler->initialize(&endpoint);
+	handler->initialize(&endpoint, &pluginStateTCP);
 
 	while (_TCPRunning)
 	{
-		handler->acceptClient();
+		handler->acceptClient(&pluginStateTCP);
 
 		int maxFD = MAX(pluginStateTCP.socket, tunDeviceFD);
 		struct timeval timeout;
@@ -90,29 +91,29 @@ void _TCPStart(uint32_t address, bool serverMode)
 
 			if (lenAvailable < 0)
 			{
-				_TCPStopClient();
+				_TCPStopClient(&pluginStateTCP);
 				_TCPStop();
 				break;
 			}
 
 			if (lenAvailable == 0)
 			{
-				handler->checkHealth(pluginStateTCP.endpoint);
+				handler->checkHealth(&pluginStateTCP);
 				continue;
 			}
 
 			if (pluginStateTCP.auth && FD_ISSET(tunDeviceFD, &fs))
 			{
-				handler->tunnelData(pluginStateTCP.endpoint);
+				handler->tunnelData(&pluginStateTCP);
 			}
 
 			if (FD_ISSET(pluginStateTCP.socket, &fs))
 			{
-				handler->TCPData(pluginStateTCP.endpoint);
+				handler->TCPData(&pluginStateTCP);
 			}
 		}
 	}
-	_TCPCleanup();
+	_TCPCleanup(&pluginStateTCP);
 }
 
 void _TCPStop()
@@ -120,9 +121,9 @@ void _TCPStop()
 	_TCPRunning = false;
 }
 
-void _TCPStopClient()
+void _TCPStopClient(struct TCPPluginState * pluginStateTCP)
 {
-	pluginStateTCP.connected = false;
-	pluginStateTCP.auth = false;
-	close(pluginStateTCP.socket);
+	pluginStateTCP->connected = false;
+	pluginStateTCP->auth = false;
+	close(pluginStateTCP->socket);
 }

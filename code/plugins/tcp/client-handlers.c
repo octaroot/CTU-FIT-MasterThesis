@@ -9,50 +9,50 @@
 #include "tcp.h"
 
 
-void TCPClientInitialize(struct sockaddr_in * endpoint)
+void TCPClientInitialize(struct sockaddr_in * endpoint, struct TCPPluginState * pluginStateTCP)
 {
-	memcpy(pluginStateTCP.endpoint, endpoint, sizeof(struct sockaddr_in));
+	memcpy(pluginStateTCP->endpoint, endpoint, sizeof(struct sockaddr_in));
 
-	if (connect(pluginStateTCP.listener, (struct sockaddr*) endpoint, sizeof(*endpoint)) < 0) {
+	if (connect(pluginStateTCP->listener, (struct sockaddr*) endpoint, sizeof(*endpoint)) < 0) {
 		fprintf(stderr,"Unable to connect to server (TCP): %s\n", strerror(errno));
 		_TCPStop();
 		return;
 	}
 
-	pluginStateTCP.socket = pluginStateTCP.listener;
+	pluginStateTCP->socket = pluginStateTCP->listener;
 
-	TCPSendConnectionRequest(pluginStateTCP.socket, pluginStateTCP.endpoint);
+	TCPSendConnectionRequest(pluginStateTCP);
 }
 
-void TCPClientAcceptClient()
+void TCPClientAcceptClient(struct TCPPluginState * pluginStateTCP)
 {
-	pluginStateTCP.connected = true;
+	pluginStateTCP->connected = true;
 }
 
-void TCPClientCheckHealth(struct sockaddr_in * endpoint)
+void TCPClientCheckHealth(struct TCPPluginState * pluginStateTCP)
 {
-	if (!pluginStateTCP.connected)
+	if (!pluginStateTCP->connected)
 		return;
 
-	if (pluginStateTCP.noReplyCount++ > TCP_KEEPALIVE_TIMEOUT)
+	if (pluginStateTCP->noReplyCount++ > TCP_KEEPALIVE_TIMEOUT)
 	{
 		// timed out, close connection
 		_TCPStop();
 		return;
 	}
 
-	TCPSendKeepAlive(pluginStateTCP.socket, pluginStateTCP.endpoint);
+	TCPSendKeepAlive(pluginStateTCP);
 }
 
-void TCPClientTCPData(struct sockaddr_in * endpoint)
+void TCPClientTCPData(struct TCPPluginState * pluginStateTCP)
 {
 	TCPMessage msg;
 	struct sockaddr_in sender;
 
-	if (TCPReceiveMsg(pluginStateTCP.socket, &sender, &msg))
+	if (TCPReceiveMsg(pluginStateTCP, &msg))
 		return;
 
-	if (!pluginStateTCP.connected)
+	if (!pluginStateTCP->connected)
 		return;
 
 	if (!msg.size)
@@ -61,16 +61,16 @@ void TCPClientTCPData(struct sockaddr_in * endpoint)
 	switch (msg.packetType)
 	{
 		case TCP_AUTH_CHALLENGE:
-			TCPHandleAuthChallenge(pluginStateTCP.socket, &sender, &msg);
+			TCPHandleAuthChallenge(pluginStateTCP, &msg);
 			break;
 		case TCP_CONNECTION_ACCEPT:
-			TCPHandleConnectionAccept(&sender);
+			TCPHandleConnectionAccept(pluginStateTCP);
 			break;
 		case TCP_CONNECTION_REJECT:
-			TCPHandleConnectionReject(pluginStateTCP.socket, &sender);
+			TCPHandleConnectionReject(pluginStateTCP);
 			break;
 		case TCP_KEEPALIVE:
-			TCPHandleKeepAliveResponse();
+			TCPHandleKeepAliveResponse(pluginStateTCP);
 			break;
 		case TCP_DATA:
 			TCPHandleTCPData(&msg);
@@ -78,7 +78,7 @@ void TCPClientTCPData(struct sockaddr_in * endpoint)
 	}
 }
 
-void TCPClientTunnelData(struct sockaddr_in * endpoint)
+void TCPClientTunnelData(struct TCPPluginState * pluginStateTCP)
 {
 	TCPMessage msg;
 	tunRead(tunDeviceFD, (char*)&(msg.buffer), &(msg.size));
@@ -88,5 +88,5 @@ void TCPClientTunnelData(struct sockaddr_in * endpoint)
 
 	msg.packetType = TCP_DATA;
 
-	TCPSendMsg(pluginStateTCP.socket, pluginStateTCP.endpoint, &msg);
+	TCPSendMsg(pluginStateTCP,&msg);
 }

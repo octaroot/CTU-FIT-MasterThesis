@@ -7,6 +7,7 @@
 #include <netinet/tcp.h>
 
 #include "../../src/tun-device.h"
+#include "tcp.h"
 
 #define TCP_SOCKET_MTU  (4096 + sizeof(struct TCPPacketHeader))
 
@@ -38,9 +39,9 @@ typedef struct TCPMessage
 
 int TCPSocketOpen();
 
-int TCPSendMsg(int socketFD, struct sockaddr_in * to, struct TCPMessage *msg);
+int TCPSendMsg(struct TCPPluginState * pluginStateTCP, struct TCPMessage *msg);
 
-int TCPReceiveMsg(int socketFD, struct sockaddr_in *from, struct TCPMessage *msg);
+int TCPReceiveMsg(struct TCPPluginState * pluginStateTCP, struct TCPMessage *msg);
 
 void TCPSocketClose(int socketFD);
 

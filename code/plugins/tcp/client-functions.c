@@ -7,30 +7,30 @@
 #include "../../src/auth.h"
 #include "tcp.h"
 
-void TCPSendConnectionRequest(int socketFD, struct sockaddr_in * endpoint)
+void TCPSendConnectionRequest(struct TCPPluginState * pluginStateTCP)
 {
 	struct TCPMessage msg;
 	msg.size = 1;
 	msg.packetType = TCP_CONNECTION_REQUEST;
 
-	TCPSendMsg(socketFD, endpoint, &msg);
+	TCPSendMsg(pluginStateTCP, &msg);
 }
 
-void TCPSendKeepAlive(int socketFD, struct sockaddr_in * endpoint)
+void TCPSendKeepAlive(struct TCPPluginState * pluginStateTCP)
 {
 	struct TCPMessage msg;
 	msg.size = 1;
 	msg.packetType = TCP_KEEPALIVE;
 
-	TCPSendMsg(socketFD, pluginStateTCP.endpoint, &msg);
+	TCPSendMsg(pluginStateTCP, &msg);
 }
 
-void TCPHandleConnectionAccept(struct sockaddr_in * endpoint)
+void TCPHandleConnectionAccept(struct TCPPluginState * pluginStateTCP)
 {
-	pluginStateTCP.auth = true;
+	pluginStateTCP->auth = true;
 }
 
-void TCPHandleAuthChallenge(int socketFD, struct sockaddr_in * endpoint, struct TCPMessage *origMsg)
+void TCPHandleAuthChallenge(struct TCPPluginState * pluginStateTCP, struct TCPMessage *origMsg)
 {
 	if (origMsg->size != AUTH_CHALLENGE_LENGTH)
 		return;
@@ -45,12 +45,12 @@ void TCPHandleAuthChallenge(int socketFD, struct sockaddr_in * endpoint, struct 
 	msg.size = AUTH_RESPONSE_LENGTH;
 	msg.packetType = TCP_AUTH_RESPONSE;
 
-	TCPSendMsg(socketFD, pluginStateTCP.endpoint, &msg);
+	TCPSendMsg(pluginStateTCP, &msg);
 }
 
-void TCPHandleConnectionReject(int socketFD, struct sockaddr_in * endpoint)
+void TCPHandleConnectionReject(struct TCPPluginState * pluginStateTCP)
 {
-	pluginStateTCP.connected = false;
+	pluginStateTCP->connected = false;
 	_TCPStop();
 }
 
@@ -62,7 +62,7 @@ void TCPHandleTCPData(struct TCPMessage *msg)
 	tunWrite(tunDeviceFD, msg->buffer, msg->size);
 }
 
-void TCPHandleKeepAliveResponse()
+void TCPHandleKeepAliveResponse(struct TCPPluginState * pluginStateTCP)
 {
-	pluginStateTCP.noReplyCount = 0;
+	pluginStateTCP->noReplyCount = 0;
 }
