@@ -80,6 +80,9 @@ void UDPServerTunnelData(struct UDPPluginState * pluginState)
 	if (!msg.size)
 		return;
 
+	if (!pluginState->connected)
+		return;
+
 	msg.packetType = UDP_DATA;
 
 	UDPSendMsg(pluginState->socket, pluginState->endpoint, &msg);

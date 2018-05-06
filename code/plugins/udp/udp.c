@@ -105,7 +105,7 @@ void _UDPStart(uint32_t address, int port,  bool serverMode)
 			continue;
 		}
 
-		if (pluginStateUDP.connected && FD_ISSET(tunDeviceFD, &fs))
+		if (FD_ISSET(tunDeviceFD, &fs))
 		{
 			handler->tunnelData(&pluginStateUDP);
 		}
