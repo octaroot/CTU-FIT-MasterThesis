@@ -80,7 +80,7 @@ void muxListPlugins()
 
 void muxTestPlugins(uint32_t address, struct pluginOptions * requiredPlugins, int count)
 {
-	printf("Testing availability of %zu plugins:\n", PLUGIN_COUNT);
+	printf("Testing availability of %d plugins:\n", count);
 	for (int i = 0; i < count; ++i)
 	{
 		for (int j = 0; j < PLUGIN_COUNT; ++j)

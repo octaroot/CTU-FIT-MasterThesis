@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 
 	if (requiredPlugins == NULL)
 	{
-		fprintf(stderr, "You need to specify at least one plugin, e.g. -p tcp:80\n");
+		fprintf(stderr, "You need to specify at least one plugin, e.g. -p udp:4444\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 
 	if (parsedPlugins < 1)
 	{
-		fprintf(stderr, "You need to specify at least one plugin, e.g. -p tcp:80\n");
+		fprintf(stderr, "You need to specify at least one plugin, e.g. -p udp:4444\n");
 		exit(EXIT_FAILURE);
 	}
 
