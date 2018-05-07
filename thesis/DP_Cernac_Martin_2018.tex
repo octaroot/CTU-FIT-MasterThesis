@@ -618,7 +618,7 @@ Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu
     
     Protože \texttt{ICMP} pakety \texttt{echo reply}, (resp. \texttt{echo request}) na rozdíl od \texttt{UDP} a \texttt{TCP} paketů nenesou informaci o zdrojovém/cílovém portu, jsou pro sdružování souvisejících zpráv použity hodnoty \textit{identifikátor} a \textit{sekvenční číslo}. Dle \cite[RFC 792]{rfc792} a \cite[RFC 3022]{rfc3022} mohou síťové prvky, jako například \texttt{NAT}, pro rozpoznání souvisejících zpráv tyto hodnoty používat. Specifikace se však nezmiňuje o délce platnosti \textit{identifikátoru}. Díky tomu je možno udržovat obousměrnou komunikaci, i pokud je jeden z účastníků omezen \texttt{NAT}, protože je možné klientovi \uv{za NATem} zaslat více paketů se shodnými hodnotami \textit{sekvenční číslo} a \textit{identifikátor}. Na základě hodnoty \textit{identifikátor} je identifikována i žádost klienta o připojení a následná odpověď na výzvu serveru.
     
-    Systém, který dodržuje \cite[RFC1122]{rfc1122} se však bude snažit na příchozí \texttt{ICMP} \textit{echo request} pakety reagovat. Toto chování je pro správnou funkci tunelu nežádoucí. V linuxových distribucích je možné povolit ignorování příchozích zpráv \texttt{ICMP echo} změnou souboru \texttt{/proc/sys/net/ipv4/icmp\_echo\_ignore\_all}.
+    Systém, který dodržuje \cite[RFC1122]{rfc1122} se však bude snažit na příchozí \texttt{ICMP} \textit{echo request} pakety reagovat. Toto chování je pro správnou funkci tunelu nežádoucí. V Linuxových distribucích je možné povolit ignorování příchozích zpráv \texttt{ICMP echo} změnou souboru \texttt{/proc/sys/net/ipv4/icmp\_echo\_ignore\_all}.
     
     Aby obě strany tunelu byly schopny identifikovat tok dat tunelu a rozeznat takové zprávy od jiných \texttt{ICMP} zpráv, je nutné \uv{tunelové} \texttt{ICMP} zprávy označit. Právě proto začíná každá taková \texttt{ICMP} zpráva stejnou sekvencí čtyř bajtů, která označuje \texttt{ICMP} zprávy, nesoucí data síťového tunelu. Komunikující protějšky kontrolují zdrojovou \texttt{IP} adresu označených \texttt{ICMP} zpráv, aby nebylo triviálně možné injektovat komunikaci do tunelu. Těchto dodatečných pět bajtů je potřebných pro správnou funkci tunelu a předávání servisních zpráv. Umístění těchto informací v \texttt{ICMP} paketu je vyznačeno na diagramu \ref{diag:icmp-packet-tunel}.
     
@@ -1245,7 +1245,7 @@ $ dd if=/dev/random of=random.16 bs=1M count=16
     
     
     \begin{figure}[h]
-	\begin{lstlisting}[label=code:wget,caption=Ukázkový výstup příkazu \texttt{wget},frame=single,numbers=left, linewidth=1.1\textwidth]
+	\begin{lstlisting}[label=code:wget,caption=Ukázkový výstup příkazu \texttt{wget},frame=single,numbers=left,linewidth=1.1\textwidth]
 --2018-04-06 17:13:35--  http://192.168.99.2:8000/random.16
 Connecting to 192.168.99.2:8000... connected.
 HTTP request sent, awaiting response... 200 OK
@@ -1266,7 +1266,7 @@ Saving to: "/dev/null"
  16300K .......... .......... .......... .......... .......... 99% 1,07M 0s
  16350K .......... .......... .......... ....                         100% 1,04M=15s
 
-2018-04-06 17:13:50 (1,05 MB/s) - ‘/dev/null’ saved [16777216/16777216]
+2018-04-06 17:13:50 (1,05 MB/s) - '/dev/null' saved [16777216/16777216]
       \end{lstlisting}
     \end{figure}
 
