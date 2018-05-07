@@ -78,22 +78,33 @@ void muxListPlugins()
 	}
 }
 
-void muxTestPlugins(uint32_t endpoint)
+void muxTestPlugins(uint32_t address, struct pluginOptions * requiredPlugins, int count)
 {
 	printf("Testing availability of %zu plugins:\n", PLUGIN_COUNT);
-	for (int i = 0; i < PLUGIN_COUNT; ++i)
+	for (int i = 0; i < count; ++i)
 	{
-		printf("Testing %s ... ", plugins[i].getVersion());
-
-		bool available = plugins[i].testAvailability(endpoint);
-
-		if (available)
+		for (int j = 0; j < PLUGIN_COUNT; ++j)
 		{
-			printf("OK\n");
-		}
-		else
-		{
-			printf("unavailable\n");
+			if (strcasecmp(requiredPlugins[i].pluginName, plugins[j].getName()) != 0)
+			{
+				continue;
+			}
+
+			printf("Testing %s:%d ", plugins[j].getVersion(), requiredPlugins[i].port);
+
+			fflush(stdout);
+
+			bool available = plugins[j].testAvailability(address, requiredPlugins[i].port);
+
+			if (available)
+			{
+				printf(" OK\n");
+			}
+			else
+			{
+				printf(" unavailable or already connected\n");
+			}
+
 		}
 	}
 }

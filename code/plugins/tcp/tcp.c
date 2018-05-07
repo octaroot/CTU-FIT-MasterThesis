@@ -12,12 +12,83 @@
 #include "client-handlers.h"
 #include "server-handlers.h"
 
-bool _TCPTestAvailability(uint32_t endpoint)
+bool _TCPTestAvailability(uint32_t address, int port)
 {
 	struct TCPPluginState pluginStateTCP;
-	//TODO
+
+	pluginStateTCP.noReplyCount = 0;
+	pluginStateTCP.connected = false;
+	pluginStateTCP.endpoint = malloc(sizeof(struct sockaddr_in));
+
+
+	TCPHandlers handlers[] = {
+			{TCPClientInitialize, TCPClientAcceptClient, TCPClientCheckHealth, TCPClientTCPData, TCPClientTunnelData},
+	};
+
+	_TCPRunning = true;
+
+	pluginStateTCP.listener = TCPSocketOpen();
+
+	if (!pluginStateTCP.listener)
+	{
+		_TCPRunning = false;
+		return false;
+	}
+
+	TCPHandlers *handler = &(handlers[0]);
+
+	struct sockaddr_in endpoint;
+	memset(&endpoint, 0, sizeof(struct sockaddr_in));
+
+	endpoint.sin_family = AF_INET;
+	endpoint.sin_addr.s_addr = htonl(address);
+	endpoint.sin_port = htons(port);
+
+	handler->initialize(&endpoint, &pluginStateTCP);
+
+	while (_TCPRunning && !pluginStateTCP.auth && pluginStateTCP.noReplyCount < TCP_KEEPALIVE_TIMEOUT)
+	{
+		handler->acceptClient(&pluginStateTCP);
+
+		struct timeval timeout;
+
+		while (_TCPRunning && pluginStateTCP.connected && !pluginStateTCP.auth && pluginStateTCP.noReplyCount < TCP_KEEPALIVE_TIMEOUT)
+		{
+			fd_set fs;
+
+			FD_ZERO(&fs);
+			FD_SET(pluginStateTCP.socket, &fs);
+
+			timeout.tv_sec = 1;
+			timeout.tv_usec = 0;
+
+			int lenAvailable = select(pluginStateTCP.socket + 1, &fs, NULL, NULL, &timeout);
+
+			if (lenAvailable < 0)
+			{
+				_TCPStopClient(&pluginStateTCP);
+				_TCPStop();
+				return false;
+			}
+
+			if (lenAvailable == 0)
+			{
+				printf(".");
+				fflush(stdout);
+				++pluginStateTCP.noReplyCount;
+				continue;
+			}
+
+			handler->TCPData(&pluginStateTCP);
+		}
+	}
+
+
+	bool success = pluginStateTCP.auth;
 
 	_TCPCleanup(&pluginStateTCP);
+
+	return success;
 }
 
 void _TCPCleanup(struct TCPPluginState * pluginStateTCP)

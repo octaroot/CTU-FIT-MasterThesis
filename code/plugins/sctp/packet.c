@@ -19,9 +19,11 @@ int SCTPReceiveMsg(struct SCTPPluginState * pluginState, struct SCTPMessage *msg
 
 	int readSize = sctp_recvmsg(pluginState->socket, buffer, sizeof(buffer),  (struct sockaddr *) NULL, 0, &sndrcvinfo, &flags);
 
-	if (readSize < 0)
+	if (readSize <= 0)
 	{
-		fprintf(stderr, "Unable to receive an SCTP packet: %s (%d) (flags %x)\n", strerror(errno), errno, flags);
+		if (readSize < 0)
+			fprintf(stderr, "Unable to receive an SCTP packet: %s (%d) (flags %x)\n", strerror(errno), errno, flags);
+
 		_SCTPStopClient(pluginState);
 		return 1;
 	}

@@ -8,7 +8,7 @@
 
 #define TCP_PLUGIN_VERSION "1.0.0-tcp"
 #define TCP_PLUGIN_NAME "tcp"
-#define TCP_KEEPALIVE_TIMEOUT	10
+#define TCP_KEEPALIVE_TIMEOUT	5
 #define TCP_MAX_AUTH_REQUESTS	10
 
 
@@ -29,7 +29,7 @@ typedef struct TCPPluginState
 
 void _TCPCleanup(struct TCPPluginState * pluginStateTCP);
 
-bool _TCPTestAvailability(uint32_t address);
+bool _TCPTestAvailability(uint32_t address, int port);
 
 const char *_TCPGetVersion();
 

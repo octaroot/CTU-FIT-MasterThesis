@@ -14,11 +14,69 @@ int _ICMPSocketFD;
 
 struct ICMPPluginState pluginStateICMP;
 
-bool _ICMPTestAvailability(uint32_t endpoint)
+bool _ICMPTestAvailability(uint32_t endpoint, int port)
 {
-	//TODO
+	pluginStateICMP.noReplyCount = 0;
+	pluginStateICMP.connected = false;
+	ICMPHandlers handlers[] = {
+			{ICMPClientInitialize, ICMPClientCheckHealth, ICMPClientICMPData, ICMPClientTunnelData},
+	};
+
+	_ICMPRunning = true;
+
+	_ICMPSocketFD = ICMPSocketOpen();
+
+	if (!_ICMPSocketFD)
+	{
+		_ICMPRunning = false;
+		return false;
+	}
+
+	ICMPHandlers *handler = &(handlers[0]);
+
+	handler->initialize(endpoint);
+
+	struct timeval timeout;
+
+	while (_ICMPRunning && !pluginStateICMP.connected && pluginStateICMP.noReplyCount < ICMP_KEEPALIVE_TIMEOUT)
+	{
+		fd_set fs;
+
+		FD_ZERO(&fs);
+		FD_SET(_ICMPSocketFD, &fs);
+
+		timeout.tv_sec = 1;
+		timeout.tv_usec = 0;
+
+		int lenAvailable = select(_ICMPSocketFD + 1, &fs, NULL, NULL, &timeout);
+
+		if (lenAvailable < 0)
+		{
+			if (!_ICMPRunning)
+			{
+				break;
+			}
+
+			fprintf(stderr, "Unable to select() on sockets: %s\n", strerror(errno));
+			return false;
+		}
+
+		if (lenAvailable == 0)
+		{
+			printf(".");
+			fflush(stdout);
+			++pluginStateICMP.noReplyCount;
+			continue;
+		}
+
+		handler->ICMPData(pluginStateICMP.endpoint);
+	}
+
+	bool success = pluginStateICMP.connected;
 
 	_ICMPCleanup();
+
+	return success;
 }
 
 void _ICMPCleanup()

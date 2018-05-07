@@ -9,7 +9,7 @@
 
 #define UDP_PLUGIN_VERSION "1.0.0-udp"
 #define UDP_PLUGIN_NAME "udp"
-#define UDP_KEEPALIVE_TIMEOUT    10
+#define UDP_KEEPALIVE_TIMEOUT    5
 #define UDP_MAX_AUTH_REQUESTS    10
 
 
@@ -43,7 +43,7 @@ bool _UDPRunning;
 
 void _UDPCleanup(struct UDPPluginState *pluginStateUDP);
 
-bool _UDPTestAvailability(uint32_t address);
+bool _UDPTestAvailability(uint32_t address, int port);
 
 const char *_UDPGetVersion();
 

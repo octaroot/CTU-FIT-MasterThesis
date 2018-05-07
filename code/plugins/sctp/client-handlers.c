@@ -15,7 +15,7 @@ void SCTPClientInitialize(struct sockaddr_in * endpoint, struct SCTPPluginState 
 
 
 	if (connect(pluginStateSCTP->listener, (struct sockaddr*) endpoint, sizeof(*endpoint)) < 0) {
-		fprintf(stderr,"Unable to connect to server (SCTP): %s\n", strerror(errno));
+		//fprintf(stderr,"Unable to connect to server (SCTP): %s\n", strerror(errno));
 		_SCTPStop();
 		return;
 	}

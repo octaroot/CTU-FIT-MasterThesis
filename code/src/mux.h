@@ -12,7 +12,7 @@ typedef struct plugin
 
 	const char *(*getName)();
 
-	bool (*testAvailability)(uint32_t endpoint);
+	bool (*testAvailability)(uint32_t endpoint, int port);
 
 	void (*start)(uint32_t endpoint, int port, bool serverMode);
 
@@ -22,7 +22,7 @@ typedef struct plugin
 
 void muxListPlugins();
 
-void muxTestPlugins(uint32_t endpoint);
+void muxTestPlugins(uint32_t address, struct pluginOptions * requiredPlugins, int count);
 
 void muxStart(bool serverMode, uint32_t address, struct pluginOptions * requiredPlugins, int count);
 

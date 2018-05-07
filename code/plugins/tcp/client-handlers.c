@@ -14,7 +14,7 @@ void TCPClientInitialize(struct sockaddr_in * endpoint, struct TCPPluginState * 
 	memcpy(pluginStateTCP->endpoint, endpoint, sizeof(struct sockaddr_in));
 
 	if (connect(pluginStateTCP->listener, (struct sockaddr*) endpoint, sizeof(*endpoint)) < 0) {
-		fprintf(stderr,"Unable to connect to server (TCP): %s\n", strerror(errno));
+		//fprintf(stderr,"Unable to connect to server (TCP): %s\n", strerror(errno));
 		_TCPStop();
 		return;
 	}

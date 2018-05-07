@@ -22,7 +22,7 @@ static void printHelp(char *programName)
 	fprintf(stderr, "  -k                     keyfile filename (required for auth)\n");
 	fprintf(stderr, "  -l                     list compiled plugins and exit\n");
 	fprintf(stderr, "  -h                     print help and exit\n");
-	fprintf(stderr, "  -t <server>            test connectivity to server and exit\n");
+	fprintf(stderr, "  -t                     test client connectivity to server and exit\n");
 	fprintf(stderr, "  -p [<name[:port]>,...] use plugin on port, use comma to specify more plugins\n");
 	fprintf(stderr, "  -s                     run in server mode\n");
 	fprintf(stderr, "  -c <server>            run in client mode, connect to server ip/hostname\n");
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 	struct pluginOptions plugins[MAX_PLUGINS];
 	char * requiredPlugins = NULL;
 
-	while ((parameter = getopt(argc, argv, "lvht:sc:k:p:")) != -1)
+	while ((parameter = getopt(argc, argv, "lvhtsc:k:p:")) != -1)
 	{
 		switch (parameter)
 		{
@@ -72,7 +72,6 @@ int main(int argc, char **argv)
 				break;
 			case 't':
 				justTestConnectivity = true;
-				serverName = optarg;
 				break;
 			case 'k':
 				keyfileFilename = optarg;
@@ -117,9 +116,15 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if (clientMode ^ serverMode == false && !justTestConnectivity)
+	if (clientMode ^ serverMode == false)
 	{
 		fprintf(stderr, "Select either server (-s) mode or client (-c <server>) mode\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (justTestConnectivity && !clientMode)
+	{
+		fprintf(stderr, "Test mode is only available in client (-c <server>) mode\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -153,7 +158,7 @@ int main(int argc, char **argv)
 	{
 		printf("Testing connectivity options to %s ...\n", serverName);
 
-		muxTestPlugins(endpoint);
+		muxTestPlugins(endpoint, plugins, parsedPlugins);
 		exit(EXIT_SUCCESS);
 	}
 

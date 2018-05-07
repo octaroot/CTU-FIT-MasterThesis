@@ -8,7 +8,7 @@
 
 #define SCTP_PLUGIN_VERSION "1.0.0-sctp"
 #define SCTP_PLUGIN_NAME "sctp"
-#define SCTP_KEEPALIVE_TIMEOUT	10
+#define SCTP_KEEPALIVE_TIMEOUT	5
 #define SCTP_MAX_AUTH_REQUESTS	10
 
 #define SCTP_STREAM_CONTROL     0
@@ -32,7 +32,7 @@ bool _SCTPRunning;
 
 void _SCTPCleanup(struct SCTPPluginState* pluginStateSCTP);
 
-bool _SCTPTestAvailability(uint32_t address);
+bool _SCTPTestAvailability(uint32_t address, int port);
 
 const char *_SCTPGetVersion();
 

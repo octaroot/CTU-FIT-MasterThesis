@@ -26,7 +26,7 @@ int TCPReceiveMsg(struct TCPPluginState * pluginStateTCP, struct TCPMessage *msg
 	}
 	else if (readSize != 3)
 	{
-		fprintf(stderr, "Received malformed TCP packet: Unable to read packet header: %s (%d)\n", strerror(errno), errno);
+		//fprintf(stderr, "Received malformed TCP packet: Unable to read packet header: %s (%d)\n", strerror(errno), errno);
 		_TCPStopClient(pluginStateTCP);
 		return 1;
 	}
@@ -36,13 +36,13 @@ int TCPReceiveMsg(struct TCPPluginState * pluginStateTCP, struct TCPMessage *msg
 
 	if (customHeader.length < 0)
 	{
-		fprintf(stderr, "Unable to receive an TCP packet: %s\n", strerror(errno));
+		//fprintf(stderr, "Unable to receive an TCP packet: %s\n", strerror(errno));
 		return 1;
 	}
 
 	if (customHeader.length > TCP_SOCKET_MTU)
 	{
-		fprintf(stderr, "Received malformed TCP packet: Size is too large (%d)\n", customHeader.length);
+		//fprintf(stderr, "Received malformed TCP packet: Size is too large (%d)\n", customHeader.length);
 		return 1;
 	}
 
@@ -56,7 +56,7 @@ int TCPReceiveMsg(struct TCPPluginState * pluginStateTCP, struct TCPMessage *msg
 		if (result < 0)
 		{
 			_TCPStopClient(pluginStateTCP);
-			fprintf(stderr, "Unable to read from TCP socket: %s (%d)\n", strerror(errno), errno);
+			//fprintf(stderr, "Unable to read from TCP socket: %s (%d)\n", strerror(errno), errno);
 			return 1;
 		}
 		readSize += result;

@@ -11,14 +11,83 @@
 #include "client-handlers.h"
 #include "server-handlers.h"
 
-bool _UDPTestAvailability(uint32_t endpoint)
+bool _UDPTestAvailability(uint32_t address, int port)
 {
-	//TODO
 	struct UDPPluginState pluginStateUDP;
 
-	pluginStateUDP.testConnectivity = true;
+	pluginStateUDP.noReplyCount = 0;
+	pluginStateUDP.connected = false;
+	pluginStateUDP.endpoint = malloc(sizeof(struct sockaddr_in));
+
+
+	UDPHandlers handlers[] = {
+			{UDPClientInitialize, UDPClientCheckHealth, UDPClientUDPData, UDPClientTunnelData},
+	};
+
+	_UDPRunning = true;
+
+	pluginStateUDP.socket = UDPSocketOpen();
+
+	if (!pluginStateUDP.socket)
+	{
+		_UDPRunning = false;
+		return false;
+	}
+
+	UDPHandlers *handler = &(handlers[0]);
+
+	struct sockaddr_in endpoint;
+	memset(&endpoint, 0, sizeof(struct sockaddr_in));
+
+
+	endpoint.sin_family = AF_INET;
+	endpoint.sin_addr.s_addr = htonl(address);
+	endpoint.sin_port = htons(port);
+
+	handler->initialize(&endpoint, &pluginStateUDP);
+
+	struct timeval timeout;
+
+	while (_UDPRunning && !pluginStateUDP.connected && pluginStateUDP.noReplyCount < UDP_KEEPALIVE_TIMEOUT)
+	{
+		fd_set fs;
+
+		FD_ZERO(&fs);
+		FD_SET(pluginStateUDP.socket, &fs);
+
+		timeout.tv_sec = 1;
+		timeout.tv_usec = 0;
+
+		int lenAvailable = select(pluginStateUDP.socket + 1, &fs, NULL, NULL, &timeout);
+
+		if (lenAvailable < 0)
+		{
+			if (!_UDPRunning)
+			{
+				break;
+			}
+
+			fprintf(stderr, "Unable to select() on sockets: %s\n", strerror(errno));
+			return false;
+		}
+
+		if (lenAvailable == 0)
+		{
+			printf(".");
+			fflush(stdout);
+			++pluginStateUDP.noReplyCount;
+			continue;
+		}
+
+		handler->UDPData(&pluginStateUDP);
+
+	}
+
+	bool success = pluginStateUDP.connected;
 
 	_UDPCleanup(&pluginStateUDP);
+
+	return success;
 }
 
 void _UDPCleanup(struct UDPPluginState * pluginStateUDP)
