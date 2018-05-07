@@ -1320,8 +1320,15 @@ iperf Done.
 
 
 \begin{conclusion}
-	Doplňte závěr.
+	Cílem této diplomové práce byl návrh, implementace a otestování protokolu pro obcházení limitací \textit{captive portálů}. Tento cíl byl naplněn návrhem softwarového řešení s důrazem na snadnou rozšířitelnost pomocí struktury pluginů. Byly implementovány čtyři samostatné pluginy pro tunelování síťového provozu na základě různých technik pro obcházení \textit{captive portálu}. Jednotlivé techniky byly otestovány jak s pomocí specializovaných nástrojů pro měření prostupnosti, tak simulací reálné činnosti uživatele (\texttt{WWW} provoz).
 	
+	Čtenářům této práce byl poskytnut náhled do problematiky technik řízení síťového přístupu pomocí \textit{captive portálu}, který -- jak bylo v rámci práce demonstrováno -- není ideálním řešením této problematiky. Praktickým přínosem pro čtenáře může být vyvinutý software pro obcházení omezení \textit{captive portálů}, či odkazovaná současná řešení stejného účelu. Zejména situace \texttt{DNS} tunelování je zajímavou, díky existenci \texttt{open-source} nástrojů pro tichou exfiltraci dat, nebo pro řízení botnetu.
+	
+	Práce dále nabízí přehled nejběžnějších metod provozování síťových tunelů skrze \textit{captive portál}, což může čtenář-správce sítě využít společně s vyvinutým software pro otestování stavu provozované sítě.
+	
+	Možným rozšířením této práce je implementace dalších technik tunelování dat skrze \textit{captive portál}, například pomocí dalších méně známých protokolů transportní vrstvy. Avšak podporu takových protokolů v koncových sítích nelze bezpodmínečně očekávat. Možná je i implementace \texttt{DNS} tunelování, pro které je však v současné době dostupná řada komunitou vyvíjených \textit{open-source} nástrojů.
+	
+	Osobním přínosem této práce je hlubší porozumění problematice síťových tunelů a některých méně známých protokolů transportní vrstvy \texttt{ISO/OSI} modelu, jako například protokolu \texttt{SCTP}. Dalším přínosem byla samotná implementace konceptů a technik pro obcházení \textit{captive portálů} -- kdy teoreticky jednoduchý koncept skýtá řadu překážek v praktické implementaci, například \texttt{TCP} spojení napříč \texttt{TCP} tunelem.
 \end{conclusion}
 
 \bibliographystyle{csn690}
