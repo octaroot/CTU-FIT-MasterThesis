@@ -16,6 +16,8 @@ bool _UDPTestAvailability(uint32_t endpoint)
 	//TODO
 	struct UDPPluginState pluginStateUDP;
 
+	pluginStateUDP.testConnectivity = true;
+
 	_UDPCleanup(&pluginStateUDP);
 }
 
@@ -81,7 +83,9 @@ void _UDPStart(uint32_t address, int port,  bool serverMode)
 
 		FD_ZERO(&fs);
 		FD_SET(pluginStateUDP.socket, &fs);
-		FD_SET(tunDeviceFD, &fs);
+
+		if (pluginStateUDP.connected)
+			FD_SET(tunDeviceFD, &fs);
 
 		timeout.tv_sec = 1;
 		timeout.tv_usec = 0;

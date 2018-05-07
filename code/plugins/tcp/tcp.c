@@ -87,7 +87,9 @@ void _TCPStart(uint32_t address, int port,  bool serverMode)
 
 			FD_ZERO(&fs);
 			FD_SET(pluginStateTCP.socket, &fs);
-			FD_SET(tunDeviceFD, &fs);
+
+			if (pluginStateTCP.auth)
+				FD_SET(tunDeviceFD, &fs);
 
 			timeout.tv_sec = 1;
 			timeout.tv_usec = 0;
@@ -107,7 +109,7 @@ void _TCPStart(uint32_t address, int port,  bool serverMode)
 				continue;
 			}
 
-			if (pluginStateTCP.auth && FD_ISSET(tunDeviceFD, &fs))
+			if (FD_ISSET(tunDeviceFD, &fs))
 			{
 				handler->tunnelData(&pluginStateTCP);
 			}

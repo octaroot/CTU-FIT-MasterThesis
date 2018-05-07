@@ -70,7 +70,9 @@ void _ICMPStart(uint32_t endpoint, int port, bool serverMode)
 
 		FD_ZERO(&fs);
 		FD_SET(_ICMPSocketFD, &fs);
-		FD_SET(tunDeviceFD, &fs);
+
+		if (pluginStateICMP.connected)
+			FD_SET(tunDeviceFD, &fs);
 
 		timeout.tv_sec = 1;
 		timeout.tv_usec = 0;
@@ -93,7 +95,7 @@ void _ICMPStart(uint32_t endpoint, int port, bool serverMode)
 			handler->checkHealth(pluginStateICMP.endpoint);
 		}
 
-		if (pluginStateICMP.connected && FD_ISSET(tunDeviceFD, &fs))
+		if (FD_ISSET(tunDeviceFD, &fs))
 		{
 			handler->tunnelData(pluginStateICMP.endpoint);
 		}
