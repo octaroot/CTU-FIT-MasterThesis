@@ -1336,6 +1336,164 @@ iperf Done.
 
 \appendix
 
+\chapter{Uživatelská příručka}
+
+V této příloze se nachází informace pro obsluhu programu, požadavků pro správný běh a instrukce k případnému překladu zdrojových kódů do formy spustitelné aplikace. Popsána je i ukázka použití výsledných programů.
+
+\section{Požadavky pro prostředí}
+
+Softwarové řešení je připravené pro Linuxové prostředí s podporou virtuální síťových rozhraní typu \texttt{TUN}. Je vyžadováno, aby bylo základní \texttt{TUN} rozhraní přístupné pomocí standardní cesty \texttt{/dev/net/tun}. Pro podporu \texttt{SCTP} pluginu je klíčová podpora \texttt{SCTP}. Stav podpory je možné ověřit příkazem \verb=lsmod | grep sctp=. Konfigurace IP adresy síťového rozhraní je v následujících ukázkách demonstrována příkazem \texttt{ifconfig}, který však lze nahradit jiným nástrojem, například \texttt{ip}.
+
+\section{Požadavky pro překlad}
+
+Softwarové řešení je celé složeno ze zdrojových kódů jazyka \textit{C}. Pro překlad zdrojových kódů je tedy nutný překladač a dostupné vývojové verze knihoven, které program pro svůj běh vyžaduje. Jedná se o knihovny \textit{OpenSSL} a případnou knihovnu zajišťující podporu protokolu \texttt{SCTP}. Ve vybraných distribucích (\textit{Debian}, \textit{Ubuntu} a další deriváty) jsou tyto knihovny dostupné formou balíčků
+
+\begin{itemize}
+ \item \texttt{build-essential} -- základní nástroje pro překlad zdrojových kódů
+ \item \texttt{libssl-dev} -- vývojová verze knihovny \textit{OpenSSL}
+ \item \texttt{libsctp-dev} -- vývojové prostředí pro protokol \texttt{SCTP}
+\end{itemize}
+
+Otestovány byly následující verze balíčků:
+
+\begin{itemize}
+  \item \texttt{libssl-dev:amd64}, \texttt{1.0.2g-1ubuntu13.5}
+ \item \texttt{libsctp-dev:amd64}, \texttt{1.0.17+dfsg-1}
+\end{itemize}
+
+Otestovaným překladačem je \texttt{gcc} verze \texttt{7.2.0 (Ubuntu 7.2.0-8ubuntu3.2)}.
+
+\section{Překlad zdrojových kódů}
+
+Pro usnadnění překladu zdrojových kódů obsahuje softwarový projekt soubor \texttt{CMakeLists.txt}, který zajistí detekci softwarových závislostí a vytvoří lépe známý \texttt{Makefile}. Pro zpracování souboru \texttt{CMakeLists.txt} je nutné využít nástroj \texttt{cmake}, verze alespoň \texttt{3.9}. Vygenerování \texttt{Makefile} lze provést spuštěním \texttt{cmake .} z adresáře, kde se soubor \texttt{CMakeLists.txt} nachází. Po vygenerování \texttt{Makefile} je možné spustit samotný překlad zdrojových kódů pomocí příkazu \texttt{make}. Demonstrace užití příkazů je zachycena v ukázce kódu \ref{code:compile}
+
+\begin{figure}[h]
+	\begin{lstlisting}[label=code:compile,caption=Ukázka překladu zdrojových kódů aplikace,frame=single,numbers=left, linewidth=1.1\textwidth]
+$ cmake .
+-- The C compiler identification is GNU 7.2.0
+-- Check for working C compiler: /usr/bin/cc
+
+[ ... ]
+
+-- Generating done
+-- Build files have been written to: /tmp/code
+
+$ make
+Scanning dependencies of target code
+[  3%] Building C object CMakeFiles/code.dir/src/auth.c.o
+[  6%] Building C object CMakeFiles/code.dir/src/keyfile.c.o
+
+[ ... ]
+
+[ 96%] Building C object CMakeFiles/code.dir/plugins/udp/udp.c.o
+[100%] Linking C executable code
+[100%] Built target code
+      \end{lstlisting}
+    \end{figure}
+
+    Výsledkem překladu projektu je soubor \texttt{code}, který slouží jako klientská i serverová část pro navázání a správu tunelových spojení.
+    
+    \section{Popis přepínačů}
+    
+    Sestavený spustitelný program podporuje několik různých přepínačů. Jejich seznam lze vypsat použitím přepínače \texttt{-h}, zachyceno v ukázce kódu \ref{code:opts}.
+    
+    \begin{figure}[t]
+	\begin{lstlisting}[label=code:opts,caption=Výpis podporovaných přepínačů aplikace,frame=single,numbers=left]
+$ ./code -h
+./code v1.0.0
+  -v                     print program version and exit
+  -k                     keyfile filename (required for auth)
+  -l                     list compiled plugins and exit
+  -h                     print help and exit
+  -t                     test client connectivity to server and exit
+  -p [<name[:port]>,...] use plugin on port, use comma to specify more plugins
+  -s                     run in server mode
+  -c <server>            run in client mode, connect to server ip/hostname
+      \end{lstlisting}
+    \end{figure}
+
+    
+    \paragraph{Přepínač \texttt{--v}} slouží k vypsání verze programu (příloha diplomové práce obsahuje software ve verzi \texttt{1.0.0}). Po vypsání verze program svou činnost ukončí.
+    
+    \paragraph{Přepínač \texttt{--k}} slouží pro specifikaci tzv \textit{keyfile}. Jedná se o soubor se sdíleným tajemstvím, s pomocí kterého se mohou klienti autentizovat serveru. Přepínaš \texttt{--k} je doplňkový, nepovinný. Pokud však server nepoužívá \textit{keyfile}, budou akceptována spojení od všech klientů.
+    
+    \paragraph{Přepínač \texttt{-l}} slouží k vypsání seznamu názvů a verzí pluginů, se kterými byl program sestaven a jsou tím pádem k dispozici. Jména (identifikátory) pluginů v prvním sloupci výpisu jsou důležité, protože s jejich pomocí jsou specifikovány pluginy, které budou použity pro tunelové spojení.
+
+    \begin{figure}[h]
+	\begin{lstlisting}[label=code:listplugins,caption=Výpis jmen a verzí podporovaných pluginů,frame=single,numbers=left]
+$ ./code -l
+There are a total of 4 plugins:
+NAME	VERSION
+icmp	1.0.0-icmp
+udp	1.0.0-udp
+tcp	1.0.0-tcp
+sctp	1.0.0-sctp
+      \end{lstlisting}
+    \end{figure}
+    
+    \paragraph{Přepínač \texttt{-h}} slouží k výpisu nápovědy k použití programu -- seznamu přepínačů a krátkých popisků jejich činnosti. Výpis všech podporovaných přepínačů je vyobrazen v ukázce kódu \ref{code:opts}.
+    
+    \paragraph{Přepínač \texttt{-t}} lze použít k \texttt{testování} konektivity společně s přepínačem \texttt{--c}. Pokud bude uživatelem tento přepínač specifikován, software se pokusí navázat tunelové spojení a o výsledky informuje uživatele. Pokud se spojení podaří navázat tunel bude následně uzavřen (přepínač pouze \texttt{testuje} možnost spojení). U pluginů na základě samostatných zpráv/datagramů (\texttt{ICMP}, \texttt{DNS}) připadá v úvahu situace, kdy při opakovaném testování dostupnosti server nestihne ukončit předchozí spojení a může tak nesprávně informovat uživatele o dostupnosti protějšku. Z tohoto důvodu je doporučeno opakované testování provádět v několikavteřinových intervalech -- v závislosti na konstantách \texttt{TIMEOUT} jednotlivých pluginů.
+    
+    \paragraph{Přepínač \texttt{--c} a \texttt{--s}} Povinný přepínač \texttt{--c} nebo \texttt{--s} specifikuje, zda-li je program spouštěn jako klient (\texttt{--c}), nebo server (\texttt{--s}). Pro navázání spojení je nutné specifikovat právě jeden z těchto přepínačů. Specifikovat oba přepínače není dovoleno.
+    
+    \paragraph{Přepínač \texttt{--p}} Povinný přepínač \texttt{--p} je nutné použít pro specifikaci alespoň jednoho pluginu pro komunikaci. Je přípustné specifikovat více pluginů oddělených čárkou. Plugin je specifikován svým názvem (identifikátor), které je možné dohledat ve výpisu podporovaných pluginů (přepínač \texttt{--l}). Pokud plugin podporuje specifikaci dalších parametrů (například název portu pro komunikaci), je možné specifikovat tyto parametry za názvem pluginu, odděleného dvojtečkou. Příklad použití je zachycen v ukázce kódu \ref{code:plugin-spec-example}.
+    
+        \begin{figure}[h]
+	\begin{lstlisting}[label=code:plugin-spec-example,caption=Ukázka spuštění serverové části s více pluginy a jejich parametry,frame=single,numbers=left]
+# ./code -s -p udp:4444,icmp,sctp:1234
+      \end{lstlisting}
+    \end{figure}
+    
+    \section{Příklad použití}
+    
+    Typickým scénářem použití je spuštění serverové části na dostupném stroji připojeného do Internetu a následný pokus o navázání tunelového spojení na tento server ze sítě omezené \textit{captive portálem}.
+    
+            \begin{figure}[h]
+	\begin{lstlisting}[label=code:run-server,caption=Ukázka spuštění serverové části s více pluginy a jejich parametry,frame=single,numbers=left]
+// Spusteni serverove casti
+# echo tajneheslo > keyfile
+# ./code -k keyfile -s -p udp:4444,icmp,sctp:1234 &
+TUN interface created: tun0
+Running in server mode ...
+[udp:4444] Starting worker thread (1.0.0-udp)
+[icmp:0] Starting worker thread (1.0.0-icmp)
+[sctp:1234] Starting worker thread (1.0.0-sctp)
+
+// Nastaveni IP adresy virtualniho rozhrani
+# ifconfig tun0 192.168.123.1
+      \end{lstlisting}
+    \end{figure}
+    
+    Serverová část je po spuštění kódu z \ref{code:run-server} připravena, nabízí spojení s pomocí pluginů \texttt{ICMP}, \texttt{UDP} na portu 4444 a \texttt{SCTP} na portu 1234. IP adresa virtuálního rozhraní je \texttt{192.168.123.1}. Postup pro připojení klientské části zachycuje výpis kódu \ref{code:run-client}.
+    
+            \begin{figure}[h]
+	\begin{lstlisting}[label=code:run-client,caption=Ukázka spuštění klientské části s otestováním pluginů a následném připojení s pomocí jednoho z nich,frame=single,numbers=left]
+// Otestovani dostupnosti z klientske casti aplikace
+# echo tajneheslo > keyfile
+# ./code -k keyfile -c hostname-nebo-ip-adresa.cz -p udp:4444,icmp,sctp:1234 -t
+Testing connectivity options to hostname-nebo-ip-adresa.cz ...
+Testing availability of 3 plugins:
+Testing 1.0.0-udp:4444 ..... unavailable or already connected
+Testing 1.0.0-icmp:0  OK
+Testing 1.0.0-sctp:1234  unavailable or already connected
+
+// Pripojeni s pomoci dostupneho tunelu
+# ./code -k keyfile -c dip-test -p icmp &
+TUN interface created: tun0
+Connecting to server dip-test ...
+[icmp:0] Starting worker thread (1.0.0-icmp)
+
+// Nastaveni IP adresy virtualniho rozhrani
+# ifconfig tun0 192.168.123.2
+      \end{lstlisting}
+    \end{figure}
+    
+    Ověření funkčnosti tunelu lze docílit například s pomocí služby \texttt{SSH}. Není tak možné učinit nástrojem \texttt{ping}, protože pro použití \texttt{ICMP} pluginu je nutné zaká.zat systémové odpovědi na \texttt{echo request} \texttt{ICMP} zprávy. Toho lze na vybraných Linuxových distribucích (Debian, Ubuntu a další deriváty) docílit příkazem \texttt{echo 1 > /proc/sys/net/ipv4/icmp\_echo\_ignore\_all}
+    
+    Po úspěšném navázání spojení je možné začít tunel využívat. Například k vytvoření lokální \texttt{SOCKS} proxy na portu 8080 pro potřeby komunikujících aplikací příkazem \texttt{ssh -D 8080 uzivatel@192.168.123.2}.
+    
+
 \chapter{Seznam použitých zkratek}
 % \printglossaries
 
