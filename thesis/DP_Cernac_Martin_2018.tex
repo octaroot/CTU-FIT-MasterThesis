@@ -118,7 +118,6 @@ Pojem \textit{captive portál} nemá v češtině ustálený překlad, v jiných
 Jak plyne z výše uvedeného výčtu, vyjma právních aspektů může být \textit{captive portál} použit i pro shromažďování údajů o uživatelích sítě. Jedním z nástrojů pro takovou činnost je nabízení \uv{přihlášení se} do \textit{captive portálu} pomocí účtu na některé ze sociálních sítí. Pokud uživatel takovou možnost využije, \textit{captive portál} si od sociální sítě vyžádá informace o uživateli, jako například jméno, fotografii, pohlaví nebo datum narození. Po shromažďování takových informací je uživateli poskytnut přístup do zbytku sítě. Provozovatel tedy může uživatele například identifikovat nebo detekovat opakované návštěvy \textit{hotspotu}. Na oplátku je uživateli \uv{zdarma} poskytnut přístup do sítě Internet.
 
 
-%TODO pridat citaci primo od FB a mozna obrazek
 Pro usnadnění nasazení takového řešení nabízí společnost Facebook službu \textit{Facebook Wi-Fi}\cite{facebook-wifi}, cílenou na majitele obchodů. Jedná se o řešení na bázi \textit{captive portálu}, které vyžaduje aby nově připojený uživatel měl konto na sociální síti Facebook. Po připojení na \textit{hotspot} je uživatel vyzván ke sdílení informace o jeho návštěvě obchodu, jehož \textit{hotspot} právě používá (jako protislužbu za poskytnutý přístup do Internetu).
 
 Poněkud méně invazivní motivací pro zavedení \textit{captive portálu} je monetizace \textit{hotspotu}. Například prodejem reklamního místa -- uživatel po připojení do sítě musí shlédnou reklamní spot, nebo vyplnit krátkou anketu. Provozovatel \textit{hotspotu} získá z takové aktivity finanční odměnu a uživateli je odměněn přístupem do sítě Internet.
@@ -133,9 +132,7 @@ Některé \textit{captive portály} alternativně umožňují uživateli doloži
 
 Úkolem \textit{captive portálu} je detekovat nově připojené uživatele sítě, omezit jim přístup do sítě a nasměrovat je na webovou aplikaci captive portálu. Po splnění podmínek pro plnohodnotný přístup uživatele do zbytku sítě nesmí \textit{captive portál} do komunikace dále zasahovat (tj. musí \textit{detekovat}, že síťový provoz patří oprávněnému uživateli).
 
-Ačkoliv se jedná o přímočarý cíl, je možné ho dosáhnout s pomocí celé řady technologií a postupů. Proto se v praxi setkáváme s velmi velkým počtem různorodých implementací \textit{captive portálu}. Některé z nich jsou dostupné pod svobodnou licencí, jiné jsou součástí placeného produktu a v neposlední řadě existují řešení \textit{na míru} -- a to nejen \textit{na míru} provozovateli, ale rovněž \textit{na míru} konkrétnímu zařízení/hardware. V této práci jsou blíže zkoumány zejména softwarová řešení, která jsou snadno dostupná (zveřejněná pod svobodnou licencí).
-
-%TODO posledni vetu predchazejiciho odstavce dodatecne upravit podle toho, co realne budu testovat
+Ačkoliv se jedná o přímočarý cíl, je možné ho dosáhnout s pomocí celé řady technologií a postupů. Proto je možné se v praxi setkat s velmi vysokým počtem různorodých implementací \textit{captive portálu}. Některé z nich jsou dostupné pod svobodnou licencí, jiné jsou součástí placeného produktu a v neposlední řadě existují řešení \textit{na míru} -- a to nejen \textit{na míru} provozovateli, ale rovněž \textit{na míru} konkrétnímu zařízení/hardware. 
 
 Přestože efektu \textit{captive portálu} lze s velkou úspěšností docílit pouhým odkloněním HTTP provozu, existují mnohem sofistikovanější varianty, využívající například oddělené VLAN sítě. Obecně však platí, že \textit{captive portál} při své práci může vycházet pouze z informací, které putují po síti. Detekce nově připojených uživatelů a identifikace oprávněných uživatelů je tedy zpravidla založena dvojici identifikátorů:
 
@@ -150,15 +147,9 @@ Alternativně k periodickému promazávání seznamu autorizovaných klientů m�
 
 Ve chvíli, kdy je \textit{captive portál} schopen rozeznat autorizované a neautorizované uživatele, musí rovněž mít možnost neautorizované uživatele nasměrovat na webovou aplikaci \textit{captive portálu}. Takový cíl \textit{captive portál} často naplňuje prováděním \texttt{MITM} útoku na nově připojené uživatele. Například při přístupu neautorizovaného uživatele na libovolnou webovou stránku protokolem \texttt{HTTP} je jeho provoz odkloněn a vrácena odpověď od \textit{captive portálu}, která prohlížeč uživatele nasměruje na webovou aplikaci \textit{captive portálu}. Kromě této techniky uvádím v následující části textu i několik dalších.
 
-
-%TODO - nasledujici tri sekce by mozna nebylo spatne vice rozvest. Na to se musim zeptat Alese, neni to uplne pointa tehle diplomky, vytvaret captive portal
-
 \subsubsection{\texttt{ICMP} host redirect}
 
 Protokol \texttt{ICMP} specifikuje zprávy, které může směrovač poslat koncové stanici, pokud detekuje, že stanice v rámce své komunikace používá neoptimální síťovou cestu. Je zcela v režii cílové stanice, zda-li si nechá o svém směrování radit od ostatních zařízení v síti. Tato metoda spoléhá na situaci, kdy koncová stanice skutečně upraví svou směrovací tabulku a zanese do ní informace z \texttt{ICMP} \textit{host redirect} zprávy. Právě s tímto úmyslem odesílá \textit{captive portál} \texttt{ICMP} \textit{host redirect} zprávu, když detekuje pokus o spojení uživatele se serverem v Internetu. \texttt{ICMP} zpráva se pokusí cílovou stanici uživatele přesvědčit, že ideální cesta vede skrze server provozující \textit{captive portál}. Koncová stanice upraví své směrování a začne komunikovat se svým protějškem skrze \textit{captive portál}, který díky tomu může komunikaci manipulovat za účelem nasměrování uživatele na webovou aplikaci \textit{captive portálu}.
-
-
-%TODO - mozna dodat tabulku OS a defaultnich voleb pro prijem redirectu? zminit secure_redirect? dat nejakou citaci treba na ubuntu hardening (vypadla na me z googlu ubuntu secure_redirect)
 
 
 \subsubsection{\texttt{HTTP} \texttt{3xx} redirect}
@@ -302,9 +293,7 @@ Důvodem k udělení výjimky pro port \texttt{TCP/22} bývá nutnost vzdálené
 
 TCP port 3128 bývá na firemních sítích využíván jako cache proxy pro často navštěvované webové stránky, aby se šetřilo síťovým provozem. Neautentizovaný klient se může pokusit takového proxy serveru využít pro obejití omezení \textit{captive portálu} a úspěšně komunikovat se serverem v Internetu.
 
-Tyto praktiky jsou však méně časté než dříve zmíněné \texttt{ICMP} a zejména \texttt{DNS} tunelování, zkrátka proto že \texttt{SSH} ani kešující proxy server nejsou na rozdíl od služby \texttt{DNS} pro provoz Internetu klíčové.
-
-%FIXME \texttt overflow
+Tyto praktiky jsou však méně časté než dříve zmíněné \texttt{ICMP} a zejména \texttt{DNS} tunelování, zkrátka proto že \texttt{SSH} ani cache proxy server nejsou na rozdíl od služby \texttt{DNS} pro provoz Internetu klíčové.
 
 
 \subsection{Využití nefiltrovaných protokolů}
@@ -1064,8 +1053,7 @@ typedef enum SCTP_PACKET_TYPE
     
     Pokud jmenný server je ochoten rekurzivně vyhodnocovat dotazy, může klient tento server přimět ke komunikaci s okolním světem. Klient může v tomto případě přesně \textit{nasměrovat} rekurzivní \texttt{DNS} server do části Internetu, kterou klient ovládá (například provozuje svůj vlastní \texttt{DNS} server). V této pozici je tedy klient schopen komunikovat prostřednictvím rekurzivního \texttt{DNS} serveru s jiným svým systémem, dostupným přes síť Internet. Protože klient ovládá cílový \texttt{DNS} server, má tím pádem kontrolu i nad daty, která budou rekurzivním \texttt{DNS} serverem klientovi vrácena jako odpověď na jeho požadavek. Výsledkem je možnost obousměrné komunikace do Internetu pouze prostřednictvím dostupného \texttt{DNS} serveru ochotného zpracovávat rekurzivní dotazy.
 
-    % FIXME  TODO -- trochu prodlouzit, at tahle stranka neni tak roztahla
-    \pagebreak
+    \clearpage
     
     
 
@@ -1529,7 +1517,7 @@ Connecting to server dip-test ...
 
 \chapter{Obsah přiloženého CD}
 
-
+% TODO obsah CD
 
 % Vhodným způsobem vizualizujte obsah přiloženého média. Lze použít balíček \verb|dirtree| a vytvořit např. následující výstup (adresáře src a text s~příslušným obsahem jsou \emph{povinné}):
 % 
