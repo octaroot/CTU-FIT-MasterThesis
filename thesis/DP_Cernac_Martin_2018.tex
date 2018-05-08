@@ -409,6 +409,7 @@ Jednotlivé pluginy jsou schopny ověřit možnost navázání spojení skrze \t
 
 Vzhledem k~předpokládanému užití softwarového řešení (obcházení limitací \textit{captive portálu} pro osobní použití) bude software vytvořen jako jeden celek, který je schopen plnit funkci jak serveru, tak klienta. Volba plyne z~uživatelem specifikovaných přepínačů při spuštění. Z~toho vyplývá i základní softwarový návrh komunikace stylu klient -- server, kterou započne klient a server zpočátku pouze reaguje na jeho požadavky a až po úspěšném navázání tunelového spojení (autentizace) je zahájena obousměrná komunikace.
 
+\clearpage
 I~přes rozmanité metody dosažení tunelového spojení bude každý z~implementovaných pluginů komunikovat pomocí dvou základních kategorií zpráv:
 \begin{itemize}
  \item servisní zprávy pro řízení tunelového spojení,
@@ -696,7 +697,7 @@ typedef enum ICMP_PACKET_TYPE
 
     
     
-    Celková velikost paketu nesoucího zprávu je standardně nastavena na 1500 bajtů -- jedná se o~\texttt{MTU} technologie \textit{Ethernet}. To zahrnuje \texttt{IP} hlavičku (20 bajtů), \texttt{ICMP} hlavičku (8 bajtů) a hlavičku zpráv tunelu (5 bajtů). Pro přenášená data je tedy k~dispozici až 1467 zbylých bajtů v~jedné zprávě. Režie přenosu dat tunelem tvoří 21 bajtů. Vytvářené pakety se drží standardní hodnoty \texttt{MTU} aby bylo (pokud možno) zamezeno fragmentaci. Diagram paketu se všemi hlavičkami je znázorněn na obrázku \ref{diag:icmp-packet-all-headers}.
+    Celková velikost paketu nesoucího zprávu je standardně nastavena na 1500 bajtů -- jedná se o~\texttt{MTU} technologie \textit{Ethernet}. To zahrnuje \texttt{IP} hlavičku (20~bajtů), \texttt{ICMP} hlavičku (8 bajtů) a hlavičku zpráv tunelu (5 bajtů). Pro přenášená data je tedy k~dispozici až 1467 zbylých bajtů v~jedné zprávě. Režie přenosu dat tunelem tvoří 21 bajtů. Vytvářené pakety se drží standardní hodnoty \texttt{MTU} aby bylo (pokud možno) zamezeno fragmentaci. Diagram paketu se všemi hlavičkami je znázorněn na obrázku \ref{diag:icmp-packet-all-headers}.
     
     \begin{figure}[h!]
     \centering
@@ -1077,9 +1078,9 @@ typedef enum SCTP_PACKET_TYPE
     
     Dalším problémem je \textit{caching} -- ukládání výsledků po specifikovanou dobu s~cílem zrychlení odpovědí na dotazy a menší zátěž ostatních \texttt{DNS} serverů, spojená s~nižším síťovým provozem. Tato, leč šlechetná, vlastnost je krajně nežádoucí pro tunelování dat pomocí \texttt{DNS}, protože odpovědi typicky nikdy nebudou stejné. Klient se tím pádem musí serveru pokaždé dotazovat na unikátní doménové jméno. Součástí \texttt{DNS} odpovědi sice může být atribut \texttt{TTL} nastaven na hodnotu \texttt{0} (tedy efektivně zakázání uložení do \textit{cache}), nicméně nelze zaručit, že \texttt{DNS} server \textit{captive portálu} bude atribut respektovat.
     
-    Limitována je i celková velikost požadavku/odpovědi. V~původním návrhu protokolu \cite[RFC 1035]{rfc1035} je uvedena maximální velikost \texttt{UDP} zprávy 512 bajtů. Příčinou této limitace je snížení pravděpodobnosti fragmentace paketu po cestě na server a ze serveru zpět. Specifikace \texttt{IPv4} \cite[RFC 791]{rfc791} vyžaduje, aby každý účastník sítě byl schopen přijmout paket minimálně o~velikosti 576 bajtů. Jedná se však o~více než 30 let staré specifikace a schopnosti zařízení připojených k~Internetu typicky nemají problém s~velikostí přijímaných paketů větší, než 576 bajtů. Větší data (například pro přenos celé zóny) je nutné přenášet pomocí \texttt{TCP}.
+    Limitována je i celková velikost požadavku/odpovědi. V~původním návrhu protokolu \cite[RFC 1035]{rfc1035} je uvedena maximální velikost \texttt{UDP} zprávy 512~bajtů. Příčinou této limitace je snížení pravděpodobnosti fragmentace paketu po cestě na server a ze serveru zpět. Specifikace \texttt{IPv4} \cite[RFC 791]{rfc791} vyžaduje, aby každý účastník sítě byl schopen přijmout paket minimálně o~velikosti 576~bajtů. Jedná se však o~více než 30 let staré specifikace a schopnosti zařízení připojených k~Internetu typicky nemají problém s~velikostí přijímaných paketů větší, než 576 bajtů. Větší data (například pro přenos celé zóny) je nutné přenášet pomocí \texttt{TCP}.
     
-    Právě proto vzniklo v~roce 1999 rozšíření \textit{EDNS} specifikované v~\cite[RFC 6891]{rfc6891}, které mimo jiné umožňuje užití větší velikost \texttt{UDP} paketů -- až 4096 bajtů. Díky rozsáhlé podpoře (demonstrace v~ukázce kódu \ref{code:dig-dns} je možné větší povolenou velikost paketů využít k~lepší prostupnosti tunelu.
+    Právě proto vzniklo v~roce 1999 rozšíření \textit{EDNS} specifikované v~\cite[RFC 6891]{rfc6891}, které mimo jiné umožňuje užití větší velikost \texttt{UDP} paketů -- až 4096~bajtů. Díky rozsáhlé podpoře (demonstrace v~ukázce kódu \ref{code:dig-dns} je možné větší povolenou velikost paketů využít k~lepší prostupnosti tunelu.
     
     
     \begin{figure}[h]
@@ -1102,7 +1103,7 @@ fit.cvut.cz.		797	IN	A     147.32.232.248
     
     \subsection{Detekce a prevence \texttt{DNS} tunelování}
     
-    \texttt{DNS} tunelování generuje značně atypický síťový provoz, který je relativně snadné detekovat\cite{bakalarka-detekce-tunelu}. Míra atypičnosti závisí na \uv{střídmosti} softwarového řešení, tunel s~nižší prostupností a vyšší latencí lze maskovat lépe, než tunel s~maximální prostupností a minimální latencí. Na Internetu lze dohledat články, které správcům radí zahazovat na portu 53\footnote{paradoxně odkazovaná \texttt{iptables} pravidla filtrují provoz na portu 53 pouze pro protokoly \texttt{TCP} a \texttt{UDP} -- \texttt{SCTP} tunel by na základě odkazovaných pravidel firewallem prošel.} \texttt{UDP} data větší, než 512 bajtů a \texttt{TCP} data větší než 1024 bajtů\cite{dns-iptables}.
+    \texttt{DNS} tunelování generuje značně atypický síťový provoz, který je relativně snadné detekovat\cite{bakalarka-detekce-tunelu}. Míra atypičnosti závisí na \uv{střídmosti} softwarového řešení, tunel s~nižší prostupností a vyšší latencí lze maskovat lépe, než tunel s~maximální prostupností a minimální latencí. Na Internetu lze dohledat články, které správcům radí zahazovat na portu 53\footnote{paradoxně odkazovaná \texttt{iptables} pravidla filtrují provoz na portu 53 pouze pro protokoly \texttt{TCP} a \texttt{UDP} -- \texttt{SCTP} tunel by na základě odkazovaných pravidel firewallem prošel.} \texttt{UDP} data větší, než 512~bajtů a \texttt{TCP} data větší než 1024 bajtů\cite{dns-iptables}.
     
     
     \subsection{Kódování dat tunelu}
@@ -1114,7 +1115,7 @@ fit.cvut.cz.		797	IN	A     147.32.232.248
     
     \subsubsection{Kódování dat v~názvu domény \texttt{Base32}}
     
-    I~přesto, že specifikace povoluje jak malé, tak velké alfanumerické znaky, fakticky dochází k~ignorování velikosti písmen, viz experiment \ref{code:dns-case-insensitive}. Fakticky je tedy pro každou část doménového jména k~dispozici 26 znaků, 10 číslic a pomlčka\footnote{Žádná část doménového jména nesmí začínat ani končit pomlčkou}, dohromady 37 různých znaků.
+    I~přesto, že specifikace povoluje jak malé, tak velké alfanumerické znaky, fakticky dochází k~ignorování velikosti písmen, viz experiment \ref{code:dns-case-insensitive}. Fakticky je tedy pro každou část doménového jména k~dispozici 26 znaků, 10 číslic a~pomlčka\footnote{Žádná část doménového jména nesmí začínat ani končit pomlčkou}, dohromady 37 různých znaků.
     
     Kódování \textit{Base32} je schopno v~jednom znaku kódu uchovat 5 bitů informace původních dat. Vyžaduje k~tomu alespoň $2^5$ znaků abecedy, což povolený rozsah znaků splňuje.
     
@@ -1143,7 +1144,7 @@ $ dig +short fIT.CvUt.cZ A @8.8.8.8
     
     Pro přenos dat z~\texttt{DNS} serveru zpět ke klientovi lze využít \texttt{TXT} záznamy. Takový záznam může obsahovat řetězec délky až 255 bajtů. Je však přípustné, aby \texttt{TXT} záznam obsahoval takový řetězců více a tím pádem je možné pomocí \texttt{TXT} záznamu přenést v~rámci jedné odpovědi více, než 255 bajtů. Odkazovaná aplikace \textit{Heyoka}\cite{shakacon-heyoka} pro zvýšení prostupnosti rovněž experimentuje s~binárními daty v~rámci \texttt{TXT} záznamů, což ovšem opět vnáší problém kompatibility \texttt{DNS} serverů zpracovávajících \texttt{DNS} odpověď.
     
-    Pro zachování vymezené sady znaků dle \textit{RFC} je možné opět použít kódování \texttt{Base32}, schopné do jednoho znaku odpovědi uložit 5 bitů informace. \texttt{TXT} záznamy však dbají na velikost písmen a díky tomu je pro kódování k~dispozici abeceda složená z~malých a velkých znaků abecedy (52 znaků), číslice (10 znaků) a některé speciální znaky, jako například znak \texttt{+} (plus), nebo \texttt{-} (minus). Tímto způsobem lze dosáhnout abecedy o~64 různých znacích. Proto je možné k~zakódování informace do \texttt{TXT} záznamu možné zvolit kódování \texttt{Base64}, které do jednoho znaku odpovědi zakóduje 6 bitů informace.
+    Pro zachování vymezené sady znaků dle \textit{RFC} je možné opět použít kódování \texttt{Base32}, schopné do jednoho znaku odpovědi uložit 5 bitů informace. \texttt{TXT} záznamy však dbají na velikost písmen a díky tomu je pro kódování k~dispozici abeceda složená z~malých a velkých znaků abecedy (52 znaků), číslice (10~znaků) a některé speciální znaky, jako například znak \texttt{+} (plus), nebo \texttt{-} (minus). Tímto způsobem lze dosáhnout abecedy o~64 různých znacích. Proto je možné k~zakódování informace do \texttt{TXT} záznamu možné zvolit kódování \texttt{Base64}, které do jednoho znaku odpovědi zakóduje 6 bitů informace.
     
     Například, pokud pro přenesení zprávy \textit{All your base are belong to us} z~\texttt{DNS} serveru jako odpověď v~rámci záznamu \texttt{TXT} je možné tuto zprávu zakódovat do podoby \texttt{QWxsIHlvdXIgYmFzZSBhcmUgYmVsb25nIHRvIHVz}, která obsahuje pouze 40 znaků, namísto 50 v~případě užití \texttt{Base32}.
     
@@ -1175,7 +1176,9 @@ Jako klientská část pro testování implementovaného software a ostatních s
 
 \section{Testování reálného provozu}
 
-Testování skrze reálnou síť bylo provedeno s~pomocí kontejnerové služby provozované společností \textit{DigitalOcean}. S~pomocí této služby byla vytvořena serverová strana tunelu, umístěná ve Frankfurtském datacentru společnosti \textit{\mbox{DigitalOcean}}. Jako testovací kontejner byl zvolen serverový obraz Linuxové distribuce \textit{Ubuntu}, konkrétně \textit{Ubuntu 16.04.4 x64}. Kontejner měl k~dispozici dedikované 4GB pamětí a 2 jádra \textit{vCPU}. Kontejner disponoval připojením do gigabitové sítě.
+Testování skrze reálnou síť bylo provedeno s~pomocí kontejnerové služby provozované společností \textit{DigitalOcean}. S~pomocí této služby byla vytvořena serverová strana tunelu, umístěná ve Frankfurtském datacentru společnosti \textit{DigitalOcean}. Jako testovací kontejner byl zvolen serverový obraz Linuxové distribuce \textit{Ubuntu}, konkrétně \textit{Ubuntu 16.04.4 x64}. Kontejner měl k~dispozici dedikované 4GB pamětí a 2 jádra \textit{vCPU}. Kontejner disponoval připojením do gigabitové sítě.
+
+
 
 \subsection{Příprava kontejneru pro testování}
 
@@ -1203,7 +1206,7 @@ $ dd if=/dev/random of=random.16 bs=1M count=16
       \end{lstlisting}
     \end{figure}
 
-    K~testování (stahování dat) byl použit příkaz \texttt{wget}, dostupný v~distribuci \textit{Ubuntu} pomocí stejnojmenného balíčku. Otestovány byly samostatně všechny implementované pluginy pro tunelování. Všechny uvedené hodnoty jsou průměrem deseti nezávislých měření. Jako kontrolní měření bylo provedeno stažení dat bez využití tunelu. Ukázka výstupu nástroje \texttt{wget} je zachycena v~ukázce kódu \ref{code:wget}. Jako \texttt{HTTP} server byl použit modul jazyka \textit{Python} s~názvem \textit{SimpleHTTPServer}, spuštěn pomocí příkazu \texttt{python -m SimpleHTTPServer}. Server neprováděl žádnou kompresi přenášených dat.
+    K~testování (stahování dat) byl použit příkaz \texttt{wget}, dostupný v~distribuci \textit{Ubuntu} pomocí stejnojmenného balíčku. Otestovány byly samostatně všechny implementované pluginy pro tunelování. Všechny uvedené hodnoty jsou průměrem deseti nezávislých měření. Jako kontrolní měření bylo provedeno stažení dat bez využití tunelu. Ukázka výstupu nástroje \texttt{wget} je zachycena v~ukázce kódu \ref{code:wget}. Jako \texttt{HTTP} server byl použit modul jazyka \textit{Python} s~názvem \textit{SimpleHTTPServer}, spuštěn příkazem \texttt{python -m SimpleHTTPServer}. Server neprováděl žádnou kompresi přenášených dat.
     
     \begin{table}[h]
 	\centering
@@ -1221,7 +1224,7 @@ $ dd if=/dev/random of=random.16 bs=1M count=16
     \end{table}
        
        
-       Z~tabulky \ref{tab:http-download} plyne, že ideální tunelové spojení pro přenos dat pomocí \texttt{HTTP} je tunel na bázi \texttt{UDP} nebo \texttt{ICMP}. Naměřené hodnoty reflektují pluginu pro \texttt{TCP} tunelování reflektují problém popsaný v~podkapitole \ref{subsec:tcp-tunnel-issues} \textit{Potíže s~\texttt{TCP} jako prostředkem pro tunelování}. Protokol \texttt{HTTP} pro komunikaci totiž využívá \texttt{TCP}, což v~kombinaci s~\texttt{TCP} tunelem neposkytuje optimální výkon. Délka přenosu dat s~využitím \texttt{SCTP} tunelu se nachází ve středu spektra mezi nejvíce a nejméně vhodnými technikami tunelování pro \texttt{HTTP} přenosy. To je způsobeno relaxováním podmínek přenosu -- implementovaný plugin pro datový proud nevyžaduje dodržení seřazení zpráv, ale (z~principu \texttt{SCTP}) vyžaduje potvrzení doručení zpráv -- oproti rychlejším \texttt{UDP} a \texttt{ICMP} tunelům. Protože stahovaná data jsou přenášena protokolem, který vynucuje potvrzování doručení zpráva zachování pořadí, dochází k~propadu prostupnosti. Ta je mimo jiné způsobena \texttt{TCP} mechanismy pro řízení zahlcení linky, které pro správné dynamické přizpůsobení \textit{potřebují} ztrátovost paketů, která však v~tunelech pomocí \texttt{SCTP} a \texttt{TCP} nenastává.
+       Z~tabulky \ref{tab:http-download} plyne, že ideální tunelové spojení pro přenos dat pomocí \texttt{HTTP} je tunel na bázi \texttt{UDP} nebo \texttt{ICMP}. Naměřené hodnoty reflektují pluginu pro \texttt{TCP} tunelování reflektují problém popsaný v~podkapitole \ref{subsec:tcp-tunnel-issues} \textit{Potíže s~\texttt{TCP} jako prostředkem pro tunelování}. Protokol \texttt{HTTP} pro komunikaci totiž využívá \texttt{TCP}, což v~kombinaci s~\texttt{TCP} tunelem neposkytuje optimální výkon. Délka přenosu dat s~využitím \texttt{SCTP} tunelu se nachází ve středu spektra mezi nejvíce a~nejméně vhodnými technikami tunelování pro \texttt{HTTP} přenosy. To je způsobeno relaxováním podmínek přenosu -- implementovaný plugin pro datový proud nevyžaduje dodržení seřazení zpráv, ale (z~principu \texttt{SCTP}) vyžaduje potvrzení doručení zpráv -- oproti rychlejším \texttt{UDP} a \texttt{ICMP} tunelům. Protože stahovaná data jsou přenášena protokolem, který vynucuje potvrzování doručení zpráva zachování pořadí, dochází k~propadu prostupnosti. Ta je mimo jiné způsobena \texttt{TCP} mechanismy pro řízení zahlcení linky, které pro správné dynamické přizpůsobení \textit{potřebují} ztrátovost paketů, která však v~tunelech pomocí \texttt{SCTP} a~\texttt{TCP} nenastává.
        
        %TODO - tabulka prenosu nekolika DNS tunelu, nebo neceho
     
@@ -1311,7 +1314,7 @@ Prvním krokem pro otestování software je stejná sada testů jako pro softwar
 
 V~případě \texttt{DNS} tunelování je však důležité brát ohled na asymetričnost spojení. Zatímco pro tok dat od serveru ke klientovi existuje více způsobů, pro tok dat směrem od klienta na server tomu tak není. Právě proto se \textit{iodine} snaží nejprve navázat spojení pomocí \texttt{UDP} tunelu na portu používaném službou \texttt{DNS}. Následující tabulka \ref{tab:http-download-iod} a tabulka \ref{tab:iperf-iod} zachycují naměřené časové hodnoty pro tunel pomocí \texttt{UDP} pluginu a software \textit{iodine}. Metodika měření je stejná jako v~podkapitole \ref{test:http} \textit{Testování simulovaného stahování souboru pomocí \texttt{HTTP}} a \ref{test:iperf3} \textit{Testování provozu pomocí nástroje }\texttt{iperf3}.
 
-Pro testování byla nutná úprava \texttt{DNS} záznamů veřejně dostupné domény. Za tímto účelem jsem použil svou doménu \texttt{cernac.cz}, respektive nově vzniklou subdoménu \texttt{t1.cernac.cz} a její nameserver, zajištěný softwarem \textit{iodine} na adrese \texttt{t1ns.cernac.cz}. Software \textit{iodine} byl spuštěn s~výchozími parametry dle uživatelské příručky\cite{iodine-repo}.
+Pro testování byla nutná úprava \texttt{DNS} záznamů veřejně dostupné domény. Za~tímto účelem jsem použil svou doménu \texttt{cernac.cz}, respektive nově vzniklou subdoménu \texttt{t1.cernac.cz} a její nameserver, zajištěný softwarem \textit{iodine} na adrese \texttt{t1ns.cernac.cz}. Software \textit{iodine} byl spuštěn s~výchozími parametry dle uživatelské příručky\cite{iodine-repo}.
 
     \begin{table}[h]
 	\centering
@@ -1385,7 +1388,7 @@ Vytvořené softwarové řešení a vybrané řešení pro \texttt{DNS} tunelov�
 
 Software \textit{WiFiDog} je open-source řešení pro \textit{captive portál}, dostupné od roku 2004. Je vytvořen v~jazyce \textit{C} a založen na funkcionalitě \texttt{iptables}, které jsou vyžadovány pro správný chod \textit{captive portálu}. Díky volbě jazyka a minimálním systémovým požadavkům je možné používat software nejen na většině Linuxových distribucích, ale rovněž samostatných zařízeních (dedikované směrovače a přístupových bodech WiFi sítí). \textit{WiFiDog} je proto distribuován jako balíček pro platformu \textit{OpenWRT} (a deriváty), která je primárně určena právě pro zmíněná dedikovaná zařízení. Součástí softwarového balíčku je rovněž autentizační server, založen na technologiích \texttt{PHP} a \texttt{PostgreSQL} (případně \texttt{MySQL}).
 
-Výchozí konfigurační soubor \texttt{wifidog.conf} zakazuje všechnu komunikaci neautentizovaným uživatelům, ale explicitně povoluje \texttt{TCP} a \texttt{UDP} porty 53 a 67. Díky tomu je možné komunikovat směrem do Internetu pomocí těchto portů. Mimo tyto porty je také veškerý uživatelský provoz před ověřením uživatele směrován pomocí \texttt{iptables} na přihlašovací stránku \textit{captive portálu} (port \texttt{TCP/80}).
+Výchozí konfigurační soubor \texttt{wifidog.conf} zakazuje všechnu komunikaci neautentizovaným uživatelům, ale explicitně povoluje \texttt{TCP} a \texttt{UDP} porty 53 a~67. Díky tomu je možné komunikovat směrem do Internetu pomocí těchto portů. Mimo tyto porty je také veškerý uživatelský provoz před ověřením uživatele směrován pomocí \texttt{iptables} na přihlašovací stránku \textit{captive portálu} (port \texttt{TCP/80}).
 
     \begin{figure}[h]
 	\begin{lstlisting}[label=code:iperf,caption=Část výchozího konfiguračního souboru captive portálu WiFiDog,frame=single,numbers=left]
@@ -1505,7 +1508,7 @@ Scanning dependencies of target code
       \end{lstlisting}
     \end{figure}
 
-    Výsledkem překladu projektu je soubor \texttt{code}, který slouží jako klientská i serverová část pro navázání a správu tunelových spojení.
+    Výsledkem překladu projektu je soubor \texttt{code}, který slouží jako klientská i~serverová část pro navázání a správu tunelových spojení.
     
     \section{Popis přepínačů}
     
