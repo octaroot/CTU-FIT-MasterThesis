@@ -98,7 +98,7 @@ Tato kapitola se věnuje problematice \textit{captive portálů}, motivací jeji
 
 \textit{Captive portál}\cite{rfc7710} představuje webovou aplikaci, často nasazovanou na veřejně přístupných sítích. Aplikace má za úkol informovat nově připojené klienty o~podmínkách užití sítě a požadovat uživatelův souhlas s~jejich dodržováním. Až do momentu souhlasu s~podmínkami užití sítě je uživateli odepřen přístup do zbytku sítě. Z~toho plyne první část názvu \textit{\textbf{Captive} portál} -- uživatel je \uv{zajatý}, \uv{uvězněný} (v~angličtině \textit{captive}).
 
-Pojem \textit{captive portál} nemá v~češtině ustálený překlad, v~jiných akademických publikacích \cite{bakalarka-srovnani-captive-fwall-nac} \cite{bakalarka-plzen-nac-kolejni-sit} autoři používají počeštěný termín \textit{captive portál} a proto je tento termín použit i v~této práci.
+Pojem \textit{captive portál} nemá v~češtině ustálený překlad, v~jiných akademických publikacích \cite{bakalarka-srovnani-captive-fwall-nac} \cite{bakalarka-plzen-nac-kolejni-sit} autoři používají počeštěný termín \textit{captive portál} a~proto je tento termín použit i v~této práci.
 
 \subsection{Motivace nasazení}
 
@@ -191,13 +191,13 @@ Největším problémem \textit{captive portálů} je závislost na technologii 
 
 Z~předcházejících tvrzení však plyne fakt, že \textit{captive portál} je \textbf{závislý} na \texttt{WWW} a tím pádem \textbf{závislý na webovém prohlížeči}. V~historii se ukázalo, že to představuje velký problém pro zařízení s~podporou \texttt{Wi-Fi}, ale bez webového prohlížeče (nebo s~velmi omezeným webovým prohlížečem). Demonstrovat takovou situaci lze na populárním\footnote{prodáno přes 150 milionů kusů\cite{nintendo-sales}} mobilním herním zařízení \textit{Nintendo~DS}. Tento problém v~současnosti řeší protokol \textit{WISPr}\cite{wispr-specs}, který usnadňuje (v~některých případech zcela eliminuje) nutnou interakci uživatele s~webovou aplikací \textit{captive portálu}.
 
-S~rostoucím rozmachem \texttt{HTTPS} na úkor nešifrovaného \texttt{HTTP} mají \textit{captive portály} obtížnější práci s~nasměrováním uživatele na webovou aplikaci \textit{captive portálu}. \textit{Captive portály} využívající podvržené certifikáty se budou muset od dubna 2018 vyrovnat s~ještě větším stupněm nedůvěryhodnosti, díky zavedení nutnosti \textit{Certificate Transparency} v~prohlížeči Google Chrome\cite{google-mandatory-cert-transp}. \textit{Captive portál} by se neměl snažit manipulovat s~šifrovaným spojením, namísto snahy o~modifikaci a \textit{rozbití šifrování} by takový provoz měl být zahazován. Takový postup však nesdílejí všechny implementace \textit{captive portálu}, jak je dále popsáno v~podkapitole \ref{subsec:netechnicke-problemy} \textit{Netechnické problémy}.
+S~rostoucím rozmachem \texttt{HTTPS} na úkor nešifrovaného \texttt{HTTP} mají \textit{captive portály} obtížnější práci s~nasměrováním uživatele na webovou aplikaci \textit{captive portálu}. \textit{Captive portály} využívající podvržené certifikáty se budou muset od dubna 2018 vyrovnat s~ještě větším stupněm nedůvěryhodnosti, díky zavedení nutnosti \textit{Certificate Transparency} v~prohlížeči \textit{Google Chrome}\cite{google-mandatory-cert-transp}. \textit{Captive portál} by se neměl snažit manipulovat s~šifrovaným spojením, namísto snahy o~modifikaci a \textit{rozbití šifrování} by takový provoz měl být zahazován. Takový postup však nesdílejí všechny implementace \textit{captive portálu}, jak je dále popsáno v~podkapitole \ref{subsec:netechnicke-problemy} \textit{Netechnické problémy}.
 
 Návrhovým problémem mnoha \textit{captive portálů} je snaha manipulovat s~obsahem komunikace uživatelů sítě. V~mnohých případech je manipulace dosaženo pomocí \texttt{MITM} útoku. Síť, která zcela úmyslně provádí útoky na své uživatele (ať už s~jakýmkoliv účelem) pochopitelně nemůže získat jakoukoliv důvěru uživatelů. \textbf{Síť s~nulovou důvěrou by uživatelé neměli vůbec využívat}.
 
 %TODO tento odstavec - rozsirit, rict jak to dela treba chrome .. nebo windows (ale to musim zjistit, predpokladam ze podobne jako chrome). U FF zjistit co se stane, kdyz detekuje captive -> screen? lepsi by byl z OS. Zminit dalsi OS? jako android/ios atp.
 
-Mnohé softwarové produkty dokáží detekovat omezený síťový provoz -- například operační systém Microsoft Windows, nebo webové prohlížeče Firefox a Chrome. Nadměrná manipulace se síťovým provozem neautentizovaných uživatelů však může tuto funkcionalitu potlačit, což je pro uživatele nežádoucí.
+Mnohé softwarové produkty dokáží detekovat omezený síťový provoz -- například operační systém Microsoft Windows, nebo webové prohlížeče \textit{Firefox} a~\textit{Chrome}. Nadměrná manipulace se síťovým provozem neautentizovaných uživatelů však může tuto funkcionalitu potlačit, což je pro uživatele nežádoucí.
 
 
 
@@ -229,7 +229,7 @@ Jak bylo uvedeno v~podkapitole \ref{subsec:technologicke-pozadi}~\textit{Realiza
 
 V~některých případech se \textit{captive portály} chovají velmi invazivně. Na začátku roku 2015 společnost Gogo (poskytovatel připojení na palubách letadel) ve své síti začala využívat falešné certifikáty pro produkty firmy Google. Na situaci upozornila na svém Twitteru\cite{gogo-fakecerts} Adrienne Porter Felt, zaměstnankyně firmy Google. Certifikáty byly vystaveny pro doménová jména \texttt{*.google.com}, tedy všechny domény třetího řádu domény \texttt{google.com}.
 
-Mnoho uživatelů Internetu má ve svých prohlížečích nastavenou domovskou stránku na \texttt{www.google.com}. Po připojení se na palubní \texttt{Wi-Fi} síť v~letadle a zapnutí prohlížeče byl uživatel okamžitě varován před nedůvěryhodným certifikátem. Vzhledem k~tomu, že uživatel sám žádnou stránku nenavštívil (prohlížeč pouze načetl domovskou stránku), je pro uživatele snadné propadnout dojmu, že chyba není způsobena jeho počínáním a proto bude varování ignorovat.
+Mnoho uživatelů Internetu má ve svých prohlížečích nastavenou domovskou stránku na \texttt{www.google.com}. Po připojení se na palubní \texttt{Wi-Fi} síť v~letadle a zapnutí prohlížeče byl uživatel okamžitě varován před nedůvěryhodným certifikátem. Vzhledem k~tomu, že uživatel sám žádnou stránku nenavštívil (prohlížeč pouze načetl domovskou stránku), je pro uživatele snadné propadnout dojmu, že chyba není způsobena jeho počínáním a~proto bude varování ignorovat.
 
 Takové počínání samozřejmě není správné a poučená osoba by se ho měla vyvarovat. Zdaleka ne všechny uživatele Internetu však lze označit jako \textit{poučené} uživatele. Běžní uživatelé nedisponují dostatečnými znalostmi pro porozumění problému, před kterým je prohlížeč varuje a varování budou ignorovat. \textbf{Vytvářet u~uživatelů návyky \uv{všechno potvrď a pak se dostaneš na Internet} je neetické} a nemělo by k~tomu docházet.
 
@@ -264,7 +264,7 @@ Motivací \textit{captive portálu} je řízení síťového přístupu. Takovou
 Konfigurace firewallu, která úmyslně nefiltruje některý síťový provoz nemusí být dílem nezkušeného administrátora (proto tento stav označuji jako \textbf{\uv{špatnou}} konfiguraci). Může se zkrátka jednat o~jediný způsob, jak splnit požadavky pro provoz sítě -- například kvůli proprietárnímu software, který vyžaduje nerušenou komunikaci na některých portech. Z~hlediska síťové architektury by bylo lepší provozovat veřejnou síť s~\textit{captive portálem} bez takových klientů, tj.~\textbf{pouze} jako síť pro hosty, nicméně hardware podporující pokročilé techniky jako provoz více oddělených \texttt{Wi-Fi} sítí nebo podporu \texttt{VLAN} je zpravidla dražší a pro nezkušené správce obtížnější na správu.
 
 
-\subsection{DNS tunelování}
+\subsection{\texttt{DNS} tunelování}
 \label{subsec:dns-tunel-intro}
 
 Protokol \texttt{DNS} je jedním z~nejstarších protokolů dnešního Internetu. Slouží primárně k~překladu mezi doménovými jmény (například \texttt{fit.cvut.cz}) a IP adresami uzlů v~síti (například \texttt{147.32.232.248}). Častou nedokonalostí \textit{captive portálů} je směrování \texttt{DNS} požadavků do Internetu. Pokud k~takovému chování dochází i u~neautentizovaných uživatelů, lze protokol \texttt{DNS} využít ke komunikaci se serverem v~Internetu a tím pádem k~obejití \textit{captive portálu}.
@@ -272,7 +272,7 @@ Protokol \texttt{DNS} je jedním z~nejstarších protokolů dnešního Internetu
 % u DNS tunnelingu mozna pouzit teorii kodovani, vysvetlitt tmi base58 atd
 
 
-\subsection{ICMP tunelování}
+\subsection{\texttt{ICMP} tunelování}
 
 Protokol \texttt{ICMP} je rovněž velmi důležitým síťovým protokolem. Je využíván zpravidla k~přenosu služebních informací jako například nedostupnost služby nebo nedosažitelnost uzlu v~síti. I~přesto, že není v~praxi využíván aplikacemi pro přenos informací, lze ho k~tomuto účelu využít. Vhodným využitím zpráv \texttt{Echo Request} a \texttt{Echo Reply} lze mezi dvěma síťovými uzly přenášet libovolná data. Protokol \textit{ICMP} spadá do stejné \textit{rodiny} protokolů jako \texttt{TCP} a \texttt{UDP}, ale nevyužívá ani jeden z~nich. Právě proto bývá v~konfiguraci firewallu často opomíjen. Pokud taková situace nastane, lze protokol \texttt{ICMP} využít ke komunikaci se serverem v~Internetu a tím pádem k~obejití \textit{captive portálu}.
 
@@ -403,7 +403,7 @@ Vzhledem k~důrazu na snadnou rozšiřitelnost je softwarové řešení navržen
 
 Hlavní část programu má rovněž na starost vytvoření prostředí pro jednotlivé pluginy. Každý plugin totiž pracuje ve svém vlastním vlákně a komunikuje s~jednotným virtuálním rozhraním. Komunikace probíhá skrze funkce, které mají standardem \texttt{POSIX} garantovánu bezpečnost při paralelním přístupu\footnote{Anglicky vlastnost \textit{thread-safety}}. Hlavní část programu tedy při spuštění zpracuje uživatelské vstupy, vytvoří virtuální síťové rozhraní, spustí pluginy a na konci práce programu pluginy ukončí a rozhraní zruší. \textit{File descriptor} síťového rozhraní je v~programu sdílen (pouze pro čtení) všemi pluginy.
 
-Jednotlivé pluginy jsou schopny ověřit možnost navázání spojení skrze \textit{captive portál} a změřit datovou prostupnost tunelu. Každému vytvořenému pluginu je věnována jedna část kapitoly \ref{chapter:implementace} Implementace, vysvětlující vnitřní činnost pluginu.
+Jednotlivé pluginy jsou schopny ověřit možnost navázání spojení skrze \textit{captive portál} a změřit datovou prostupnost tunelu. Každému vytvořenému pluginu je věnována jedna část kapitoly \ref{chapter:implementace} \textit{Implementace}, vysvětlující vnitřní činnost pluginu.
 
 \section{Komunikace mezi serverem a klientem}
 
@@ -551,7 +551,7 @@ Po návrhu struktury softwarového řešení této diplomové práce následuje 
 
 \section{Řídící část softwarového řešení}
 
-Hlavní část programu má na starosti nastartování virtuálního síťového řešení (a v~konečné fázi jeho korektní uzavření), kontrolu a přípravu prostředí pro jednotlivé pluginy a umožnění distribuce práce mezi jednotlivými pluginy (a jejich případnými kombinacemi). Dále zahrnuje pomocné části kódu, společné pro všechny pluginy (například nakládání se sdíleným tajemstvím pro autentizaci).
+Hlavní část programu má na starosti nastartování virtuálního síťového řešení (a v~konečné fázi jeho korektní uzavření), kontrolu a přípravu prostředí pro jednotlivé pluginy a umožnění distribuce práce mezi jednotlivými pluginy (a~jejich případnými kombinacemi). Dále zahrnuje pomocné části kódu, společné pro všechny pluginy (například nakládání se sdíleným tajemstvím pro autentizaci).
 
 Software vykonává celou řadu nízkoúrovňových operací a značně zasahuje do běhu operačního systému (vytváření nových síťových rozhraní). Z~těchto důvodů je nutné software spouštět s~oprávněním uživatele \texttt{root}.
 
@@ -566,23 +566,18 @@ K~zajištění flexibility více souběžně pracujících komunikačních plugi
 Hlavní část programu rovněž naslouchá na systémové signály typu \texttt{SIGINT} a \texttt{SIGTERM}, díky čemuž je schopna správně ukončit komunikaci, zavřít otevřené sokety a zrušit virtuální rozhraní, pokud se uživatel rozhodne aplikaci ukončit například pomocí \texttt{Ctrl+C}.
 
     \begin{figure}[h]
-	\begin{lstlisting}[caption=Výňatek souboru \texttt{src/mux.c} znázorňující jednoduchost užití knihovny \texttt{OpenMP} pro správu vláken pluginů,language=c,frame=single,numbers=left]
-plugin plugins[] = {  [...] };
-
-void muxStart(uint32_t endpoint, bool serverMode)
+	\begin{lstlisting}[label=code:mux-start,caption=Zjednodušený výňatek souboru \texttt{src/mux.c} znázorňující jednoduchost užití knihovny \texttt{OpenMP} pro správu vláken pluginů,language=c,frame=single,numbers=left]
+#pragma omp parallel num_threads(count)
+#pragma omp single nowait
+for (int i = 0; i < pluginCount; ++i)
 {
-    #pragma omp parallel num_threads(PLUGIN_COUNT)
-    #pragma omp single nowait
-    for (int i = 0; i < PLUGIN_COUNT; ++i) {
-	#pragma omp task
-	plugins[i].start(endpoint, serverMode);
-    }
+    #pragma omp task
+    plugins[i].start(address, port, serverMode);
 }
       \end{lstlisting}
-      \label{code:mux-start}
     \end{figure}
     
-Systém spuštění \texttt{PLUGIN\_COUNT} vláken nejprve operačnímu systému sdělí, že následující kód je třeba spustit v~\texttt{PLUGIN\_COUNT} pomocí direktivy na řádku 5 -- \texttt{num\_threads()}, která zajistí spuštění kýženého počtu vláken i přestože neodpovídá dostupným prostředkům (počtu dostupných fyzických jader procesoru). Následující direktiva na řádku 6 (\texttt{single nowait}) zajistí, že smyčka na řádcích 7-10 bude vykonána pouze jedním vláknem a následně se provede spuštění požadovaného počtu pluginů, každý ve vlastním vlákně -- pomocí direktivy \texttt{task}.
+Systém spuštění \texttt{PLUGIN\_COUNT} vláken nejprve operačnímu systému sdělí, že následující kód je třeba spustit v~\texttt{PLUGIN\_COUNT} pomocí direktivy na řádku číslo 1 -- \texttt{num\_threads()}, která zajistí spuštění kýženého počtu vláken i přestože neodpovídá dostupným prostředkům (počtu dostupných fyzických jader procesoru). Následující direktiva na řádku 2 (\texttt{single nowait}) zajistí, že smyčka na řádcích 3-7 bude vykonána pouze jedním vláknem a následně se provede spuštění požadovaného počtu pluginů, každý ve vlastním vlákně -- pomocí direktivy \texttt{task}.
 
 
 \section{Plugin pro \texttt{ICMP} tunelování}
@@ -632,15 +627,16 @@ Tunelování dat pomocí \texttt{ICMP} je technicky možné díky zprávám typu
 	\label{diag:icmp-packet-tunel}
     \end{figure}
     
-    Značku zpráv tunelu má uživatel možnost změnit při kompilaci programu. Výchozí značkou je sekvence bajtů \verb|0x63 0x76 0x75 0x74|, tedy \texttt{CVUT}.
+    Značku zpráv tunelu má uživatel možnost změnit při kompilaci programu. Výchozí značkou je sekvence bajtů \verb|0x63 0x76 0x75 0x74|, tedy v \texttt{ASCII} reprezentaci řetězec \texttt{CVUT}.
         
+        \clearpage
 \subsection{Popis jednotlivých typů \texttt{ICMP} zpráv}
 \label{subsec:icmp-msg-types}
     
     Typ zprávy označuje jeden z~typů, zachycených v~ukázce kódu \ref{code:icmp-types}:
         
     \begin{figure}[h]
-	\begin{lstlisting}[caption=Výňatek souboru \texttt{plugins/icmp/packet.h} definující typy \texttt{ICMP} zpráv,language=c,frame=single,numbers=left]
+	\begin{lstlisting}[label=code:icmp-types,caption=Výňatek souboru \texttt{plugins/icmp/packet.h} definující typy \texttt{ICMP} zpráv,language=c,frame=single,numbers=left]
 typedef enum ICMP_PACKET_TYPE
 {
 	ICMP_CONNECTION_REQUEST,
@@ -653,7 +649,6 @@ typedef enum ICMP_PACKET_TYPE
 	ICMP_DATA
 } ICMP_PACKET_TYPE;
       \end{lstlisting}
-      \label{code:icmp-types}
     \end{figure}
     
     Zprávy typu \texttt{CONNECTION\_REQUEST}, \texttt{AUTH\_CHALLENGE}, \texttt{AUTH\_RESPONSE},\\ \texttt{CONNECTION\_ACCEPT}, \texttt{CONNECTION\_REJECT} a \texttt{DATA} jsou implementovány přesně dle specifikace \ref{subsec:msg-types} \textit{Popis základních servisních zpráv}.
@@ -775,7 +770,7 @@ Vhodnými kandidáty jsou tedy porty \texttt{123} (\texttt{NTP}) a \texttt{5060}
     Typ zprávy označuje jeden z~typů, zachycených v~ukázce kódu \ref{code:udp-types}:
         
     \begin{figure}[h]
-	\begin{lstlisting}[caption=Výňatek souboru \texttt{plugins/udp/packet.h} definující typy \texttt{UDP} zpráv,language=c,frame=single,numbers=left]
+	\begin{lstlisting}[label=code:udp-types,caption=Výňatek souboru \texttt{plugins/udp/packet.h} definující typy \texttt{UDP} zpráv,language=c,frame=single,numbers=left]
 typedef enum UDP_PACKET_TYPE
 {
 	UDP_CONNECTION_REQUEST,
@@ -787,12 +782,11 @@ typedef enum UDP_PACKET_TYPE
 	UDP_DATA
 } UDP_PACKET_TYPE;
       \end{lstlisting}
-      \label{code:udp-types}
     \end{figure}
 
     Z~výňatku kódu je patrná analogie s~výčtem zpráv \ref{subsec:icmp-msg-types} z~podkapitoly \textit{Plugin pro \texttt{ICMP} tunelování}. Jediným rozdílem oproti dříve popsaným typům zpráv je absence zpráv typu \texttt{NATPACKET}, protože protistrana (server) je schopen s~klientem za \texttt{NAT} komunikovat díky překladu portů přímo. Klíčové jsou tím pádem \texttt{KEEPALIVE} zprávy, které slouží zejména k~přesvědčení \texttt{NAT} zařízení o~tom, že komunikace ještě neustala. Díky tomu může server komunikovat s~klientem i skrze \texttt{NAT}.
     
-    Protože se však význam ostatních zpráv typu \texttt{CONNECTION\_REQUEST}, \texttt{AUTH\_CHALLENGE}, \texttt{AUTH\_RESPONSE},\\ \texttt{CONNECTION\_ACCEPT}, \texttt{CONNECTION\_REJECT} a \texttt{DATA} nijak nemění oproti specifikaci \ref{subsec:msg-types} \textit{Popis základních servisních zpráv}, je jejich opětovný popis vynechán ve prospěch odkazu na původní specifikaci.
+    Protože se však význam ostatních zpráv typu \texttt{CONNECTION\_REQUEST},\\ \texttt{AUTH\_CHALLENGE}, \texttt{AUTH\_RESPONSE}, \texttt{CONNECTION\_ACCEPT}, \texttt{CONNECTION\_REJECT} a \texttt{DATA} nijak nemění oproti specifikaci \ref{subsec:msg-types} \textit{Popis základních servisních zpráv}, je jejich opětovný popis vynechán ve prospěch odkazu na původní specifikaci.
      Zprávy 
 
     Velmi podobný je také sekvenční diagram \ref{diag:seq-udp-tcp} komunikace klienta a serveru při pokusu o~navázání spojení. V~diagramu se nadále nevyskytují zprávy typu \texttt{NATPACKET}.
@@ -1089,7 +1083,7 @@ typedef enum SCTP_PACKET_TYPE
     
     
     \begin{figure}[h]
-	\begin{lstlisting}[caption=Část výstupu nástroje \texttt{dig} demonstrující užití \texttt{EDNS} v~praxi (velikost \texttt{UDP} paketu 1536 bajtů od DNS serveru \texttt{1.1.1.1} (provozovatel \textit{Cloudflare} a \textit{APNIC}),frame=single,numbers=left]
+	\begin{lstlisting}[label=code:dig-dns,caption=Část výstupu nástroje \texttt{dig} demonstrující užití \texttt{EDNS} v~praxi (velikost \texttt{UDP} paketu 1536 bajtů od DNS serveru \texttt{1.1.1.1} (provozovatel \textit{Cloudflare} a \textit{APNIC}),frame=single,numbers=left]
 $ dig fit.cvut.cz @1.1.1.1
 ;; Got answer:
 ;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
@@ -1103,7 +1097,6 @@ $ dig fit.cvut.cz @1.1.1.1
 fit.cvut.cz.		797	IN	A     147.32.232.248
 
       \end{lstlisting}
-      \label{code:dig-dns}
     \end{figure}
 
     
@@ -1131,14 +1124,13 @@ fit.cvut.cz.		797	IN	A     147.32.232.248
     
     
     \begin{figure}[h]
-	\begin{lstlisting}[caption=Demonstrace ignorování velikosti písmen v~doménových jménech,frame=single,numbers=left]
+	\begin{lstlisting}[label=code:dns-case-insensitive,caption=Demonstrace ignorování velikosti písmen v~doménových jménech,frame=single,numbers=left]
 $ dig +short fit.cvut.cz A @8.8.8.8
 147.32.232.248
 
 $ dig +short fIT.CvUt.cZ A @8.8.8.8
 147.32.232.248
       \end{lstlisting}
-      \label{code:dns-case-insensitive}
     \end{figure}
 
     
@@ -1158,7 +1150,7 @@ $ dig +short fIT.CvUt.cZ A @8.8.8.8
     
     \subsubsection{Použití jiných typů \texttt{DNS} záznamů}
     
-    Mimo záznam typu \texttt{TXT} a experimentální typ \texttt{NULL}, popsaný v~podkapitole \ref{sec:dns-encoding}\textit{Kódování dat tunelu}, je možné data ze serveru ke klientovi přenášet i pomocí jiných typů záznamů. Jedná se o~běžněji používané \texttt{DNS} záznamy, na které se však váží různá omezení a nejsou proto ideálními kandidáty pro přenos dat. Jedná se zejména o~typy \texttt{A}, \texttt{AAAA}, \texttt{CNAME}, \texttt{NS} a \texttt{MX}. Výhodou užití těchto \texttt{DNS} záznamů je nižší riziko detekce tunelu.
+    Mimo záznam typu \texttt{TXT} a experimentální typ \texttt{NULL}, popsaný v~podkapitole \ref{sec:dns-encoding} \textit{Kódování dat tunelu}, je možné data ze serveru ke klientovi přenášet i pomocí jiných typů záznamů. Jedná se o~běžněji používané \texttt{DNS} záznamy, na které se však váží různá omezení a nejsou proto ideálními kandidáty pro přenos dat. Jedná se zejména o~typy \texttt{A}, \texttt{AAAA}, \texttt{CNAME}, \texttt{NS} a \texttt{MX}. Výhodou užití těchto \texttt{DNS} záznamů je nižší riziko detekce tunelu.
     
     
     \subsection{Implementace pluginu pro \texttt{DNS} tunelování}
@@ -1199,7 +1191,7 @@ Pro sestavení softwarového řešení ze zdrojových kódů bylo třeba ve vytv
 \subsection{Testování simulovaného stahování souboru pomocí \texttt{HTTP}}
 \label{test:http}
 
-Tento test se skládal z~testování simulace činnosti reálného uživatele -- stahování dat pomocí protokolu \texttt{HTTP}, protože se jedná o~jeden z~nejtypičtějších scénářů uživatele Internetu. Za tímto účelem byl na serverové straně tunelu vytvořen binární soubor o~velikosti 16MB s~pomocí příkazu zachyceného v~ukázce kódu \ref{code:dd}.
+Tento test se skládal z~testování simulace činnosti reálného uživatele -- stahování dat pomocí protokolu \texttt{HTTP}, protože se jedná o~jeden z~nejtypičtějších scénářů uživatele Internetu. Za tímto účelem byl na serverové straně tunelu vytvořen binární soubor o~velikosti 16 MB s~pomocí příkazu zachyceného v~ukázce kódu \ref{code:dd}.
 
 
     \begin{figure}[h]
@@ -1317,7 +1309,7 @@ Jedním z~nejpopulárnějších a nejaktivněji vyvíjených projektů pro tunel
 
 Prvním krokem pro otestování software je stejná sada testů jako pro softwarové řešení vyvinuté pro účely této diplomové práce. Testovací prostředí je popsáno v~kapitole \ref{test:prostredi} \textit{Základní testovací prostředí}.
 
-V~případě \texttt{DNS} tunelování je však důležité brát ohled na asymetričnost spojení. Zatímco pro tok dat od serveru ke klientovi existuje více způsobů, pro tok dat směrem od klienta na server tomu tak není. Právě proto se \textit{iodine} snaží nejprve navázat spojení pomocí \texttt{UDP} tunelu na portu používaném službou \texttt{DNS}. Následující tabulka \ref{tab:http-download-iod} a tabulka \ref{tab:iperf-iod} zachycují naměřené časové hodnoty pro tunel pomocí \texttt{UDP} pluginu a software \textit{iodine}. Metodika měření je stejná jako v~podkapitole \ref{test:http} \textit{Testování simulovaného stahování souboru pomocí \texttt{HTTP}} a \ref{test:iperf3} \textit{Testování provozu pomocí nástroje \texttt{iperf3}}.
+V~případě \texttt{DNS} tunelování je však důležité brát ohled na asymetričnost spojení. Zatímco pro tok dat od serveru ke klientovi existuje více způsobů, pro tok dat směrem od klienta na server tomu tak není. Právě proto se \textit{iodine} snaží nejprve navázat spojení pomocí \texttt{UDP} tunelu na portu používaném službou \texttt{DNS}. Následující tabulka \ref{tab:http-download-iod} a tabulka \ref{tab:iperf-iod} zachycují naměřené časové hodnoty pro tunel pomocí \texttt{UDP} pluginu a software \textit{iodine}. Metodika měření je stejná jako v~podkapitole \ref{test:http} \textit{Testování simulovaného stahování souboru pomocí \texttt{HTTP}} a \ref{test:iperf3} \textit{Testování provozu pomocí nástroje }\texttt{iperf3}.
 
 Pro testování byla nutná úprava \texttt{DNS} záznamů veřejně dostupné domény. Za tímto účelem jsem použil svou doménu \texttt{cernac.cz}, respektive nově vzniklou subdoménu \texttt{t1.cernac.cz} a její nameserver, zajištěný softwarem \textit{iodine} na adrese \texttt{t1ns.cernac.cz}. Software \textit{iodine} byl spuštěn s~výchozími parametry dle uživatelské příručky\cite{iodine-repo}.
 
@@ -1367,7 +1359,7 @@ Zajímavější je testování software \textit{iodine} na síti, které nepovol
     \end{table}
     
     
-    Z~tabulky \ref{tab:iodine-down-up} lze vyčíst, že rychlosti přenosu v~ideálních podmínkách nejsou srovnatelné s~jinými analyzovanými technikami tunelování. Pro srovnání lze uvést fakt, že průměrné YouTube video v~nejnižší dostupné kvalitě \texttt{144p} vyžaduje prostupnost zhruba 32KB/s\cite{youtube-data-usage}. Oficiální webové stránky fakulty, umístěné na doméně \texttt{fit.cvut.cz}, dosahují po sečtení všech závislostí velikosti 2,9MB. Načtení celé webové stránky by tedy vzhledem k~průměrné rychlosti stahování trvalo více, než 80 vteřin.
+    Z~tabulky \ref{tab:iodine-down-up} lze vyčíst, že rychlosti přenosu v~ideálních podmínkách nejsou srovnatelné s~jinými analyzovanými technikami tunelování. Pro srovnání lze uvést fakt, že průměrné YouTube video v~nejnižší dostupné kvalitě \texttt{144p} vyžaduje prostupnost zhruba 32 KB/s\cite{youtube-data-usage}. Oficiální webové stránky fakulty, umístěné na doméně \texttt{fit.cvut.cz}, dosahují po sečtení všech závislostí velikosti 2,9 MB. Načtení celé webové stránky by tedy vzhledem k~průměrné rychlosti stahování trvalo více, než 80 vteřin.
     
     Jiné volby kódování dat, typu \texttt{DNS} záznamů pro komunikaci a dalších parametrů dosahují dle oficiálních informací\cite{iodine-repo} horších vlastností. Vzhledem k~dosaženým rychlostem v~optimálních podmínkách nebyly neoptimální konfigurace nástroje \textit{iodine} dále testovány.
     
@@ -1444,7 +1436,7 @@ Zkoumaná řešení byla dále otestována na vybraných existujících \textit{
 \begin{conclusion}
 	Cílem této diplomové práce byl návrh, implementace a otestování protokolu pro obcházení limitací \textit{captive portálů}. Tento cíl byl naplněn návrhem softwarového řešení s~důrazem na snadnou rozšířitelnost pomocí struktury pluginů. Byly implementovány čtyři samostatné pluginy pro tunelování síťového provozu na základě různých technik pro obcházení \textit{captive portálu}. Jednotlivé techniky byly otestovány jak s~pomocí specializovaných nástrojů pro měření prostupnosti, tak simulací reálné činnosti uživatele (\texttt{WWW} provoz). V~poslední fázi testování byla implementace společně s~jiným dostupným řešením otestována na reálných implementacích \textit{captive portálu}.
 	
-	Čtenářům této práce byl poskytnut náhled do problematiky technik řízení síťového přístupu pomocí \textit{captive portálu}, který -- jak bylo v~rámci práce demonstrováno -- není ideálním řešením této problematiky. Praktickým přínosem pro čtenáře může být vyvinutý software pro obcházení omezení \textit{captive portálů}, či odkazovaná současná řešení stejného účelu. Zejména situace \texttt{DNS} tunelování je zajímavou, díky existenci \texttt{open-source} nástrojů pro tichou exfiltraci dat, nebo pro řízení botnetu.
+	Čtenářům této práce byl poskytnut náhled do problematiky technik řízení síťového přístupu pomocí \textit{captive portálu}, který -- jak bylo v~rámci práce demonstrováno -- není ideálním řešením této problematiky. Praktickým přínosem pro čtenáře může být vyvinutý software pro obcházení omezení \textit{captive portálů}, či odkazovaná současná řešení stejného účelu. Zejména situace \texttt{DNS} tunelování je zajímavou, díky existenci \textit{open-source} nástrojů pro tichou exfiltraci dat, nebo pro řízení botnetu.
 	
 	Práce dále nabízí přehled nejběžnějších metod provozování síťových tunelů skrze \textit{captive portál}, což může čtenář-správce sítě využít společně s~vyvinutým software pro otestování stavu provozované sítě.
 	
