@@ -1177,6 +1177,7 @@ $ dig +short fIT.CvUt.cZ A @8.8.8.8
 Tato kapitola je věnována testování implementovaných pluginů, srovnání s jiným dostupným software a porovnání vlastností vytvořených síťových tunelů.
 
 \section{Základní testovací prostředí}
+\label{test:prostredi}
 
 Jako klientská část pro testování implementovaného software a ostatních srovnávaných programů byl použit virtualizovaný operační systém \textit{Ubuntu 17.10 x64} serverové verze s 8GB paměti, 4 jádry procesoru. Přístup do sítě byl záměrně omezen na hodnotu 10 Mbit/s, aby byl minimalizován efekt \uv{úzkého hrdla} v částech síťové infrastruktury, které nelze z pozice uživatele ovlivnit. Distribuce \textit{Ubuntu} byla zvolena pro široký výběr a snadnou instalaci systémových balíčků, nutných k sestavení a spuštění softwarového řešení. Serverová verze distribuce \textit{Ubuntu} byla zvolena pro minimalizaci podílu částí operačního systému na síťovém provozu (například systém automatických aktualizací, nebo jiná aktivita vyvinutá uživatelem).
 
@@ -1196,6 +1197,7 @@ Pro sestavení softwarového řešení ze zdrojových kódů bylo třeba ve vytv
 
 
 \subsection{Testování simulovaného stahování souboru pomocí \texttt{HTTP}}
+\label{test:http}
 
 Tento test se skládal z testování simulace činnosti reálného uživatele -- stahování dat pomocí protokolu \texttt{HTTP}, protože se jedná o jeden z nejtypičtějších scénářů uživatele Internetu. Za tímto účelem byl na serverové straně tunelu vytvořen binární soubor o velikosti 16MB s pomocí příkazu zachyceného v ukázce kódu \ref{code:dd}.
 
@@ -1259,6 +1261,7 @@ Saving to: "/dev/null"
     \end{figure}
 
 \subsection{Testování provozu pomocí nástroje \texttt{iperf3}}
+\label{test:iperf3}
 
 Nástroj \textit{iperf} slouží k testování síťové prostupnosti. K testování byla použita nejnovější stabilní verze \texttt{iperf 3.1.3}. Délka testování byla ponechána na výchozí hodnotě 10 vteřin. Testování proběhlo pomocí protokolu \texttt{TCP}.
 
@@ -1305,6 +1308,137 @@ iperf Done.
       \end{lstlisting}
     \end{figure}
 
+
+\subsection{Srovnání s dostupnými nástroji pro \texttt{DNS} tunelování}
+
+Jedním z nejpopulárnějších a nejaktivněji vyvíjených projektů pro tunelování pomocí \texttt{DNS} je projekt \textit{iodine}. Dle oficiálního repozitáře zdrojových kódů\cite{iodine-repo} do projektu přispělo několik desítek vývojářů. Výsledné softwarové řešení podporuje řadu automatizovaných mechanizmů pro detekci optimálních parametrů síťového tunelu. Implementace rovněž využívá virtuálních síťových rozhraní typu \textit{TUN}. Nástroj je schopen detekovat možnost \texttt{UDP} tunelování skrze port 53, kterou při spuštění ve výchozí podobě otestuje jako první. Pokud dostupná není, pokusí se využít některý z typů \texttt{DNS} odpovědí v pořadí od \texttt{NULL}, přes \texttt{TXT}, \texttt{SRV}, \texttt{MX}, \texttt{CNAME} a \texttt{A}. Pořadí je dáno známou prostupností vybraného typu záznamu\cite{iodine-repo}. Software automaticky rozpozná maximální přípustnou délku požadavků a aplikuje ji (pokud uživatel explicitně nespecifikuje jinak). Různé způsoby kódování dat do \texttt{DNS} provozu autoři označují jako \textit{kodeky}.
+
+\subsubsection{Testování software ve výchozím nastavení na síti bez omezení}
+
+Prvním krokem pro otestování software je stejná sada testů jako pro softwarové řešení vyvinuté pro účely této diplomové práce. Testovací prostředí je popsáno v kapitole \ref{test:prostredi} \textit{Základní testovací prostředí}.
+
+V případě \texttt{DNS} tunelování je však důležité brát ohled na asymetričnost spojení. Zatímco pro tok dat od serveru ke klientovi existuje více způsobů, pro tok dat směrem od klienta na server tomu tak není. Právě proto se \textit{iodine} snaží nejprve navázat spojení pomocí \texttt{UDP} tunelu na portu používaném službou \texttt{DNS}. Následující tabulka \ref{tab:http-download-iod} a tabulka \ref{tab:iperf-iod} zachycují naměřené časové hodnoty pro tunel pomocí \texttt{UDP} pluginu a software \textit{iodine}. Metodika měření je stejná jako v podkapitole \ref{test:http} \textit{Testování simulovaného stahování souboru pomocí \texttt{HTTP}} a \ref{test:iperf3} \textit{Testování provozu pomocí nástroje \texttt{iperf3}}.
+
+Pro testování byla nutná úprava \texttt{DNS} záznamů veřejně dostupné domény. Za tímto účelem jsem použil svou doménu \texttt{cernac.cz}, respektive nově vzniklou subdoménu \texttt{t1.cernac.cz} a její nameserver, zajištěný softwarem \textit{iodine} na adrese \texttt{t1ns.cernac.cz}. Software \textit{iodine} byl spuštěn s výchozími parametry dle uživatelské příručky\cite{iodine-repo}.
+
+    \begin{table}[h]
+	\centering
+	\begin{tabular}{|l||l|l|}
+	\hline
+	Nástroj & Délka přenosu & Průměrná rychlost přenosu \\ \hline \hline
+	\texttt{UDP} plugin         & 15,1 vteřin   & 1,06 MB/s                 \\ \hline
+	nástroj \textit{iodine}& 15,2 vteřin   & 1,05 MB/s                 \\ \hline
+	\end{tabular}
+	\caption{Tabulka zachycující naměřenou dobu přenosu dat pomocí protokolu \texttt{HTTP} s využitím implementovaného \texttt{UDP} tunelu a stejné funkcionality software \textit{iodine}}
+	\label{tab:http-download-iod}
+    \end{table}
+    
+    
+    \begin{table}[h]
+	\centering
+	\begin{tabular}{|l||l|l|}
+	\hline
+	Plugin   & Průměrná rychlost přenosu \\ \hline \hline
+	\texttt{UDP}       & 1,01 MB/s                 \\ \hline
+	nástroj \textit{iodine}  & 1,01 MB/s                 \\ \hline
+	\end{tabular}
+	\caption{Tabulka zachycující naměřenou dobu přenosu dat pomocí nástroje \texttt{iperf3} s využitím implementovaného \texttt{UDP} tunelu a stejné funkcionality software \textit{iodine}}
+	\label{tab:iperf-iod}
+    \end{table}
+    
+     Z tabulek vyplývá, že obě implementace \texttt{UDP} tunelování dosahují stejných výsledků z hlediska měření prostupnosti. Jedná se opět o symetrické spojení, proto jsou uvedeny údaje pouze v jednom směru spojení, testovány však byly oba směry -- se stejnými výsledky.
+     
+     
+\subsubsection{Testování software s vynuceným použitím \texttt{DNS}}
+
+Zajímavější je testování software \textit{iodine} na síti, které nepovoluje přímý \texttt{UDP} tunel k cílovému serveru s protějškem tunelu. Toto chování bylo simulováno pomocí přepínače \texttt{--r}, který software přiměje ignorovat možnost přímého \texttt{UDP} spojení. Dle oficiální stránky projektu je neoptimálnějšího spojení dosaženo s užitím záznamů typu \texttt{NULL} a kodeku \texttt{Raw}, případně \texttt{Base128}. Pro účely testování bylo navázáno spojení s těmito parametry a aplikovány stejné testovací metody. Protože se jedná o asymetrické spojení (prostupnost jednoho směru spojení se liší od opačného směru), jsou uvedeny údaje pro každý směr zvlášť.
+
+
+    \begin{table}[h]
+	\centering
+	\begin{tabular}{|l||l|l|}
+	\hline
+	Směr  & Délka přenosu & Průměrná rychlost přenosu \\ \hline \hline
+	Stahování ze serveru  & 544,3 vteřin   & 36,1 KB/s                 \\ \hline
+	Nahrávání na server   & 577,6 vteřin   & 23,7 KB/s                 \\ \hline
+	\end{tabular}
+	\caption{Tabulka zachycující naměřenou dobu přenosu dat pomocí protokolu \texttt{HTTP} v obou směrech využitím software \textit{iodine} -- \texttt{DNS} záznamy typu \texttt{NULL}}
+	\label{tab:iodine-down-up}
+    \end{table}
+    
+    
+    Z tabulky \ref{tab:iodine-down-up} lze vyčíst, že rychlosti přenosu v ideálních podmínkách nejsou srovnatelné s jinými analyzovanými technikami tunelování. Pro srovnání lze uvést fakt, že průměrné YouTube video v nejnižší dostupné kvalitě \texttt{144p} vyžaduje prostupnost zhruba 32KB/s\cite{youtube-data-usage}. Oficiální webové stránky fakulty, umístěné na doméně \texttt{fit.cvut.cz}, dosahují po sečtení všech závislostí velikosti 2,9MB. Načtení celé webové stránky by tedy vzhledem k průměrné rychlosti stahování trvalo více, než 80 vteřin.
+    
+    Jiné volby kódování dat, typu \texttt{DNS} záznamů pro komunikaci a dalších parametrů dosahují dle oficiálních informací\cite{iodine-repo} horších vlastností. Vzhledem k dosaženým rychlostem v optimálních podmínkách nebyly neoptimální konfigurace nástroje \textit{iodine} dále testovány.
+    
+    
+    \begin{table}[h]
+	\centering
+	\begin{tabular}{|l||l|l|}
+	\hline
+	Směr  & Průměrná rychlost přenosu \\ \hline \hline
+	Stahování ze serveru  & 37,2 KB/s                 \\ \hline
+	Nahrávání na server   & 25,5 KB/s                 \\ \hline
+	\end{tabular}
+	\caption{Tabulka zachycující naměřenou dobu přenosu dat pomocí nástroje \texttt{iperf3} v obou směrech využitím software \textit{iodine} -- \texttt{DNS} záznamy typu \texttt{NULL}}
+	\label{tab:iperf-download}
+    \end{table}
+    
+    
+\section{Testování \textit{captive portálů}}
+
+Vytvořené softwarové řešení a vybrané řešení pro \texttt{DNS} tunelování je dále testováno na dostupných \textit{captive portálech}. Avšak jak bylo uvedeno v úvodní kapitole -- řešení pro \textit{captive portál} jsou velmi rozmanitá a mnohdy dodaná výrobcem specifického zařízení. Testování tedy proběhlo na vybraných \textit{open-source} řešeních.
+
+\subsection{\textit{WiFiDog}}
+
+Software \textit{WiFiDog} je open-source řešení pro \textit{captive portál}, dostupné od roku 2004. Je vytvořen v jazyce \textit{C} a založen na funkcionalitě \texttt{iptables}, které jsou vyžadovány pro správný chod \textit{captive portálu}. Díky volbě jazyka a minimálním systémovým požadavkům je možné používat software nejen na většině Linuxových distribucích, ale rovněž samostatných zařízeních (dedikované směrovače a přístupových bodech WiFi sítí). \textit{WiFiDog} je proto distribuován jako balíček pro platformu \textit{OpenWRT} (a deriváty), která je primárně určena právě pro zmíněná dedikovaná zařízení. Součástí softwarového balíčku je rovněž autentizační server, založen na technologiích \texttt{PHP} a \texttt{PostgreSQL} (případně \texttt{MySQL}).
+
+Výchozí konfigurační soubor \texttt{wifidog.conf} zakazuje všechnu komunikaci neautorizovaným uživatelům, ale explicitně povoluje \texttt{TCP} a \texttt{UDP} porty 53 a 67. Díky tomu je možné komunikovat směrem do Internetu pomocí těchto portů. Mimo tyto porty je také veškerý uživatelský provoz před ověřením uživatele směrován pomocí \texttt{iptables} na přihlašovací stránku \textit{captive portálu} (port \texttt{TCP/80}).
+
+    \begin{figure}[h]
+	\begin{lstlisting}[label=code:iperf,caption=Část výchozího konfiguračního souboru captive portálu WiFiDog,frame=single,numbers=left]
+[ ... ]
+# Used for unvalidated users
+#
+# XXX The redirect code adds the Default DROP clause.
+FirewallRuleSet unknown-users {
+    FirewallRule allow udp port 53
+    FirewallRule allow tcp port 53
+    FirewallRule allow udp port 67
+    FirewallRule allow tcp port 67
+}
+[ ... ]
+      \end{lstlisting}
+    \end{figure}
+
+Toto softwarové řešení je tedy možné obejít prostým \texttt{UDP}, nebo případně \texttt{TCP}, tunelem. V úvahu přichází i \texttt{DNS} tunelování, které však v tomto případě poskytuje nejhorší vlastnosti tunelu.
+
+
+\paragraph{Doporučené volby} Vzhledem k výrazně lepším vlastnostem \texttt{UDP} tunelu oproti \texttt{TCP} tunelu lze doporučit tunelování pomocí pluginu \texttt{--p udp:53}, případně \texttt{--p udp:67}. Jedná se však o doporučení na základě výchozího konfiguračního souboru projektu. \textit{Captive portal} může být v konkrétní veřejné síti provozován se zcela jiným konfiguračním souborem. Protože ale řešení \texttt{WiFiDog} nijak nezasahuje do \texttt{DNS} provozu, je dost dobře možné, že \texttt{UDP} tunelování skrze port 53 bude plošně dostupné v sítích řízených softwarem \textit{WiFiDog}.
+
+
+\subsection{\textit{ChilliSpot}}
+
+\textit{ChilliSpot} je open-source řešení pro \textit{captive portál}, dostupné od dubna roku 2004. Poslední zveřejněná verze pochází ze září roku 2006 (verze \texttt{1.1}). Projekt je vytvořen v jazyce \textit{C} a založen na funkcionalitě \texttt{iptables}, které jsou vyžadovány pro správný chod \textit{captive portálu}. Stejně jako řešení \textit{WiFiDog} je vhodným kandidátem pro použití na dedikovaných zařízeních (WiFi přístupové body, směrovače). Disponuje (pro \textit{captive portál}) typickým webovým rozhraním, ale pro správnou funkčnost požaduje, aby uživatelé měli ve svém prohlížeči otevřené speciální okno, které o aktivitě uživatele periodicky informuje \textit{captive portál}. Toto řešení je krajně nevhodné pro celou řadu zařízení, zejména mobilní telefony a tablety. 
+
+\textit{ChilliSpot} neautentizovaným uživatelům výrazně omezuje možnosti komunikace po síti. Ve výchozím nastavení blokuje veškerý síťový provoz a nepovoluje klientům komunikovat s vlastními \texttt{DNS} servery. Díky tomu není možné jako neautentizovaný uživatel navázat tunelové spojení pomocí \texttt{TCP}, \texttt{UDP} ani \texttt{SCTP} pluginů. Pluginu pro \texttt{ICMP} tunelování je ve funkčnosti dále bráněno blokováním příchozích \texttt{ICMP} \texttt{echo-reply} zpráv. \texttt{HTTP} požadavky jsou podrobeny inspekci a neověřenému uživateli je při pokusu o přístup mimo \textit{captive portál} odpovězeno \texttt{HTTP} kódem \texttt{302 Moved Temporarily} společně s nasměrováním na přihlašovací formulář \textit{captive portálu}.
+
+Jedinou možností, jak komunikovat s okolním světem je prostřednictvím \texttt{DNS} serverů, o kterých byl klient informován v rámci \texttt{DHCP} odpovědi. S pomocí těchto \texttt{DNS} serverů je možné navázat tunelové spojení pomocí \texttt{DNS} tunelování. Jedním z často kladených dotazů na oficiální webové prezentaci projektu\cite{chillispot-faq} je povolení přístupu k jiným \texttt{DNS} serverům (například pro klienty se statisticky nastaveným \texttt{DNS} serverem). Řešením tohoto problému je dle vývojářského týmu projektu \textit{ChilliSpot} zapnutí volby \texttt{UAM AnyDNS} doplněné o spuštění lokálního \texttt{DNS} cache serveru a úpravu \texttt{iptables} pravidel pro směrování veškerého \texttt{UDP/53} provozu na tento lokální \texttt{DNS} server. Pokud však správce \textit{hotspotu} \textbf{pouze} zapne konfigurační volbu \texttt{UAM AnyDNS} bez další úpravy \texttt{iptables}, bude \textbf{všem} klientům umožněno provozovat jakoukoliv komunikaci po Internetu na portu \texttt{UDP/53}. S přihlédnutím na náročnost provozu vlastního \texttt{DNS} cache serveru existuje pravděpodobnost scénáře, kdy síťový správce nechce, nebo nemůže takový server provozovat, ale současně je nutné respektovat staticky konfigurované \texttt{DNS} servery klientů. Doporučený konfigurační soubor na oficiálních webových stránkách projektu \textit{OpenWRT} \textbf{doporučuje} \texttt{UAM AnyDNS} zapnout, ale o doplnění \texttt{itpables} pravidel se již nezmiňuje\cite{chillispot-openwrt}. 
+
+\paragraph{Doporučené volby} Jedinou možností, jak komunikovat skrze \textit{captive protál} \textit{ChilliSpot} s výchozí konfigurací je pomocí \texttt{DNS} tunelování. \textit{ChilliSpot} totiž ve výchozím stavu nezpracovává \texttt{DNS} dotazy. Pokud je navíc povolena funkci \textit{Any-DNS} a \texttt{UDP/53} provoz není násilně směrován na konkrétní server, je možné využít \texttt{UDP} plugin pro tunelování (\texttt{--p udp:53}). V opačném případě zbývá jediná možnost -- \texttt{DNS} tunelování pomocí specifikovaných nebo vynucených \texttt{DNS} serverů.
+
+
+\subsection{CoovaChilli}
+
+Projekt \textit{ChoovaChilli} se označuje jako nástupce projektu \textit{ChilliSpot}, přestože projekt \textit{ChilliSpot} je stále deklarován jako aktivní. S původním projektem tedy sdílí drtivou většinu zdrojových kódů a tím pádem i funkcionalit. Oproti původní implementaci však přidává některé pokročilé vlastnosti jako inspekci \texttt{DNS} provozu a zahazování \texttt{DNS} odpovědí, které obsahují jiné záznamy než-li \texttt{A}, \texttt{CNAME}, \texttt{SOA} nebo \texttt{MX}. (funkce \texttt{DNSPARANOIA}). Doporučené volby pro tunelování vzhledem k \uv{neprůstřelnosti} jiného provozu, než-li \texttt{DNS} proto zůstávají stejné, jako u software \textit{ChilliSpot}.
+    
+\section{Závěry z testování}
+
+V kapitole \textit{Testování} byla zhodnocena prostupnost implementovaných tunelových řešení a porovnána s nejsofistikovanějším dostupným řešením pro \texttt{DNS} tunelování. Propastné rozdíly v naměřených hodnotách poukazují na fakt, že tunelování pomocí plnohodnotného spojení dosahuje výrazně lepších vlastností, než-li spojení svázané restrikcemi a limitacemi konkrétního nosného protokolu (v tomto případě \texttt{DNS}).
+
+Zkoumaná řešení byla dále otestována na vybraných existujících \textit{open-source} řešeních pro \textit{captive portál}. Dle tvrzení správců jednotlivých projektů a dokumentace populární distribuce \textit{OpenWRT} patří vybraná řešení k nejpopulárnějším volbám pro realizaci \textit{captive portálu}. Z úspěšného navázání tunelů skrze testované \textit{captive portály} však nelze vyvodit tak široké závěry, jak by se dle údajné popularity projektů mohlo zdát. Reálně nasazovaná řešení jsou velmi odlišná a často proprietární a \textbf{vždy} závisí na konfiguraci konkrétního \textit{hotspotu}.
+
+     
 
 
 \begin{conclusion}
@@ -1356,7 +1490,7 @@ Otestovaným překladačem je \texttt{gcc} verze \texttt{7.2.0 (Ubuntu 7.2.0-8ub
 Pro usnadnění překladu zdrojových kódů obsahuje softwarový projekt soubor \texttt{CMakeLists.txt}, který zajistí detekci softwarových závislostí a vytvoří lépe známý \texttt{Makefile}. Pro zpracování souboru \texttt{CMakeLists.txt} je nutné využít nástroj \texttt{cmake}, verze alespoň \texttt{3.9}. Vygenerování \texttt{Makefile} lze provést spuštěním \texttt{cmake .} z adresáře, kde se soubor \texttt{CMakeLists.txt} nachází. Po vygenerování \texttt{Makefile} je možné spustit samotný překlad zdrojových kódů pomocí příkazu \texttt{make}. Demonstrace užití příkazů je zachycena v ukázce kódu \ref{code:compile}
 
 \begin{figure}[h]
-	\begin{lstlisting}[label=code:compile,caption=Ukázka překladu zdrojových kódů aplikace,frame=single,numbers=left, linewidth=1.1\textwidth]
+	\begin{lstlisting}[label=code:compile,caption=Ukázka překladu zdrojových kódů aplikace,frame=single,numbers=left]
 $ cmake .
 -- The C compiler identification is GNU 7.2.0
 -- Check for working C compiler: /usr/bin/cc
