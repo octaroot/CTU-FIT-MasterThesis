@@ -141,11 +141,11 @@ Přestože efektu \textit{captive portálu} lze s~velkou úspěšností docílit
  \item přidělená \texttt{IP} adresa zařízení
 \end{itemize}
 
-\textit{Captive portál} lokálně ukládá informace o~autorizovaných uživatelských zařízeních v~síti (zaznamenává jejich \texttt{MAC} a \texttt{IP} adresy). Síťový provoz takových zařízení není narušován. Pokud však uživatel využívá zařízení, které \textit{captive portál} na svém seznamu nenalezne, \textit{captive portál} síťový provoz buď zahodí, nebo zmanipuluje takovým způsobem, aby se uživatel dostal na webovou aplikaci \textit{captive portálu} a mohl se identifikovat. Záznamy na seznamu autorizovaných uživatelů sítě zpravidla podléhají periodickému mazání neaktivních uživatelů -- uživatel je tedy nucen se po delší době nečinnosti opakovaně identifikovat \textit{captive portálu}.
+\textit{Captive portál} lokálně ukládá informace o~autentizovaných uživatelských zařízeních v~síti (zaznamenává jejich \texttt{MAC} a \texttt{IP} adresy). Síťový provoz takových zařízení není narušován. Pokud však uživatel využívá zařízení, které \textit{captive portál} na svém seznamu nenalezne, \textit{captive portál} síťový provoz buď zahodí, nebo zmanipuluje takovým způsobem, aby se uživatel dostal na webovou aplikaci \textit{captive portálu} a mohl se identifikovat. Záznamy na seznamu autentizovaných uživatelů sítě zpravidla podléhají periodickému mazání neaktivních uživatelů -- uživatel je tedy nucen se po delší době nečinnosti opakovaně identifikovat \textit{captive portálu}.
 
-Alternativně k~periodickému promazávání seznamu autorizovaných klientů může \textit{captive portál} vyžadovat, aby uživatel po celou dobu používání sítě měl v~prohlížeči otevřené speciální okno, jehož přítomnost instruuje \textit{captive portál} k~přidělení plnohodnotného síťového přístupu.
+Alternativně k~periodickému promazávání seznamu autentizovaných klientů může \textit{captive portál} vyžadovat, aby uživatel po celou dobu používání sítě měl v~prohlížeči otevřené speciální okno, jehož přítomnost instruuje \textit{captive portál} k~přidělení plnohodnotného síťového přístupu.
 
-Ve chvíli, kdy je \textit{captive portál} schopen rozeznat autorizované a neautorizované uživatele, musí rovněž mít možnost neautorizované uživatele nasměrovat na webovou aplikaci \textit{captive portálu}. Takový cíl \textit{captive portál} často naplňuje prováděním \texttt{MITM} útoku na nově připojené uživatele. Například při přístupu neautorizovaného uživatele na libovolnou webovou stránku protokolem \texttt{HTTP} je jeho provoz odkloněn a vrácena odpověď od \textit{captive portálu}, která prohlížeč uživatele nasměruje na webovou aplikaci \textit{captive portálu}. Kromě této techniky uvádím v~následující části textu i několik dalších.
+Ve chvíli, kdy je \textit{captive portál} schopen rozeznat autentizované a neautentizované uživatele, musí rovněž mít možnost neautentizované uživatele nasměrovat na webovou aplikaci \textit{captive portálu}. Takový cíl \textit{captive portál} často naplňuje prováděním \texttt{MITM} útoku na nově připojené uživatele. Například při přístupu neautentizovaného uživatele na libovolnou webovou stránku protokolem \texttt{HTTP} je jeho provoz odkloněn a vrácena odpověď od \textit{captive portálu}, která prohlížeč uživatele nasměruje na webovou aplikaci \textit{captive portálu}. Kromě této techniky uvádím v~následující části textu i několik dalších.
 
 \subsubsection{\texttt{ICMP} host redirect}
 
@@ -153,11 +153,11 @@ Protokol \texttt{ICMP} specifikuje zprávy, které může směrovač poslat konc
 
 
 \subsubsection{\texttt{HTTP} \texttt{3xx} redirect}
-Při pokusu o~přístup na webovou stránku \texttt{www.example.com} je požadavek klienta odkloněn a odpověď na požadavek zaslána přímo z~\textit{captive portálu}. V~odpovědi je zpravidla využita \texttt{HTTP} hlavička \texttt{302 Found}, která prohlížeč klienta nasměruje na webovou aplikace \textit{captive portálu}, viz Ukázka \ref{verb:http-302}.
+Při pokusu o~přístup na webovou stránku \texttt{www.example.com} je požadavek klienta odkloněn a odpověď na požadavek zaslána přímo z~\textit{captive portálu}. V~odpovědi je zpravidla využita \texttt{HTTP} hlavička \texttt{302 Found}, která prohlížeč klienta nasměruje na webovou aplikace \textit{captive portálu}, viz ukázka \ref{verb:http-302}.
 
 \begin{figure}[h]
   \renewcommand{\lstlistingname}{Ukázka}
-  \begin{lstlisting}[label=verb:http-302, caption={Ukázka přesměrování HTTP požadavku (zkráceno)},frame=single]
+  \begin{lstlisting}[label=verb:http-302, caption={Ukázka přesměrování \texttt{HTTP} požadavku (zkráceno)},frame=single]
   > GET / HTTP/1.1
   > Host: www.example.com
   >
@@ -169,11 +169,11 @@ Při pokusu o~přístup na webovou stránku \texttt{www.example.com} je požadav
 
 \subsubsection{Podvržení \texttt{DNS} odpovědi}
 
-\textit{Captive portál} monitoruje \texttt{DNS} dotazy klientů. Pokud \texttt{DNS} požadavek patří neautorizovanému klientovi, \textit{captive portál} mu nazpět zašle odpověď s~\texttt{IP} adresou webové aplikace \textit{captive portálu} bez ohledu na dotazované doménové jméno. Jedná se o~značně nebezpečnou techniku, protože může snadno dojít k~otrávení \texttt{DNS} cache klienta. Pro minimalizaci takového vedlejšího efektu bývá v~podvržené DNS odpovědi nastavena nulová životnost (hodnota \texttt{TTL = 0}). Takové nastavení by mělo zajistit, že podvržená odpověď nebude zanesena do lokální \texttt{DNS} cache. Ukázka \ref{verb:dns-mitm} zachycuje evidentní podvržení \texttt{IP} adresy serveru \texttt{google.com}.
+\textit{Captive portál} monitoruje \texttt{DNS} dotazy klientů. Pokud \texttt{DNS} požadavek patří neautentizovanému klientovi, \textit{captive portál} mu nazpět zašle odpověď s~\texttt{IP} adresou webové aplikace \textit{captive portálu} bez ohledu na dotazované doménové jméno. Jedná se o~značně nebezpečnou techniku, protože může snadno dojít k~otrávení \texttt{DNS} cache klienta. Pro minimalizaci takového vedlejšího efektu bývá v~podvržené \texttt{DNS} odpovědi nastavena nulová životnost (hodnota \texttt{TTL = 0}). Takové nastavení by mělo zajistit, že podvržená odpověď nebude zanesena do lokální \texttt{DNS} cache. Ukázka \ref{verb:dns-mitm} zachycuje evidentní podvržení \texttt{IP} adresy serveru \texttt{google.com}.
 
 \begin{figure}[h]
   \renewcommand{\lstlistingname}{Ukázka}
-  \begin{lstlisting}[label=verb:dns-mitm, caption={Ukázka podvržení DNS odpovědi},frame=single]
+  \begin{lstlisting}[label=verb:dns-mitm, caption={Ukázka podvržení \texttt{DNS} odpovědi},frame=single]
 $ nslookup google.com
 Server:		192.168.1.1
 Address:	192.168.1.1#53
@@ -191,19 +191,19 @@ Největším problémem \textit{captive portálů} je závislost na technologii 
 
 Z~předcházejících tvrzení však plyne fakt, že \textit{captive portál} je \textbf{závislý} na \texttt{WWW} a tím pádem \textbf{závislý na webovém prohlížeči}. V~historii se ukázalo, že to představuje velký problém pro zařízení s~podporou \texttt{Wi-Fi}, ale bez webového prohlížeče (nebo s~velmi omezeným webovým prohlížečem). Demonstrovat takovou situaci lze na populárním\footnote{prodáno přes 150 milionů kusů\cite{nintendo-sales}} mobilním herním zařízení \textit{Nintendo~DS}. Tento problém v~současnosti řeší protokol \textit{WISPr}\cite{wispr-specs}, který usnadňuje (v~některých případech zcela eliminuje) nutnou interakci uživatele s~webovou aplikací \textit{captive portálu}.
 
-S~rostoucím rozmachem \texttt{HTTPS} na úkor nešifrovaného \texttt{HTTP} mají \textit{captive portály} obtížnější práci s~nasměrováním uživatele na webovou aplikaci \textit{captive portálu}. \textit{Captive portály} využívající podvržené certifikáty se budou muset od dubna 2018 vyrovnat s~ještě větším stupněm nedůvěryhodnosti, díky zavedení nutnosti \textit{Certificate Transparency} v~prohlížeči Google Chrome\cite{google-mandatory-cert-transp}. \textit{Captive portál} by se neměl snažit manipulovat s~šifrovaným spojením, namísto snahy o~modifikaci a \textit{rozbití šifrování} by takový provoz měl být zahazován. Takový postup však nesdílejí všechny implementace \textit{captive portálu}, jak je dále popsáno v~podkapitole Netechnické problémy \ref{subsec:netechnicke-problemy}.
+S~rostoucím rozmachem \texttt{HTTPS} na úkor nešifrovaného \texttt{HTTP} mají \textit{captive portály} obtížnější práci s~nasměrováním uživatele na webovou aplikaci \textit{captive portálu}. \textit{Captive portály} využívající podvržené certifikáty se budou muset od dubna 2018 vyrovnat s~ještě větším stupněm nedůvěryhodnosti, díky zavedení nutnosti \textit{Certificate Transparency} v~prohlížeči Google Chrome\cite{google-mandatory-cert-transp}. \textit{Captive portál} by se neměl snažit manipulovat s~šifrovaným spojením, namísto snahy o~modifikaci a \textit{rozbití šifrování} by takový provoz měl být zahazován. Takový postup však nesdílejí všechny implementace \textit{captive portálu}, jak je dále popsáno v~podkapitole \ref{subsec:netechnicke-problemy} \textit{Netechnické problémy}.
 
 Návrhovým problémem mnoha \textit{captive portálů} je snaha manipulovat s~obsahem komunikace uživatelů sítě. V~mnohých případech je manipulace dosaženo pomocí \texttt{MITM} útoku. Síť, která zcela úmyslně provádí útoky na své uživatele (ať už s~jakýmkoliv účelem) pochopitelně nemůže získat jakoukoliv důvěru uživatelů. \textbf{Síť s~nulovou důvěrou by uživatelé neměli vůbec využívat}.
 
 %TODO tento odstavec - rozsirit, rict jak to dela treba chrome .. nebo windows (ale to musim zjistit, predpokladam ze podobne jako chrome). U FF zjistit co se stane, kdyz detekuje captive -> screen? lepsi by byl z OS. Zminit dalsi OS? jako android/ios atp.
 
-Mnohé softwarové produkty dokáží detekovat omezený síťový provoz -- například operační systém Microsoft Windows, nebo webové prohlížeče Firefox a Chrome. Nadměrná manipulace se síťovým provozem neautorizovaných uživatelů však může tuto funkcionalitu potlačit, což je pro uživatele nežádoucí.
+Mnohé softwarové produkty dokáží detekovat omezený síťový provoz -- například operační systém Microsoft Windows, nebo webové prohlížeče Firefox a Chrome. Nadměrná manipulace se síťovým provozem neautentizovaných uživatelů však může tuto funkcionalitu potlačit, což je pro uživatele nežádoucí.
 
 
 
 %TODO opravdu by to chtelo nejake screenshoty
 
-Jak bylo uvedeno v~podkapitole Realizační technologie \ref{subsec:technologicke-pozadi}, \textit{captive portál} při své práci vychází z~dat, která putují po síti. Do veřejné sítě \textit{hotspotu} je však jednoduché získat přístup. Útočník na zmíněné síti může naslouchat a například pomocí naklonování \texttt{MAC} a \texttt{IP} adres se následně vydávat za jiné účastníky sítě, čímž se neautorizovaný útočník jeví \textit{captive portálu} jako autorizovaný uživatel.
+Jak bylo uvedeno v~podkapitole \ref{subsec:technologicke-pozadi}~\textit{Realizační technologie}, \textit{captive portál} při své práci vychází z~dat, která putují po síti. Do veřejné sítě \textit{hotspotu} je však jednoduché získat přístup. Útočník na zmíněné síti může naslouchat a například pomocí naklonování \texttt{MAC} a \texttt{IP} adres se následně vydávat za jiné účastníky sítě, čímž se neautorizovaný útočník jeví \textit{captive portálu} jako autentizovaný uživatel.
 
 % technicke problemy. je potreba prohlizec
 %    ten ale spousta zarizeni proste nema (herni konzole Nintendo DS napr) -- resi se to \texttt{WISPr}-
@@ -428,13 +428,13 @@ Každý z~implementovaných pluginů se bude navíc v~rámci možností řídit 
     
   \paragraph{\texttt{AUTH\_CHALLENGE}}
   
-    Tento typ zpráv posílá server klientovi jako jednu možnou odpověď na zprávu typu \texttt{CONNECTION\_REQUEST}. Server případné příchozí zprávy typu \texttt{AUTH\_CHALLENGE} ignoruje. Klient po přijetí zpracuje výzvu k~autorizaci (protokol \textit{Challenge-Response}, popsáno v~následující podkapitole \ref{sec:challenge-response}) a výsledek předá serveru (viz následující odstavec \textbf{\texttt{AUTH\_RESPONSE}}). V~závislosti na tom, jestli server uživatele autorizuje bude klientovi odeslána zpráva typu \texttt{CONNECTION\_ACCEPT} a tunelové spojení zahájeno, nebo bude jeho požadavek zamítnut zprávou \texttt{CONNECTION\_REJECT}.
+    Tento typ zpráv posílá server klientovi jako jednu možnou odpověď na zprávu typu \texttt{CONNECTION\_REQUEST}. Server případné příchozí zprávy typu \texttt{AUTH\_CHALLENGE} ignoruje. Klient po přijetí zpracuje výzvu k~autentizaci (protokol \textit{Challenge-Response}, popsáno v~následující podkapitole \ref{sec:challenge-response}) a výsledek předá serveru (viz následující odstavec \textbf{\texttt{AUTH\_RESPONSE}}). V~závislosti na tom, jestli server uživatele autentizuje bude klientovi odeslána zpráva typu \texttt{CONNECTION\_ACCEPT} a tunelové spojení zahájeno, nebo bude jeho požadavek zamítnut zprávou \texttt{CONNECTION\_REJECT}.
     
     Tato zpráva je doplněna o~data, která klient potřebuje k~autentizaci. Jedná se o~výzvu (\textit{challenge}) serveru, kterou klient musí zpracovat. Délka dat je předem známá na základě volby bezpečnostních prostředků, podrobněji popsaných v~následující podkapitole \ref{sec:challenge-response}.
     
   \paragraph{\texttt{AUTH\_RESPONSE}}
   
-    Zprávy tohoto typu odesílá klient serveru. Klient příchozí zprávy tohoto typu ignoruje. Obsahem zprávy je odpověď \textit{Challenge-Response} protokolu na základě předem přijaté zprávy typu \texttt{AUTH\_CHALLENGE}. V~závislosti na tom, jestli server uživatele autorizuje bude klientovi odeslána zpráva typu \texttt{CONNECTION\_ACCEPT} a tunelové spojení zahájeno, nebo bude jeho požadavek zamítnut zprávou \texttt{CONNECTION\_REJECT}.
+    Zprávy tohoto typu odesílá klient serveru. Klient příchozí zprávy tohoto typu ignoruje. Obsahem zprávy je odpověď \textit{Challenge-Response} protokolu na základě předem přijaté zprávy typu \texttt{AUTH\_CHALLENGE}. V~závislosti na tom, jestli server uživatele autentizuje bude klientovi odeslána zpráva typu \texttt{CONNECTION\_ACCEPT} a tunelové spojení zahájeno, nebo bude jeho požadavek zamítnut zprávou \texttt{CONNECTION\_REJECT}.
     
     Tato zpráva je doplněna o~data, která klient předává serveru za účelem autentizace. Jedná se o~odpověď (\textit{response}) na výzvu (\textit{challenge}) serveru, kterou klient zpracoval a server po předání vyhodnotí. Délka dat je předem známá na základě volby bezpečnostních prostředků, podrobněji popsaných v~následující podkapitole \ref{sec:challenge-response}.
     
@@ -444,7 +444,7 @@ Každý z~implementovaných pluginů se bude navíc v~rámci možností řídit 
     
   \paragraph{\texttt{CONNECTION\_REJECT}}
     
-    Touto zprávou server oznamuje zamítnutí klientova požadavku na vytvoření tunelového spojení se serverem. Server příchozí zprávy tohoto typu ignoruje. Zprávu klient obdrží pokud se pokusí připojit k~již obsazenému serveru, nebo se mu nepodaří autorizovat.
+    Touto zprávou server oznamuje zamítnutí klientova požadavku na vytvoření tunelového spojení se serverem. Server příchozí zprávy tohoto typu ignoruje. Zprávu klient obdrží pokud se pokusí připojit k~již obsazenému serveru, nebo se mu nepodaří autentizovat.
     
 
 \subsection{Rozšířené a specializované servisní zprávy}
@@ -464,7 +464,7 @@ Pět výše zmíněných typů servisních zpráv představuje základní sadu z
 
 Serverová část softwarového řešení před navázáním tunelového spojení vyžaduje autentizaci klienta. I~přesto, že tato diplomová práce explicitně neřeší otázky soukromí a bezpečnosti Internetových služeb, považuji alespoň základní úroveň kontroly přístupu za adekvátní. Právě proto je jako součást praktické části diplomové práce implementováno ověřování klientů pomocí protokolu \textit{výzva-odpověď} (známý také jako \textit{Challenge-response protocol}).
 
-Protokol \textit{výzva-odpověď} přímo nespecifikuje konkrétní prostředky pro autorizaci -- může se například jednat o~triviální dvojici údajů jako přihlašovací jméno a heslo, nebo komplexnější metody využívající asymetrické kryptografie. Pro účely této práce je jako technický prostředek použito sdílené tajemství (tzv. \texttt{keyfile}), který může obsahovat jako značné množství (řádově tisíce) bajtů dat, tak i relativně krátké (řádově desítky) znaků. Je tudíž možné jako sdílené tajemství použít buď soubor s~binárními daty, distribuován mezi server a klient alternativním kanálem, nebo pouze krátký textový soubor se zapamatovatelným heslem.
+Protokol \textit{výzva-odpověď} přímo nespecifikuje konkrétní prostředky pro autentizaci -- může se například jednat o~triviální dvojici údajů jako přihlašovací jméno a heslo, nebo komplexnější metody využívající asymetrické kryptografie. Pro účely této práce je jako technický prostředek použito sdílené tajemství (tzv. \texttt{keyfile}), který může obsahovat jako značné množství (řádově tisíce) bajtů dat, tak i relativně krátké (řádově desítky) znaků. Je tudíž možné jako sdílené tajemství použít buď soubor s~binárními daty, distribuován mezi server a klient alternativním kanálem, nebo pouze krátký textový soubor se zapamatovatelným heslem.
 
 Na základě sdíleného tajemství vytvoří klient otisk (\textit{hash}), který na \textit{výzvu} serveru zašle jako \textit{odpověď}. Server stejnou cestou vytvoří svůj otisk dat a výsledek porovná. Pokud jsou otisky stejné, patrně klient a server znají sdílené tajemství a klientovi je povoleno navázat tunelové spojení.
 
@@ -501,12 +501,12 @@ Očekávaná délka dat zprávy \texttt{AUTH\_CHALLENGE} tedy představuje 256 b
 	      ($(Server)!0.15!(server_ground)$);
     
     \draw[<-] ($(Klient)!0.35!(client_ground)$) --
-		node[above,scale=1,midway]{Výzva k~autorizaci (\texttt{AUTH\_REQUEST}$_{\texttt{32B}}$)}
+		node[above,scale=1,midway]{Výzva k~autentizaci (\texttt{AUTH\_REQUEST}$_{\texttt{32B}}$)}
 		node[below,scale=1,midway]{\texttt{(unikátní hodnota)}}
 	      ($(Server)!0.35!(server_ground)$);
     
     \draw[->] ($(Klient)!0.55!(client_ground)$) --
-		node[above,scale=1,midway]{Odpověď na výzvu k~autorizaci (\texttt{AUTH\_RESPONSE}$_{\texttt{32B}}$)} 
+		node[above,scale=1,midway]{Odpověď na výzvu k~autentizaci (\texttt{AUTH\_RESPONSE}$_{\texttt{32B}}$)} 
 		node[below,scale=1,midway]{\texttt{HASH(unikátní hodnota || sdílené tajemství)}} 
 	      ($(Server)!0.55!(server_ground)$);
     
@@ -682,8 +682,8 @@ typedef enum ICMP_PACKET_TYPE
     \draw (Server) -- (server_ground);
     \draw[->] ($(Klient)!0.15!(client_ground)$) -- node[above,scale=1,midway]{Požadavek o~spojení (\texttt{CONNECTION\_REQUEST})} ($(Server)!0.15!(server_ground)$);
     
-    \draw[<-] ($(Klient)!0.30!(client_ground)$) -- node[above,scale=1,midway]{Výzva k~autorizaci (\texttt{AUTH\_REQUEST})} ($(Server)!0.30!(server_ground)$);
-    \draw[->] ($(Klient)!0.34!(client_ground)$) -- node[below,scale=1,midway]{Odpověď na výzvu k~autorizaci (\texttt{AUTH\_RESPONSE})} ($(Server)!0.34!(server_ground)$);
+    \draw[<-] ($(Klient)!0.30!(client_ground)$) -- node[above,scale=1,midway]{Výzva k~autentizaci (\texttt{AUTH\_REQUEST})} ($(Server)!0.30!(server_ground)$);
+    \draw[->] ($(Klient)!0.34!(client_ground)$) -- node[below,scale=1,midway]{Odpověď na výzvu k~autentizaci (\texttt{AUTH\_RESPONSE})} ($(Server)!0.34!(server_ground)$);
     
     \draw[<-] ($(Klient)!0.55!(client_ground)$) -- node[above,scale=1,midway]{Přijetí požadavku (\texttt{CONNECTION\_ACCEPT})} ($(Server)!0.55!(server_ground)$);
     
@@ -810,8 +810,8 @@ typedef enum UDP_PACKET_TYPE
     \draw (Server) -- (server_ground);
     \draw[->] ($(Klient)!0.15!(client_ground)$) -- node[above,scale=1,midway]{Požadavek o~spojení (\texttt{CONNECTION\_REQUEST})} ($(Server)!0.15!(server_ground)$);
     
-    \draw[<-] ($(Klient)!0.35!(client_ground)$) -- node[above,scale=1,midway]{Výzva k~autorizaci (\texttt{AUTH\_REQUEST})} ($(Server)!0.35!(server_ground)$);
-    \draw[->] ($(Klient)!0.40!(client_ground)$) -- node[below,scale=1,midway]{Odpověď na výzvu k~autorizaci (\texttt{AUTH\_RESPONSE})} ($(Server)!0.40!(server_ground)$);
+    \draw[<-] ($(Klient)!0.35!(client_ground)$) -- node[above,scale=1,midway]{Výzva k~autentizaci (\texttt{AUTH\_REQUEST})} ($(Server)!0.35!(server_ground)$);
+    \draw[->] ($(Klient)!0.40!(client_ground)$) -- node[below,scale=1,midway]{Odpověď na výzvu k~autentizaci (\texttt{AUTH\_RESPONSE})} ($(Server)!0.40!(server_ground)$);
     
     \draw[<-] ($(Klient)!0.65!(client_ground)$) -- node[above,scale=1,midway]{Přijetí požadavku (\texttt{CONNECTION\_ACCEPT})} ($(Server)!0.65!(server_ground)$);
     
@@ -983,8 +983,8 @@ typedef enum SCTP_PACKET_TYPE
     \draw (Server) -- (server_ground);
     \draw[->] ($(Klient)!0.15!(client_ground)$) -- node[above,scale=1,midway]{Požadavek o~spojení (\texttt{CONNECTION\_REQUEST})} ($(Server)!0.15!(server_ground)$);
     
-    \draw[<-] ($(Klient)!0.35!(client_ground)$) -- node[above,scale=1,midway]{Výzva k~autorizaci (\texttt{AUTH\_REQUEST})} ($(Server)!0.35!(server_ground)$);
-    \draw[->] ($(Klient)!0.40!(client_ground)$) -- node[below,scale=1,midway]{Odpověď na výzvu k~autorizaci (\texttt{AUTH\_RESPONSE})} ($(Server)!0.40!(server_ground)$);
+    \draw[<-] ($(Klient)!0.35!(client_ground)$) -- node[above,scale=1,midway]{Výzva k~autentizaci (\texttt{AUTH\_REQUEST})} ($(Server)!0.35!(server_ground)$);
+    \draw[->] ($(Klient)!0.40!(client_ground)$) -- node[below,scale=1,midway]{Odpověď na výzvu k~autentizaci (\texttt{AUTH\_RESPONSE})} ($(Server)!0.40!(server_ground)$);
     
     \draw[<-] ($(Klient)!0.65!(client_ground)$) -- node[above,scale=1,midway]{Přijetí požadavku (\texttt{CONNECTION\_ACCEPT})} ($(Server)!0.65!(server_ground)$);
     
@@ -1393,7 +1393,7 @@ Vytvořené softwarové řešení a vybrané řešení pro \texttt{DNS} tunelov�
 
 Software \textit{WiFiDog} je open-source řešení pro \textit{captive portál}, dostupné od roku 2004. Je vytvořen v~jazyce \textit{C} a založen na funkcionalitě \texttt{iptables}, které jsou vyžadovány pro správný chod \textit{captive portálu}. Díky volbě jazyka a minimálním systémovým požadavkům je možné používat software nejen na většině Linuxových distribucích, ale rovněž samostatných zařízeních (dedikované směrovače a přístupových bodech WiFi sítí). \textit{WiFiDog} je proto distribuován jako balíček pro platformu \textit{OpenWRT} (a deriváty), která je primárně určena právě pro zmíněná dedikovaná zařízení. Součástí softwarového balíčku je rovněž autentizační server, založen na technologiích \texttt{PHP} a \texttt{PostgreSQL} (případně \texttt{MySQL}).
 
-Výchozí konfigurační soubor \texttt{wifidog.conf} zakazuje všechnu komunikaci neautorizovaným uživatelům, ale explicitně povoluje \texttt{TCP} a \texttt{UDP} porty 53 a 67. Díky tomu je možné komunikovat směrem do Internetu pomocí těchto portů. Mimo tyto porty je také veškerý uživatelský provoz před ověřením uživatele směrován pomocí \texttt{iptables} na přihlašovací stránku \textit{captive portálu} (port \texttt{TCP/80}).
+Výchozí konfigurační soubor \texttt{wifidog.conf} zakazuje všechnu komunikaci neautentizovaným uživatelům, ale explicitně povoluje \texttt{TCP} a \texttt{UDP} porty 53 a 67. Díky tomu je možné komunikovat směrem do Internetu pomocí těchto portů. Mimo tyto porty je také veškerý uživatelský provoz před ověřením uživatele směrován pomocí \texttt{iptables} na přihlašovací stránku \textit{captive portálu} (port \texttt{TCP/80}).
 
     \begin{figure}[h]
 	\begin{lstlisting}[label=code:iperf,caption=Část výchozího konfiguračního souboru captive portálu WiFiDog,frame=single,numbers=left]
